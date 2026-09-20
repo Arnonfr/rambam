@@ -1,0 +1,24 @@
+--- app/src/main/java/com/example/data/chumash/ChumashRepository.kt
++++ app/src/main/java/com/example/data/chumash/ChumashRepository.kt
+@@ -75,10 +75,17 @@
+                 val vNum = vObj.getInt("verseNumber")
+                 val withTeamim = vObj.getString("textWithTeamim")
+                 val plainNikud = vObj.optString("textPlainNikud", removeCantillation(withTeamim))
++                val rashiList = mutableListOf<String>()
++                if (vObj.has("rashi")) {
++                    val rArr = vObj.getJSONArray("rashi")
++                    for (k in 0 until rArr.length()) {
++                        rashiList.add(rArr.getString(k))
++                    }
++                }
+                 verses.add(
+                     ChumashVerse(
+                         verseNumber = vNum,
+                         verseHebrew = toHebrewNumeral(vNum),
+                         textWithTeamim = withTeamim,
+-                        textPlainNikud = plainNikud
++                        textPlainNikud = plainNikud,
++                        rashi = rashiList
+                     )
+                 )
+             }

@@ -1,0 +1,6 @@
+{
+  "name": "חת״ת ורמב״ם יומי",
+  "description": "אפליקציית לימוד רמב״ם וחת״ת יומי - שמירת מקום מדויקת, ספר נשים מנוקד ומסלולי לימוד",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,66 @@
+--- app/src/main/java/com/example/ui/components/StudyTextBlock.kt
++++ app/src/main/java/com/example/ui/components/StudyTextBlock.kt
+@@ -11,6 +11,11 @@
+ import androidx.compose.ui.platform.testTag
+ import androidx.compose.ui.text.font.FontFamily
+ import androidx.compose.ui.text.style.TextAlign
++import androidx.compose.ui.text.SpanStyle
++import androidx.compose.ui.text.buildAnnotatedString
++import androidx.compose.ui.text.font.FontWeight
++import androidx.compose.ui.text.withStyle
++import androidx.compose.foundation.layout.Spacer
++import androidx.compose.foundation.layout.height
++import androidx.compose.foundation.layout.padding
++import androidx.compose.ui.unit.dp
+ import androidx.compose.ui.unit.sp
+ import com.example.data.local.UserPreferences
+ import com.example.ui.theme.FontStyleOption
+@@ -28,6 +33,7 @@
+     textWithNikud: String,
+     textPlain: String,
+     preferences: UserPreferences,
++    rashi: List<String> = emptyList(),
+     modifier: Modifier = Modifier,
+     fontFamily: FontFamily = FontStyleOption.fromId(preferences.fontFamily).fontFamily,
+     textColor: Color = MaterialTheme.colorScheme.onBackground,
+@@ -64,5 +70,39 @@
+             textAlign = TextAlign.Start,
+             modifier = Modifier.fillMaxWidth()
+         )
++        
++        if (rashi.isNotEmpty()) {
++            Spacer(modifier = Modifier.height(16.dp))
++            rashi.forEach { rashiText ->
++                Text(
++                    text = parseHtmlBold(rashiText),
++                    fontSize = (preferences.fontSizeSp * 0.85f).sp, // slightly smaller font
++                    lineHeight = (preferences.fontSizeSp * 0.85f * preferences.lineSpacingMultiplier).sp,
++                    fontFamily = fontFamily, // Or consider a distinct Rashi font if available
++                    color = textColor.copy(alpha = 0.85f),
++                    textAlign = TextAlign.Start,
++                    modifier = Modifier.fillMaxWidth().padding(start = 16.dp, bottom = 8.dp)
++                )
++            }
++        }
+     }
+ }
++
++private fun parseHtmlBold(text: String) = buildAnnotatedString {
++    var currentIndex = 0
++    val startTag = "<b>"
++    val endTag = "</b>"
++    while (currentIndex < text.length) {
++        val nextStart = text.indexOf(startTag, currentIndex)
++        if (nextStart == -1) {
++            append(text.substring(currentIndex))
++            break
++        }
++        append(text.substring(currentIndex, nextStart))
++        val nextEnd = text.indexOf(endTag, nextStart + startTag.length)
++        if (nextEnd == -1) break
++        withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
++            append(text.substring(nextStart + startTag.length, nextEnd))
++        }
++        currentIndex = nextEnd + endTag.length
++    }
++}
