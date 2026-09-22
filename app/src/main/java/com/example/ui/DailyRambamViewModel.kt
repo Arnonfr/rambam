@@ -126,7 +126,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
 
         // Synchronous immediate restore of last reading anchor from disk
         val savedAnchor = readingStateManager.getSavedAnchor()
-        if (savedAnchor != null) {
+        if (savedAnchor != null && savedAnchor.studyDate == effective.toString()) {
             val halachaLetter = HebrewNumberFormatter.toHebrewNumeral(savedAnchor.halachaIndex + 1)
             val dummyPos = ReadingPositionEntity(
                 track = savedAnchor.track,
@@ -155,6 +155,18 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
             refreshDailyChumash(effective)
             refreshDailyTehillim(effective)
             refreshDailyTanya(effective)
+        }
+    }
+
+    private fun selectedStudyDateKey(): String =
+        _uiState.value.dailyLesson?.studyDate ?: _uiState.value.selectedStudyDate.toString()
+
+    private fun <T : ReadingPositionEntity?> onlyForSelectedStudyDay(position: T, track: String): T? {
+        val isToday = _uiState.value.selectedStudyDate == _uiState.value.effectiveToday
+        return if (isToday && readingStateManager.isStudyDateCurrent(track, selectedStudyDateKey())) {
+            position
+        } else {
+            null
         }
     }
 
@@ -217,7 +229,8 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
     private fun observeLatestPosition() {
         viewModelScope.launch {
             repository.getAbsoluteLatestReadingPosition().collectLatest { position ->
-                if (position == null) {
+                val validPosition = position?.let { onlyForSelectedStudyDay(it, it.track) }
+                if (validPosition == null) {
                     _uiState.update {
                         it.copy(
                             latestPosition = null,
@@ -228,6 +241,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
                     return@collectLatest
                 }
                 
+                val position = validPosition
                 when (position.track) {
                     "chumash" -> {
                         val aliyaNum = position.chapterNumber
@@ -311,6 +325,17 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
                     viewingDate = targetDate,
                     dailyLesson = lesson
                 )
+            }
+            if (newEffectiveToday != oldEffectiveToday) {
+                _uiState.update {
+                    it.copy(
+                        latestPosition = null,
+                        latestChapter = null,
+                        latestHalachaTitle = null,
+                        latestTehillimPosition = null,
+                        latestTanyaPosition = null
+                    )
+                }
             }
             observeCompletionsForDate(prefs.selectedTrack, lesson.studyDate)
             refreshDailyChumash(targetDate)
@@ -407,7 +432,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
     fun openTehillimReader(open: Boolean) {
         if (open) {
             viewModelScope.launch {
-                val pos = repository.getLatestReadingPosition("tehillim").firstOrNull()
+                val pos = onlyForSelectedStudyDay(repository.getLatestReadingPosition("tehillim").firstOrNull(), "tehillim")
                 _uiState.update {
                     it.copy(
                         isTehillimReaderOpen = true,
@@ -435,6 +460,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
             halachaId = "verse_${verse.verseNumber}",
             halachaIndex = verse.verseNumber - 1,
             scrollOffsetFraction = 0f,
+            studyDate = selectedStudyDateKey(),
             immediateCommit = true
         )
         
@@ -459,7 +485,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
         viewModelScope.launch {
             _uiState.update { it.copy(isTanyaLoading = true) }
             val lesson = tanyaRepository.getDailyTanyaLesson(date)
-            val pos = repository.getLatestReadingPosition("tanya").firstOrNull()
+            val pos = onlyForSelectedStudyDay(repository.getLatestReadingPosition("tanya").firstOrNull(), "tanya")
             _uiState.update {
                 it.copy(
                     dailyTanya = lesson,
@@ -473,7 +499,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
     fun openTanyaReader(open: Boolean = true) {
         if (open) {
             viewModelScope.launch {
-                val pos = repository.getLatestReadingPosition("tanya").firstOrNull()
+                val pos = onlyForSelectedStudyDay(repository.getLatestReadingPosition("tanya").firstOrNull(), "tanya")
                 _uiState.update {
                     it.copy(
                         isTanyaReaderOpen = true,
@@ -499,6 +525,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
             halachaId = "section_${section.sectionIndex}",
             halachaIndex = section.sectionIndex - 1,
             scrollOffsetFraction = 0f,
+            studyDate = selectedStudyDateKey(),
             immediateCommit = true
         )
         autoSaveJob?.cancel()
@@ -537,7 +564,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
             _uiState.update { it.copy(isChumashLoading = true) }
             val completed = _uiState.value.preferences.completedAliyot
             val lesson = chumashRepository.getDailyChumashLesson(date, completed)
-            val pos = repository.getLatestReadingPosition("chumash").firstOrNull()
+            val pos = onlyForSelectedStudyDay(repository.getLatestReadingPosition("chumash").firstOrNull(), "chumash")
             val activeParasha = lesson?.parashaName ?: ""
             val isSameParasha = pos != null && pos.chapterId == activeParasha
             val targetAliya = lesson?.currentAliyaIndex ?: 1
@@ -556,7 +583,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
         viewModelScope.launch {
             val lesson = _uiState.value.dailyChumash
             val target = aliyaIndex ?: lesson?.currentAliyaIndex ?: 1
-            val pos = repository.getLatestReadingPosition("chumash").firstOrNull()
+            val pos = onlyForSelectedStudyDay(repository.getLatestReadingPosition("chumash").firstOrNull(), "chumash")
             val activeParasha = lesson?.parashaName ?: ""
             val isSameParasha = pos != null && pos.chapterId == activeParasha
             _uiState.update {
@@ -583,6 +610,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
             halachaId = "verse_${verse.verseNumber}",
             halachaIndex = verse.verseNumber - 1,
             scrollOffsetFraction = 0f,
+            studyDate = selectedStudyDateKey(),
             immediateCommit = true
         )
         
@@ -605,7 +633,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
 
     fun resumeChumashReading() {
         viewModelScope.launch {
-            val pos = repository.getLatestReadingPosition("chumash").firstOrNull()
+            val pos = onlyForSelectedStudyDay(repository.getLatestReadingPosition("chumash").firstOrNull(), "chumash")
             if (pos != null && _uiState.value.dailyChumash?.parashaName == pos.chapterId) {
                 openChumashReader(pos.chapterNumber)
             } else {
@@ -816,8 +844,12 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
             }
 
             val track = _uiState.value.preferences.selectedTrack
-            val savedPos = repository.getReadingPosition(track, chapterId)
+            val savedPos = onlyForSelectedStudyDay(
+                repository.getReadingPosition(track, chapterId),
+                track
+            )
             val anchor = readingStateManager.getSavedAnchor()
+                ?.takeIf { it.studyDate == selectedStudyDateKey() && it.track == track }
             val effectiveSavedPos = savedPos ?: if (anchor != null && anchor.chapterId == chapterId) {
                 ReadingPositionEntity(
                     track = track,
@@ -865,6 +897,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
                 halachaId = targetHalachaId,
                 halachaIndex = targetHalachaIdx,
                 scrollOffsetFraction = posToUse?.scrollOffsetFraction ?: 0f,
+                studyDate = selectedStudyDateKey(),
                 immediateCommit = true
             )
 
@@ -947,6 +980,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
             halachaId = halacha.id,
             halachaIndex = safeIndex,
             scrollOffsetFraction = scrollOffsetFraction,
+            studyDate = selectedStudyDateKey(),
             immediateCommit = true
         )
 
@@ -1020,6 +1054,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
             halachaId = halacha.id,
             halachaIndex = safeIndex,
             scrollOffsetFraction = scrollOffsetFraction,
+            studyDate = selectedStudyDateKey(),
             immediateCommit = true
         )
 
