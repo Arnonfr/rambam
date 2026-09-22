@@ -12,6 +12,7 @@ data class SavedReadingAnchor(
     val halachaId: String,
     val halachaIndex: Int,
     val scrollOffsetFraction: Float,
+    val studyDate: String,
     val updatedAt: Long
 )
 
@@ -35,6 +36,7 @@ class ReadingStateManager(context: Context) {
         private const val KEY_HALACHA_INDEX = "halacha_index"
         private const val KEY_OFFSET_FRACTION = "offset_fraction"
         private const val KEY_UPDATED_AT = "updated_at"
+        private const val KEY_STUDY_DATE = "study_date"
     }
 
     fun saveAnchor(
@@ -46,6 +48,7 @@ class ReadingStateManager(context: Context) {
         halachaId: String,
         halachaIndex: Int,
         scrollOffsetFraction: Float,
+        studyDate: String,
         immediateCommit: Boolean = true
     ) {
         val editor = prefs.edit()
@@ -57,6 +60,8 @@ class ReadingStateManager(context: Context) {
             .putString(KEY_HALACHA_ID, halachaId)
             .putInt(KEY_HALACHA_INDEX, halachaIndex)
             .putFloat(KEY_OFFSET_FRACTION, scrollOffsetFraction)
+            .putString(KEY_STUDY_DATE, studyDate)
+            .putString("${KEY_STUDY_DATE}_$track", studyDate)
             .putLong(KEY_UPDATED_AT, System.currentTimeMillis())
 
         if (immediateCommit) {
@@ -81,9 +86,16 @@ class ReadingStateManager(context: Context) {
             halachaId = prefs.getString(KEY_HALACHA_ID, "") ?: "",
             halachaIndex = prefs.getInt(KEY_HALACHA_INDEX, 0),
             scrollOffsetFraction = prefs.getFloat(KEY_OFFSET_FRACTION, 0f),
+            studyDate = prefs.getString(KEY_STUDY_DATE, "") ?: "",
             updatedAt = prefs.getLong(KEY_UPDATED_AT, 0L)
         )
     }
+
+    fun getStudyDate(track: String): String? =
+        prefs.getString("${KEY_STUDY_DATE}_$track", null)
+
+    fun isStudyDateCurrent(track: String, studyDate: String): Boolean =
+        getStudyDate(track) == studyDate
 
     fun clear() {
         prefs.edit().clear().commit()
