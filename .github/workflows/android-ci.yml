@@ -3,6 +3,7 @@ name: Android CI
 on:
   push:
     branches:
+      - main
       - codex/v101-study-cards
   pull_request:
     branches:
@@ -40,6 +41,14 @@ jobs:
         with:
           name: rambam-v101-debug
           path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+      - name: Build release AAB for internal sharing
+        run: gradle bundleRelease --no-daemon --stacktrace
+      - name: Upload internal sharing AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: rambam-v101-internal-aab
+          path: app/build/outputs/bundle/release/app-release.aab
           if-no-files-found: error
       - name: Unit tests
         run: gradle testDebugUnitTest --no-daemon --stacktrace
