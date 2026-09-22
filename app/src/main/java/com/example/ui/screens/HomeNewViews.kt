@@ -27,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.border
@@ -183,68 +184,84 @@ fun MainContentList(
             }
         }
 
-        // Studies
+        // Studies — compact 2×2 watch-style dashboard
         if (uiState.selectedTab == HomeTab.STUDY) {
-            val visibleStudies = uiState.preferences.visibleStudies
-            if (visibleStudies.contains("rambam")) {
-                item {
-                    val isCompleted = uiState.isCurrentChapterCompleted
-                    val trackTag = if (uiState.preferences.selectedTrack == "three") "3 פרקים" else "פרק 1"
-                    StudyItemRow(
-                        title = "רמב״ם",
-                        subtitle = rambamSubtitle,
-                        tag = trackTag,
-                        iconBgColor = Color(0xFFF5DAC2),
-                        iconTintColor = Color(0xFFD98A6C),
-                        icon = Icons.Default.MenuBook,
-                        isCompleted = isCompleted,
-                        onClick = onOpenDailyLesson
-                    )
+            item {
+                val visibleStudies = uiState.preferences.visibleStudies
+                val cards = buildList {
+                    if (visibleStudies.contains("rambam")) {
+                        val total = uiState.dailyLesson?.chapters?.size?.coerceAtLeast(1) ?: 1
+                        val completed = uiState.dailyLesson?.chapters?.count {
+                            uiState.completedChapterIds.contains("${it.sectionId}_${it.chapterNumber}")
+                        } ?: 0
+                        add(
+                            StudyDashboardCard(
+                                eyebrow = if (uiState.preferences.selectedTrack == "three") "שלושה פרקים" else "פרק יומי",
+                                title = "רמב״ם",
+                                subtitle = rambamSubtitle,
+                                metric = "$completed/$total",
+                                progress = completed.toFloat() / total,
+                                colors = listOf(Color(0xFF67F58B), Color(0xFFB9F86B), Color(0xFFFFE86E)),
+                                onClick = onOpenDailyLesson
+                            )
+                        )
+                    }
+                    if (visibleStudies.contains("chumash")) {
+                        val total = uiState.dailyChumash?.allAliyot?.size?.coerceAtLeast(1) ?: 7
+                        val completed = uiState.dailyChumash?.completedCount ?: 0
+                        add(
+                            StudyDashboardCard(
+                                eyebrow = "חת״ת",
+                                title = "חומש",
+                                subtitle = chumashSubtitle,
+                                metric = "$completed/$total",
+                                progress = completed.toFloat() / total,
+                                colors = listOf(Color(0xFFF4A8FF), Color(0xFFD378EF), Color(0xFF8CA9FF)),
+                                onClick = onOpenChumash
+                            )
+                        )
+                    }
+                    if (visibleStudies.contains("tehillim")) {
+                        add(
+                            StudyDashboardCard(
+                                eyebrow = "תהילים יומי",
+                                title = "תהילים",
+                                subtitle = tehillimSubtitle,
+                                metric = "12/30",
+                                progress = 0.40f,
+                                colors = listOf(Color(0xFFF8C8B8), Color(0xFFE88F9F), Color(0xFFAC3B69)),
+                                onClick = onOpenTehillim
+                            )
+                        )
+                    }
+                    if (visibleStudies.contains("tanya")) {
+                        val completed = uiState.dailyTanya?.isCompleted == true
+                        add(
+                            StudyDashboardCard(
+                                eyebrow = "חת״ת",
+                                title = "תניא",
+                                subtitle = tanyaSubtitle,
+                                metric = if (completed) "✓" else "0/1",
+                                progress = if (completed) 1f else 0f,
+                                colors = listOf(Color(0xFFFF6337), Color(0xFFFFA033), Color(0xFFFFD52F)),
+                                onClick = onOpenTanya
+                            )
+                        )
+                    }
                 }
-            }
-            if (visibleStudies.contains("chumash")) {
-                item {
-                    val isCompleted = uiState.dailyChumash?.allAliyot?.all { it.isCompleted } == true
-                    StudyItemRow(
-                        title = "חומש",
-                        subtitle = chumashSubtitle,
-                        tag = null,
-                        iconBgColor = Color(0xFFDFF0C2),
-                        iconTintColor = Color(0xFF8DB264),
-                        icon = Icons.AutoMirrored.Filled.List, // scroll like
-                        isCompleted = isCompleted,
-                        onClick = onOpenChumash
-                    )
-                }
-            }
-            if (visibleStudies.contains("tehillim")) {
-                item {
-                    StudyItemRow(
-                        title = "תהילים",
-                        subtitle = tehillimSubtitle,
-                        tag = null,
-                        iconBgColor = Color(0xFFE6D3F0),
-                        iconTintColor = Color(0xFF9C77B7),
-                        icon = Icons.Default.MusicNote,
-                        isCompleted = false,
-                        onClick = onOpenTehillim
-                    )
-                }
-            }
-            if (visibleStudies.contains("tanya")) {
-                item {
-                    val isCompleted = uiState.dailyTanya?.isCompleted == true
-                    StudyItemRow(
-                        title = "תניא",
-                        subtitle = tanyaSubtitle,
-                        tag = null,
-                        iconBgColor = Color(0xFFFCE6C2),
-                        iconTintColor = Color(0xFFD49D56),
-                        icon = Icons.Default.Eco,
-                        isCompleted = isCompleted,
-                        isLast = true,
-                        onClick = onOpenTanya
-                    )
+
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    cards.chunked(2).forEach { pair ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            pair.forEach { card ->
+                                VibrantDashboardCard(card, Modifier.weight(1f))
+                            }
+                            if (pair.size == 1) Spacer(Modifier.weight(1f))
+                        }
+                    }
                 }
             }
         } else {
@@ -255,75 +272,121 @@ fun MainContentList(
     }
 }
 
+private data class StudyDashboardCard(
+    val eyebrow: String,
+    val title: String,
+    val subtitle: String,
+    val metric: String,
+    val progress: Float,
+    val colors: List<Color>,
+    val onClick: () -> Unit
+)
+
 @Composable
-fun StudyItemRow(
-    title: String,
-    subtitle: String,
-    tag: String?,
-    iconBgColor: Color,
-    iconTintColor: Color,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    isCompleted: Boolean,
-    isLast: Boolean = false,
-    onClick: () -> Unit
+private fun VibrantDashboardCard(
+    card: StudyDashboardCard,
+    modifier: Modifier = Modifier
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(IntrinsicSize.Min),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        verticalAlignment = Alignment.CenterVertically
+    Box(
+        modifier = modifier
+            .aspectRatio(0.96f)
+            .shadow(
+                elevation = 12.dp,
+                shape = RoundedCornerShape(24.dp),
+                ambientColor = card.colors.first().copy(alpha = 0.30f),
+                spotColor = card.colors.last().copy(alpha = 0.24f)
+            )
+            .clip(RoundedCornerShape(24.dp))
+            .background(androidx.compose.ui.graphics.Brush.linearGradient(card.colors))
+            .clickable(onClick = card.onClick)
     ) {
-        // Main Card
-        Surface(
-            shape = RoundedCornerShape(16.dp),
-            color = Color.White,
-            shadowElevation = 2.dp,
+        Box(
             modifier = Modifier
-                .weight(1f)
-                .clickable { onClick() }
+                .align(Alignment.TopEnd)
+                .offset(x = 34.dp, y = (-38).dp)
+                .size(138.dp)
+                .background(
+                    androidx.compose.ui.graphics.Brush.radialGradient(
+                        listOf(Color.White.copy(alpha = 0.74f), Color.Transparent)
+                    ),
+                    CircleShape
+                )
+        )
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .offset(x = (-32).dp, y = 34.dp)
+                .size(126.dp)
+                .background(
+                    androidx.compose.ui.graphics.Brush.radialGradient(
+                        listOf(Color(0xFF67204E).copy(alpha = 0.30f), Color.Transparent)
+                    ),
+                    CircleShape
+                )
+        )
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(15.dp)
         ) {
-            Row(
+            Text(
+                text = card.eyebrow,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color.Black.copy(alpha = 0.68f)
+            )
+            Text(
+                text = card.title,
+                fontSize = 23.sp,
+                lineHeight = 25.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF111111)
+            )
+
+            Spacer(Modifier.weight(1f))
+
+            Text(
+                text = card.metric,
+                fontSize = 29.sp,
+                lineHeight = 31.sp,
+                fontWeight = FontWeight.Light,
+                color = Color.Black.copy(alpha = 0.78f)
+            )
+            Text(
+                text = card.subtitle,
+                fontSize = 10.sp,
+                lineHeight = 13.sp,
+                color = Color.Black.copy(alpha = 0.68f),
+                maxLines = 2
+            )
+            Spacer(Modifier.height(9.dp))
+            LinearProgressIndicator(
+                progress = { card.progress.coerceIn(0f, 1f) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                // Icon Box
-                Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    color = iconBgColor,
-                    modifier = Modifier.size(56.dp)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(icon, contentDescription = null, tint = iconTintColor, modifier = Modifier.size(28.dp))
-                    }
-                }
-                
-                Spacer(modifier = Modifier.width(16.dp))
-                
-                Column(horizontalAlignment = Alignment.Start, modifier = Modifier.weight(1f)) {
-                    Text(title, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2D241E))
-                    Text(subtitle, fontSize = 14.sp, color = Color(0xFF5C5249))
-                    if (tag != null) {
-                        Surface(
-                            shape = RoundedCornerShape(12.dp),
-                            color = Color(0xFFF3E6DF),
-                            modifier = Modifier.padding(top = 4.dp)
-                        ) {
-                            Text(tag, fontSize = 10.sp, color = Color(0xFFD98A6C), modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
-                        }
-                    }
-                }
-                
-                Icon(
-                    imageVector = Icons.Default.KeyboardArrowLeft,
-                    contentDescription = null,
-                    tint = Color.LightGray,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
+                    .height(3.dp)
+                    .clip(CircleShape),
+                color = Color.Black.copy(alpha = 0.68f),
+                trackColor = Color.White.copy(alpha = 0.38f)
+            )
+        }
+
+        Surface(
+            shape = CircleShape,
+            color = Color.White.copy(alpha = 0.48f),
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(12.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.KeyboardArrowLeft,
+                contentDescription = "פתיחת ${card.title}",
+                tint = Color.Black,
+                modifier = Modifier
+                    .padding(6.dp)
+                    .size(16.dp)
+            )
         }
     }
 }
