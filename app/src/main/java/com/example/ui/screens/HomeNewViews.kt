@@ -201,7 +201,7 @@ fun MainContentList(
                                 subtitle = rambamSubtitle,
                                 metric = "$completed/$total",
                                 progress = completed.toFloat() / total,
-                                colors = listOf(Color(0xFFFFF48A), Color(0xFFA8FA67), Color(0xFF47BDA0)),
+                                colors = listOf(Color(0xFFFFFBE8), Color(0xFFE6F4C9), Color(0xFFB8DED2), Color(0xFF77B6A5)),
                                 onClick = onOpenDailyLesson
                             )
                         )
@@ -216,7 +216,7 @@ fun MainContentList(
                                 subtitle = chumashSubtitle,
                                 metric = "$completed/$total",
                                 progress = completed.toFloat() / total,
-                                colors = listOf(Color(0xFFFFC3F3), Color(0xFFD579F0), Color(0xFF788BDD)),
+                                colors = listOf(Color(0xFFFFF7FC), Color(0xFFF0E4F6), Color(0xFFD6D8F0), Color(0xFFA5B3DD)),
                                 onClick = onOpenChumash
                             )
                         )
@@ -229,7 +229,7 @@ fun MainContentList(
                                 subtitle = tehillimSubtitle,
                                 metric = "12/30",
                                 progress = 0.40f,
-                                colors = listOf(Color(0xFFFFD9C9), Color(0xFFE78E9E), Color(0xFFA63868)),
+                                colors = listOf(Color(0xFFFFF7F2), Color(0xFFF7DED9), Color(0xFFE5B7C1), Color(0xFFB97691)),
                                 onClick = onOpenTehillim
                             )
                         )
@@ -243,7 +243,7 @@ fun MainContentList(
                                 subtitle = tanyaSubtitle,
                                 metric = if (completed) "✓" else "0/1",
                                 progress = if (completed) 1f else 0f,
-                                colors = listOf(Color(0xFFFFE76B), Color(0xFFFFA332), Color(0xFFF45E3D)),
+                                colors = listOf(Color(0xFFFFFAE8), Color(0xFFF8E9C3), Color(0xFFECC99B), Color(0xFFD89D76)),
                                 onClick = onOpenTanya
                             )
                         )
@@ -287,15 +287,15 @@ private fun VibrantDashboardCard(
     card: StudyDashboardCard,
     modifier: Modifier = Modifier
 ) {
-    val cardShape = RoundedCornerShape(24.dp)
+    val cardShape = RoundedCornerShape(22.dp)
     Box(
         modifier = modifier
-            .aspectRatio(0.96f)
+            .aspectRatio(1.02f)
             .shadow(
-                elevation = 14.dp,
+                elevation = 7.dp,
                 shape = cardShape,
-                ambientColor = card.colors.last().copy(alpha = 0.34f),
-                spotColor = card.colors.last().copy(alpha = 0.26f)
+                ambientColor = card.colors.last().copy(alpha = 0.12f),
+                spotColor = Color.Black.copy(alpha = 0.08f)
             )
             .clip(cardShape)
             .background(
@@ -307,75 +307,58 @@ private fun VibrantDashboardCard(
                 width = 1.dp,
                 brush = androidx.compose.ui.graphics.Brush.linearGradient(
                     colors = listOf(
-                        Color.White.copy(alpha = 0.88f),
-                        Color.White.copy(alpha = 0.10f),
-                        Color.White.copy(alpha = 0.46f)
+                        Color.White.copy(alpha = 0.76f),
+                        Color.White.copy(alpha = 0.20f),
+                        Color.Black.copy(alpha = 0.05f)
                     )
                 ),
                 shape = cardShape
             )
             .clickable(onClick = card.onClick)
     ) {
-        // Glass highlight rolling over the upper edge.
+        // A soft central bloom keeps the color source in the middle.
+        Box(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .size(132.dp)
+                .background(
+                    brush = androidx.compose.ui.graphics.Brush.radialGradient(
+                        colors = listOf(
+                            Color.White.copy(alpha = 0.23f),
+                            Color.White.copy(alpha = 0.07f),
+                            Color.Transparent
+                        )
+                    ),
+                    shape = CircleShape
+                )
+        )
+
+        // Restrained glass reflections: light catches the rim instead of forming side bands.
         Box(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .fillMaxWidth()
-                .height(48.dp)
+                .height(38.dp)
                 .background(
                     androidx.compose.ui.graphics.Brush.verticalGradient(
                         colors = listOf(
-                            Color.White.copy(alpha = 0.34f),
-                            Color.White.copy(alpha = 0.08f),
+                            Color.White.copy(alpha = 0.20f),
+                            Color.White.copy(alpha = 0.05f),
                             Color.Transparent
                         )
                     )
                 )
         )
-
-        // Thin glass refraction on both side edges.
-        Box(
-            modifier = Modifier
-                .align(Alignment.CenterStart)
-                .fillMaxHeight()
-                .width(18.dp)
-                .background(
-                    androidx.compose.ui.graphics.Brush.horizontalGradient(
-                        colors = listOf(
-                            Color.White.copy(alpha = 0.32f),
-                            Color.White.copy(alpha = 0.06f),
-                            Color.Transparent
-                        )
-                    )
-                )
-        )
-        Box(
-            modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .fillMaxHeight()
-                .width(14.dp)
-                .background(
-                    androidx.compose.ui.graphics.Brush.horizontalGradient(
-                        colors = listOf(
-                            Color.Transparent,
-                            Color.White.copy(alpha = 0.15f),
-                            Color.White.copy(alpha = 0.28f)
-                        )
-                    )
-                )
-        )
-
-        // Subtle depth at the bottom edge, like glass over a colored light.
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .height(32.dp)
+                .height(28.dp)
                 .background(
                     androidx.compose.ui.graphics.Brush.verticalGradient(
                         colors = listOf(
                             Color.Transparent,
-                            Color.Black.copy(alpha = 0.08f)
+                            Color.Black.copy(alpha = 0.035f)
                         )
                     )
                 )
@@ -384,7 +367,7 @@ private fun VibrantDashboardCard(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 15.dp, vertical = 16.dp),
+                .padding(horizontal = 16.dp, vertical = 15.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
@@ -392,17 +375,18 @@ private fun VibrantDashboardCard(
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center,
                 fontSize = 10.sp,
-                fontWeight = FontWeight.Medium,
-                color = Color.Black.copy(alpha = 0.66f)
+                fontWeight = FontWeight.Normal,
+                color = Color.Black.copy(alpha = 0.45f)
             )
+            Spacer(Modifier.height(3.dp))
             Text(
                 text = card.title,
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center,
-                fontSize = 23.sp,
-                lineHeight = 25.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF111111)
+                fontSize = 20.sp,
+                lineHeight = 22.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color(0xFF201F1D)
             )
 
             Spacer(Modifier.weight(1f))
@@ -411,28 +395,29 @@ private fun VibrantDashboardCard(
                 text = card.metric,
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center,
-                fontSize = 29.sp,
-                lineHeight = 31.sp,
+                fontSize = 28.sp,
+                lineHeight = 30.sp,
                 fontWeight = FontWeight.Light,
-                color = Color.Black.copy(alpha = 0.78f)
+                color = Color.Black.copy(alpha = 0.66f)
             )
+            Spacer(Modifier.height(3.dp))
             Text(
                 text = card.subtitle,
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center,
                 fontSize = 10.sp,
                 lineHeight = 13.sp,
-                color = Color.Black.copy(alpha = 0.67f),
+                color = Color.Black.copy(alpha = 0.48f),
                 maxLines = 2
             )
-            Spacer(Modifier.height(9.dp))
+            Spacer(Modifier.height(10.dp))
             LinearProgressIndicator(
                 progress = { card.progress.coerceIn(0f, 1f) },
                 modifier = Modifier
-                    .fillMaxWidth(0.84f)
-                    .height(3.dp)
+                    .fillMaxWidth(0.68f)
+                    .height(2.dp)
                     .clip(CircleShape),
-                color = Color.Black.copy(alpha = 0.66f),
+                color = Color.Black.copy(alpha = 0.30f),
                 trackColor = Color.White.copy(alpha = 0.42f)
             )
         }
