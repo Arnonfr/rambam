@@ -641,73 +641,94 @@ private fun WhiteContentSurface(
             }
 
             if (uiState.selectedTab == HomeTab.STUDY) {
-                // Rambam Card (The prominent purple card)
-                if (uiState.preferences.visibleStudies.contains("rambam")) {
-                    item {
-                        RambamStudyCard(
-                            dailyLesson = uiState.dailyLesson,
-                            selectedTrack = uiState.preferences.selectedTrack,
-                            completedChapterIds = uiState.completedChapterIds,
-                            latestPosition = uiState.latestPosition,
-                            onOpenDailyLesson = onOpenDailyLesson,
-                            onOpenChapter = onOpenChapter
-                        )
-                    }
-                }
-
-                // Chumash Card
-                if (uiState.preferences.visibleStudies.contains("chumash")) {
-                    item {
-                        val chumash = uiState.dailyChumash
-                        val aliya = chumash?.todayAliya
-                        val subtitleText = if (chumash != null && aliya != null) {
-                            "פרשת ${chumash.parashaName} · עלייה ${aliya.aliyaName} (${aliya.heRef})"
-                        } else {
-                            "חומש מנוקד · שיעור יום ${HebrewDateHelper.getHebrewDayOfWeekName(uiState.selectedStudyDate.dayOfWeek)}"
-                        }
-                        val completedCount = chumash?.completedCount ?: 0
-                        val totalCount = chumash?.allAliyot?.size ?: 7
-                        val progressFraction = if (totalCount > 0) completedCount.toFloat() / totalCount else 0f
-                        val progressText = if (aliya?.isCompleted == true) {
-                            "הושלם להיום ✓"
-                        } else {
-                            "$completedCount מתוך $totalCount הושלמו"
+                item {
+                    val studyCards = buildList {
+                        if (uiState.preferences.visibleStudies.contains("rambam")) {
+                            val chapters = uiState.dailyLesson?.chapters ?: emptyList()
+                            val completed = chapters.count {
+                                uiState.completedChapterIds.contains("${it.sectionId}_${it.chapterNumber}")
+                            }
+                            val total = chapters.size.coerceAtLeast(1)
+                            add(
+                                VibrantStudyCardModel(
+                                    eyebrow = if (uiState.preferences.selectedTrack == "three") "שלושה פרקים" else "פרק יומי",
+                                    title = "רמב״ם",
+                                    subtitle = formatRambamChaptersTitle(chapters),
+                                    progressText = "$completed / $total",
+                                    progressFraction = completed.toFloat() / total,
+                                    colors = listOf(Color(0xFF68F58B), Color(0xFFC7FA62), Color(0xFFFFE56C)),
+                                    onClick = onOpenDailyLesson
+                                )
+                            )
                         }
 
-                        StudyCard(
-                            title = "חומש מנוקד",
-                            subtitle = subtitleText,
-                            progressText = progressText,
-                            progressFraction = progressFraction,
-                            onClick = onOpenChumash
-                        )
-                    }
-                }
+                        if (uiState.preferences.visibleStudies.contains("chumash")) {
+                            val chumash = uiState.dailyChumash
+                            val aliya = chumash?.todayAliya
+                            val completed = chumash?.completedCount ?: 0
+                            val total = chumash?.allAliyot?.size?.coerceAtLeast(1) ?: 7
+                            add(
+                                VibrantStudyCardModel(
+                                    eyebrow = "חת״ת",
+                                    title = "חומש",
+                                    subtitle = if (chumash != null && aliya != null) {
+                                        "פרשת ${chumash.parashaName} · עלייה ${aliya.aliyaName}"
+                                    } else {
+                                        "השיעור היומי"
+                                    },
+                                    progressText = "$completed / $total",
+                                    progressFraction = completed.toFloat() / total,
+                                    colors = listOf(Color(0xFFF2A5FF), Color(0xFFCE78F0), Color(0xFF84A7FF)),
+                                    onClick = onOpenChumash
+                                )
+                            )
+                        }
 
-                // Tehillim Card
-                if (uiState.preferences.visibleStudies.contains("tehillim")) {
-                    item {
-                        StudyCard(
-                            title = "תהילים",
-                            subtitle = "יום ${HebrewDateHelper.extractHebrewDay(uiState.dailyLesson?.hebrewDate ?: "ב׳")} בחודש",
-                            progressText = "12/30",
-                            progressFraction = 0.40f,
-                            onClick = onOpenTehillim
-                        )
-                    }
-                }
+                        if (uiState.preferences.visibleStudies.contains("tehillim")) {
+                            add(
+                                VibrantStudyCardModel(
+                                    eyebrow = "תהילים יומי",
+                                    title = "תהילים",
+                                    subtitle = "יום ${HebrewDateHelper.extractHebrewDay(uiState.dailyLesson?.hebrewDate ?: "ב׳")} בחודש",
+                                    progressText = "12 / 30",
+                                    progressFraction = 0.40f,
+                                    colors = listOf(Color(0xFFF7C4B4), Color(0xFFE7909D), Color(0xFFAE3A67)),
+                                    onClick = onOpenTehillim
+                                )
+                            )
+                        }
 
-                // Tanya Card
-                if (uiState.preferences.visibleStudies.contains("tanya")) {
-                    item {
-                        val isCompleted = uiState.dailyTanya?.isCompleted == true
-                        StudyCard(
-                            title = "תניא",
-                            subtitle = if (uiState.dailyTanya != null) "${uiState.dailyTanya.bookTitle} · ${uiState.dailyTanya.chapterTitle}" else "שיעור יומי",
-                            progressText = if (isCompleted) "הושלם ✓" else "0/1",
-                            progressFraction = if (isCompleted) 1f else 0f,
-                            onClick = onOpenTanya
-                        )
+                        if (uiState.preferences.visibleStudies.contains("tanya")) {
+                            val complete = uiState.dailyTanya?.isCompleted == true
+                            add(
+                                VibrantStudyCardModel(
+                                    eyebrow = "חת״ת",
+                                    title = "תניא",
+                                    subtitle = uiState.dailyTanya?.chapterTitle ?: "השיעור היומי",
+                                    progressText = if (complete) "הושלם" else "0 / 1",
+                                    progressFraction = if (complete) 1f else 0f,
+                                    colors = listOf(Color(0xFFFF6235), Color(0xFFFF9D31), Color(0xFFFFD52F)),
+                                    onClick = onOpenTanya
+                                )
+                            )
+                        }
+                    }
+
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        studyCards.chunked(2).forEach { rowCards ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                rowCards.forEach { card ->
+                                    VibrantStudyCard(
+                                        model = card,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
+                                if (rowCards.size == 1) Spacer(modifier = Modifier.weight(1f))
+                            }
+                        }
                     }
                 }
             } else {
@@ -1078,6 +1099,128 @@ private fun StudyCard(
                     .clip(RoundedCornerShape(2.dp)),
                 color = DarkNavy,
                 trackColor = Color(0xFFF1F5F9),
+            )
+        }
+    }
+}
+
+private data class VibrantStudyCardModel(
+    val eyebrow: String,
+    val title: String,
+    val subtitle: String,
+    val progressText: String,
+    val progressFraction: Float,
+    val colors: List<Color>,
+    val onClick: () -> Unit
+)
+
+@Composable
+private fun VibrantStudyCard(
+    model: VibrantStudyCardModel,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .aspectRatio(0.96f)
+            .shadow(12.dp, RoundedCornerShape(24.dp), ambientColor = model.colors.first().copy(alpha = 0.32f))
+            .clip(RoundedCornerShape(24.dp))
+            .background(
+                androidx.compose.ui.graphics.Brush.linearGradient(
+                    colors = model.colors
+                )
+            )
+            .clickable(onClick = model.onClick)
+    ) {
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .offset(x = 32.dp, y = (-38).dp)
+                .size(142.dp)
+                .background(
+                    androidx.compose.ui.graphics.Brush.radialGradient(
+                        colors = listOf(Color.White.copy(alpha = 0.72f), Color.Transparent)
+                    ),
+                    CircleShape
+                )
+        )
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .offset(x = (-28).dp, y = 32.dp)
+                .size(124.dp)
+                .background(
+                    androidx.compose.ui.graphics.Brush.radialGradient(
+                        colors = listOf(Color(0xFF6B1E54).copy(alpha = 0.28f), Color.Transparent)
+                    ),
+                    CircleShape
+                )
+        )
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = model.eyebrow,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.Black.copy(alpha = 0.70f)
+                    )
+                    Text(
+                        text = model.title,
+                        fontSize = 23.sp,
+                        lineHeight = 25.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF111111)
+                    )
+                }
+                Surface(
+                    shape = CircleShape,
+                    color = Color.White.copy(alpha = 0.50f)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "פתיחת ${model.title}",
+                        tint = Color.Black,
+                        modifier = Modifier
+                            .padding(7.dp)
+                            .size(17.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Text(
+                text = model.progressText,
+                fontSize = 30.sp,
+                lineHeight = 32.sp,
+                fontWeight = FontWeight.Light,
+                color = Color.Black.copy(alpha = 0.78f)
+            )
+            Text(
+                text = model.subtitle,
+                fontSize = 11.sp,
+                lineHeight = 14.sp,
+                color = Color.Black.copy(alpha = 0.68f),
+                maxLines = 2
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            LinearProgressIndicator(
+                progress = { model.progressFraction.coerceIn(0f, 1f) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(3.dp)
+                    .clip(CircleShape),
+                color = Color.Black.copy(alpha = 0.70f),
+                trackColor = Color.White.copy(alpha = 0.38f)
             )
         }
     }
