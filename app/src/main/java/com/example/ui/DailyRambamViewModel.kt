@@ -91,6 +91,7 @@ data class DailyRambamUiState(
     val isChumashReaderOpen: Boolean = false,
     val selectedChumashAliyaIndex: Int = 1,
     val isChumashLoading: Boolean = false,
+    val latestChumashPosition: ReadingPositionEntity? = null,
     val dailyTehillim: DailyTehillimLesson? = null,
     val isTehillimReaderOpen: Boolean = false,
     val isTehillimLoading: Boolean = false,
@@ -168,6 +169,25 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
         } else {
             null
         }
+    }
+
+    private fun savedAnchorPosition(track: String): ReadingPositionEntity? {
+        val isToday = _uiState.value.selectedStudyDate == _uiState.value.effectiveToday
+        val anchor = readingStateManager.getSavedAnchor(track)
+            ?.takeIf { isToday && it.studyDate == selectedStudyDateKey() }
+            ?: return null
+        return ReadingPositionEntity(
+            track = anchor.track,
+            chapterId = anchor.chapterId,
+            sectionId = anchor.sectionId,
+            chapterNumber = anchor.chapterNumber,
+            halachaId = anchor.halachaId,
+            halachaIndex = anchor.halachaIndex,
+            textOffset = 0,
+            scrollOffsetFraction = anchor.scrollOffsetFraction,
+            quoteFingerprint = "",
+            updatedAt = anchor.updatedAt
+        )
     }
 
     private fun observeCompletionsForDate(track: String, studyDate: String) {
@@ -433,6 +453,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
         if (open) {
             viewModelScope.launch {
                 val pos = onlyForSelectedStudyDay(repository.getLatestReadingPosition("tehillim").firstOrNull(), "tehillim")
+                    ?: savedAnchorPosition("tehillim")
                 _uiState.update {
                     it.copy(
                         isTehillimReaderOpen = true,
@@ -486,6 +507,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
             _uiState.update { it.copy(isTanyaLoading = true) }
             val lesson = tanyaRepository.getDailyTanyaLesson(date)
             val pos = onlyForSelectedStudyDay(repository.getLatestReadingPosition("tanya").firstOrNull(), "tanya")
+                ?: savedAnchorPosition("tanya")
             _uiState.update {
                 it.copy(
                     dailyTanya = lesson,
@@ -500,6 +522,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
         if (open) {
             viewModelScope.launch {
                 val pos = onlyForSelectedStudyDay(repository.getLatestReadingPosition("tanya").firstOrNull(), "tanya")
+                    ?: savedAnchorPosition("tanya")
                 _uiState.update {
                     it.copy(
                         isTanyaReaderOpen = true,
@@ -565,6 +588,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
             val completed = _uiState.value.preferences.completedAliyot
             val lesson = chumashRepository.getDailyChumashLesson(date, completed)
             val pos = onlyForSelectedStudyDay(repository.getLatestReadingPosition("chumash").firstOrNull(), "chumash")
+                ?: savedAnchorPosition("chumash")
             val activeParasha = lesson?.parashaName ?: ""
             val isSameParasha = pos != null && pos.chapterId == activeParasha
             val targetAliya = lesson?.currentAliyaIndex ?: 1
@@ -573,7 +597,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
                     dailyChumash = lesson,
                     isChumashLoading = false,
                     selectedChumashAliyaIndex = targetAliya,
-                    latestPosition = if (isSameParasha) pos else null
+                    latestChumashPosition = if (isSameParasha) pos else null
                 )
             }
         }
@@ -582,15 +606,19 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
     fun openChumashReader(aliyaIndex: Int? = null) {
         viewModelScope.launch {
             val lesson = _uiState.value.dailyChumash
-            val target = aliyaIndex ?: lesson?.currentAliyaIndex ?: 1
             val pos = onlyForSelectedStudyDay(repository.getLatestReadingPosition("chumash").firstOrNull(), "chumash")
+                ?: savedAnchorPosition("chumash")
             val activeParasha = lesson?.parashaName ?: ""
             val isSameParasha = pos != null && pos.chapterId == activeParasha
+            val target = aliyaIndex
+                ?: pos?.takeIf { isSameParasha }?.chapterNumber
+                ?: lesson?.currentAliyaIndex
+                ?: 1
             _uiState.update {
                 it.copy(
                     isChumashReaderOpen = true,
                     selectedChumashAliyaIndex = target,
-                    latestPosition = if (isSameParasha) pos else null
+                    latestChumashPosition = if (isSameParasha) pos else null
                 )
             }
         }
@@ -634,6 +662,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
     fun resumeChumashReading() {
         viewModelScope.launch {
             val pos = onlyForSelectedStudyDay(repository.getLatestReadingPosition("chumash").firstOrNull(), "chumash")
+                ?: savedAnchorPosition("chumash")
             if (pos != null && _uiState.value.dailyChumash?.parashaName == pos.chapterId) {
                 openChumashReader(pos.chapterNumber)
             } else {
@@ -848,7 +877,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
                 repository.getReadingPosition(track, chapterId),
                 track
             )
-            val anchor = readingStateManager.getSavedAnchor()
+            val anchor = readingStateManager.getSavedAnchor(track)
                 ?.takeIf { it.studyDate == selectedStudyDateKey() && it.track == track }
             val effectiveSavedPos = savedPos ?: if (anchor != null && anchor.chapterId == chapterId) {
                 ReadingPositionEntity(

@@ -22,12 +22,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import com.example.data.local.UserPreferences
 import com.example.domain.tanya.DailyTanyaLesson
 import com.example.domain.tanya.TanyaSection
@@ -35,6 +38,8 @@ import com.example.ui.components.FloatingReaderBar
 import com.example.ui.components.ReaderTypographySheet
 import com.example.ui.components.StudyTextBlock
 import com.example.ui.theme.*
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun TanyaReaderScreen(
@@ -141,19 +146,31 @@ fun TanyaReaderScreen(
         }
     }
 
-    // Save reading position when scrolling
-    var lastSaveTime by remember { mutableStateOf(0L) }
-    LaunchedEffect(listState.firstVisibleItemIndex) {
-        val visibleIdx = listState.firstVisibleItemIndex
-        if (visibleIdx > 0 && visibleIdx <= sections.size) {
-            val activeSection = sections.getOrNull(visibleIdx - 1)
-            if (activeSection != null) {
-                val now = System.currentTimeMillis()
-                if (now - lastSaveTime > 1000) {
-                    onSavePosition(activeSection, lesson)
-                    lastSaveTime = now
-                }
+    fun activeSectionAt(visibleIndex: Int): TanyaSection? =
+        sections.getOrNull((visibleIndex - 1).coerceAtLeast(0))
+
+    LaunchedEffect(listState, sections, lesson) {
+        snapshotFlow { listState.firstVisibleItemIndex }
+            .collectLatest { visibleIndex ->
+                delay(250)
+                activeSectionAt(visibleIndex)?.let { onSavePosition(it, lesson) }
             }
+    }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner, sections, lesson) {
+        fun saveVisibleSection() {
+            activeSectionAt(listState.firstVisibleItemIndex)?.let { onSavePosition(it, lesson) }
+        }
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_PAUSE || event == Lifecycle.Event.ON_STOP) {
+                saveVisibleSection()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+            saveVisibleSection()
         }
     }
 

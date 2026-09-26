@@ -39,6 +39,8 @@ import com.example.ui.components.FloatingReaderBar
 import com.example.ui.components.ReaderTypographySheet
 import com.example.ui.components.StudyTextBlock
 import com.example.ui.theme.*
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 
 enum class TehillimTab {
     DAILY,
@@ -221,16 +223,32 @@ fun TehillimReaderScreen(
         }
     }
 
-    // Save reading position when scrolling
-    var lastSaveTime by remember { mutableStateOf(0L) }
-    LaunchedEffect(listState.firstVisibleItemIndex) {
-        val (activeVerse, _) = getActiveVerseInfo(listState.firstVisibleItemIndex)
-        if (activeVerse != null) {
-            val now = System.currentTimeMillis()
-            if (now - lastSaveTime > 1000) {
-                onSavePosition(activeVerse.verse, activeVerse.chapter)
-                lastSaveTime = now
+    LaunchedEffect(listState, flatRows) {
+        snapshotFlow { listState.firstVisibleItemIndex }
+            .collectLatest { visibleIndex ->
+                delay(250)
+                getActiveVerseInfo(visibleIndex).first?.let { activeVerse ->
+                    onSavePosition(activeVerse.verse, activeVerse.chapter)
+                }
             }
+    }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner, flatRows) {
+        fun saveVisibleRow() {
+            getActiveVerseInfo(listState.firstVisibleItemIndex).first?.let { activeVerse ->
+                onSavePosition(activeVerse.verse, activeVerse.chapter)
+            }
+        }
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_PAUSE || event == Lifecycle.Event.ON_STOP) {
+                saveVisibleRow()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+            saveVisibleRow()
         }
     }
 

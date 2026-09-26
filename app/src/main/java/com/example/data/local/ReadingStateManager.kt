@@ -64,6 +64,20 @@ class ReadingStateManager(context: Context) {
             .putString("${KEY_STUDY_DATE}_$track", studyDate)
             .putLong(KEY_UPDATED_AT, System.currentTimeMillis())
 
+        // Keep an independent crash-safe anchor for every study track. The
+        // un-suffixed values above remain the "most recently read" anchor.
+        editor
+            .putBoolean(key(KEY_IS_READER_ACTIVE, track), isReaderActive)
+            .putString(key(KEY_TRACK, track), track)
+            .putString(key(KEY_CHAPTER_ID, track), chapterId)
+            .putString(key(KEY_SECTION_ID, track), sectionId)
+            .putInt(key(KEY_CHAPTER_NUMBER, track), chapterNumber)
+            .putString(key(KEY_HALACHA_ID, track), halachaId)
+            .putInt(key(KEY_HALACHA_INDEX, track), halachaIndex)
+            .putFloat(key(KEY_OFFSET_FRACTION, track), scrollOffsetFraction)
+            .putString(key(KEY_STUDY_DATE, track), studyDate)
+            .putLong(key(KEY_UPDATED_AT, track), System.currentTimeMillis())
+
         if (immediateCommit) {
             editor.commit()
         } else {
@@ -91,6 +105,22 @@ class ReadingStateManager(context: Context) {
         )
     }
 
+    fun getSavedAnchor(track: String): SavedReadingAnchor? {
+        val chapterId = prefs.getString(key(KEY_CHAPTER_ID, track), null) ?: return null
+        return SavedReadingAnchor(
+            isReaderActive = prefs.getBoolean(key(KEY_IS_READER_ACTIVE, track), false),
+            track = prefs.getString(key(KEY_TRACK, track), track) ?: track,
+            chapterId = chapterId,
+            sectionId = prefs.getString(key(KEY_SECTION_ID, track), "") ?: "",
+            chapterNumber = prefs.getInt(key(KEY_CHAPTER_NUMBER, track), 1),
+            halachaId = prefs.getString(key(KEY_HALACHA_ID, track), "") ?: "",
+            halachaIndex = prefs.getInt(key(KEY_HALACHA_INDEX, track), 0),
+            scrollOffsetFraction = prefs.getFloat(key(KEY_OFFSET_FRACTION, track), 0f),
+            studyDate = prefs.getString(key(KEY_STUDY_DATE, track), "") ?: "",
+            updatedAt = prefs.getLong(key(KEY_UPDATED_AT, track), 0L)
+        )
+    }
+
     fun getStudyDate(track: String): String? =
         prefs.getString("${KEY_STUDY_DATE}_$track", null)
 
@@ -100,4 +130,6 @@ class ReadingStateManager(context: Context) {
     fun clear() {
         prefs.edit().clear().commit()
     }
+
+    private fun key(base: String, track: String): String = "${base}_$track"
 }

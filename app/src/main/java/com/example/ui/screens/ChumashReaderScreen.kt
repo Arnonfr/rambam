@@ -41,6 +41,8 @@ import com.example.ui.components.ReaderTypographySheet
 import com.example.ui.components.StudyTextBlock
 import com.example.ui.theme.*
 import com.example.ui.util.HebrewNumberFormatter
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 
 sealed interface ChumashUiRow {
     val key: String
@@ -256,16 +258,36 @@ fun ChumashReaderScreen(
         }
     }
 
-    // Save reading position when scrolling
-    var lastSaveTime by remember { mutableStateOf(0L) }
-    LaunchedEffect(listState.firstVisibleItemIndex) {
-        val (activeVerse, _) = getActiveVerseInfo(listState.firstVisibleItemIndex)
-        if (activeVerse != null) {
-            val now = System.currentTimeMillis()
-            if (now - lastSaveTime > 1000) {
-                onSavePosition(activeVerse.verse, activeVerse.aliya)
-                lastSaveTime = now
+    // Persist the final settled row. collectLatest cancels an older pending save,
+    // so a fast fling cannot leave the anchor at the first row of the fling.
+    LaunchedEffect(listState, flatRows) {
+        snapshotFlow { listState.firstVisibleItemIndex }
+            .collectLatest { visibleIndex ->
+                delay(250)
+                getActiveVerseInfo(visibleIndex).first?.let { activeVerse ->
+                    onSavePosition(activeVerse.verse, activeVerse.aliya)
+                }
             }
+    }
+
+    // A back press, app switch or process stop must save without waiting for
+    // the settling delay above.
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner, flatRows) {
+        fun saveVisibleRow() {
+            getActiveVerseInfo(listState.firstVisibleItemIndex).first?.let { activeVerse ->
+                onSavePosition(activeVerse.verse, activeVerse.aliya)
+            }
+        }
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_PAUSE || event == Lifecycle.Event.ON_STOP) {
+                saveVisibleRow()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+            saveVisibleRow()
         }
     }
 

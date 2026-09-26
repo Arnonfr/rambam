@@ -95,7 +95,7 @@ class MainActivity : ComponentActivity() {
                                 onSavePosition = { verse, aliya ->
                                     viewModel.saveChumashPosition(verse, aliya)
                                 },
-                                savedPosition = uiState.latestPosition,
+                                savedPosition = uiState.latestChumashPosition,
                                 hebrewDateText = uiState.dailyLesson?.hebrewDate ?: "",
                                 onNextDay = { viewModel.stepSelectedDate(1) },
                                 onPrevDay = { viewModel.stepSelectedDate(-1) },
