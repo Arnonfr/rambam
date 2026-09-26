@@ -72,13 +72,10 @@ fun HomeScreen(
     onOpenTanya: () -> Unit = {}
 ) {
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
-        val backgroundGradient = androidx.compose.ui.graphics.Brush.verticalGradient(
-            colors = listOf(Color(0xFFF8EAE2), Color(0xFFE2EFD8))
-        )
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(backgroundGradient)
+                .background(Color.White)
         ) {
             Column(
                 modifier = Modifier.fillMaxSize()
@@ -152,20 +149,20 @@ private fun TopHomeBar(
     onOpenAttribution: () -> Unit
 ) {
     Surface(
-        color = Color(0xFFF8FAFC),
+        color = Color.White,
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 18.dp, vertical = 10.dp),
+                .padding(horizontal = 28.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             // App Title Right
             Text(
                 text = "לימוד יומי",
-                fontSize = 21.sp,
+                fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
                 color = TextDark,
                 textAlign = TextAlign.Start
@@ -182,8 +179,8 @@ private fun TopHomeBar(
                     Icon(
                         imageVector = Icons.Default.Settings,
                         contentDescription = "הגדרות",
-                        tint = TextMuted,
-                        modifier = Modifier.size(22.dp)
+                        tint = Color.Black,
+                        modifier = Modifier.size(28.dp)
                     )
                 }
 
@@ -196,8 +193,8 @@ private fun TopHomeBar(
                     Icon(
                         imageVector = Icons.Default.Info,
                         contentDescription = "אודות",
-                        tint = TextMuted,
-                        modifier = Modifier.size(22.dp)
+                        tint = Color.Black,
+                        modifier = Modifier.size(28.dp)
                     )
                 }
             }
@@ -227,13 +224,13 @@ private fun DateDrawer(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFFF8FAFC))
+            .background(Color.White)
     ) {
         // Top Month & Navigation Row
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 6.dp),
+                .padding(horizontal = 28.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -266,7 +263,7 @@ private fun DateDrawer(
             ) {
                 Text(
                     text = fullHebrewDate,
-                    fontSize = 21.sp,
+                fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
                     color = TextDark
                 )
@@ -276,8 +273,8 @@ private fun DateDrawer(
                 ) {
                     Text(
                         text = civilFormatted,
-                        fontSize = 13.sp,
-                        color = TextMuted,
+                        fontSize = 15.sp,
+                        color = Color(0xFF333333),
                         fontWeight = FontWeight.Normal
                     )
                     if (selectedDate != effectiveToday) {
@@ -355,33 +352,11 @@ private fun DateDrawer(
             }
         }
 
-        // Subtle bottom handle bar (32dp)
-        Surface(
-            color = Color(0xFFF1F5F9), // Very light gray instead of Dark Navy
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(32.dp)
-                .clickable { onToggleDrawer() }
-        ) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    // Small drag chevron
-                    Icon(
-                        imageVector = if (drawerState == DateDrawerState.EXPANDED)
-                            Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                        contentDescription = "פתיחה / סגירת מגירת תאריך",
-                        tint = Color(0xFF94A3B8), // Muted gray
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-            }
-        }
+        HorizontalDivider(
+            modifier = Modifier.padding(horizontal = 28.dp, vertical = 12.dp),
+            thickness = 1.dp,
+            color = Color(0xFFD9D9D9)
+        )
     }
 }
 

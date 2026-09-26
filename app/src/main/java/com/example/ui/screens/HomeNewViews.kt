@@ -20,6 +20,10 @@ import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.NightlightRound
+import androidx.compose.material.icons.outlined.LibraryBooks
+import androidx.compose.material.icons.outlined.MenuBook
+import androidx.compose.material.icons.outlined.MusicNote
+import androidx.compose.material.icons.outlined.ReceiptLong
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -117,78 +121,13 @@ fun MainContentList(
     }
 
     LazyColumn(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        contentPadding = PaddingValues(bottom = 120.dp)
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(0.dp),
+        contentPadding = PaddingValues(bottom = 128.dp)
     ) {
-        // Continue Reading (Tiny Banner)
-        if (uiState.latestPosition != null && uiState.selectedTab == HomeTab.STUDY) {
-            item {
-                Surface(
-                    shape = RoundedCornerShape(8.dp),
-                    color = Color(0xFFFBDDB9),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(32.dp)
-                        .clickable { onResumeReading() }
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 12.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.Bookmark,
-                                contentDescription = null,
-                                tint = Color(0xFFE88130),
-                                modifier = Modifier.size(14.dp)
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = "להמשיך מהמקום האחרון: " + (if (uiState.latestChapter != null) {
-                                    "${uiState.latestChapter.chapterHebrew} ${uiState.latestHalachaTitle ?: ""}"
-                                } else {
-                                    uiState.latestHalachaTitle ?: ""
-                                }),
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = Color(0xFF352920)
-                            )
-                        }
-                        Icon(
-                            imageVector = Icons.Default.KeyboardArrowLeft,
-                            contentDescription = "המשך",
-                            tint = Color(0xFFE88130),
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
-                }
-            }
-        }
-
-        item {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp, bottom = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(text = "הלימוד היומי", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2D241E))
-                IconButton(onClick = onOpenSettings, modifier = Modifier.size(36.dp)) {
-                    Icon(imageVector = Icons.Default.Edit, contentDescription = "הגדרות לימוד", tint = Color(0xFF8B6B4A), modifier = Modifier.size(20.dp))
-                }
-            }
-        }
-
-        // Studies — compact 2×2 watch-style dashboard
         if (uiState.selectedTab == HomeTab.STUDY) {
-            item {
-                val visibleStudies = uiState.preferences.visibleStudies
-                val cards = buildList {
+            val visibleStudies = uiState.preferences.visibleStudies
+            val cards = buildList {
                     if (visibleStudies.contains("rambam")) {
                         val total = uiState.dailyLesson?.chapters?.size?.coerceAtLeast(1) ?: 1
                         val completed = uiState.dailyLesson?.chapters?.count {
@@ -201,7 +140,8 @@ fun MainContentList(
                                 subtitle = rambamSubtitle,
                                 metric = "$completed/$total",
                                 progress = completed.toFloat() / total,
-                                colors = listOf(Color(0xFFFFFBE8), Color(0xFFE6F4C9), Color(0xFFB8DED2), Color(0xFF77B6A5)),
+                                color = Color(0xFFFF681F),
+                                icon = Icons.Outlined.LibraryBooks,
                                 onClick = onOpenDailyLesson
                             )
                         )
@@ -216,21 +156,9 @@ fun MainContentList(
                                 subtitle = chumashSubtitle,
                                 metric = "$completed/$total",
                                 progress = completed.toFloat() / total,
-                                colors = listOf(Color(0xFFFFF7FC), Color(0xFFF0E4F6), Color(0xFFD6D8F0), Color(0xFFA5B3DD)),
+                                color = Color(0xFFF2FF38),
+                                icon = Icons.Outlined.ReceiptLong,
                                 onClick = onOpenChumash
-                            )
-                        )
-                    }
-                    if (visibleStudies.contains("tehillim")) {
-                        add(
-                            StudyDashboardCard(
-                                eyebrow = "תהילים יומי",
-                                title = "תהילים",
-                                subtitle = tehillimSubtitle,
-                                metric = "12/30",
-                                progress = 0.40f,
-                                colors = listOf(Color(0xFFFFF7F2), Color(0xFFF7DED9), Color(0xFFE5B7C1), Color(0xFFB97691)),
-                                onClick = onOpenTehillim
                             )
                         )
                     }
@@ -243,26 +171,30 @@ fun MainContentList(
                                 subtitle = tanyaSubtitle,
                                 metric = if (completed) "✓" else "0/1",
                                 progress = if (completed) 1f else 0f,
-                                colors = listOf(Color(0xFFFFFAE8), Color(0xFFF8E9C3), Color(0xFFECC99B), Color(0xFFD89D76)),
+                                color = Color(0xFFE98DDE),
+                                icon = Icons.Outlined.MenuBook,
                                 onClick = onOpenTanya
+                            )
+                        )
+                    }
+                    if (visibleStudies.contains("tehillim")) {
+                        add(
+                            StudyDashboardCard(
+                                eyebrow = "תהילים יומי",
+                                title = "תהילים",
+                                subtitle = tehillimSubtitle,
+                                metric = "12/30",
+                                progress = 0.40f,
+                                color = Color(0xFFBCCB72),
+                                icon = Icons.Outlined.MusicNote,
+                                onClick = onOpenTehillim
                             )
                         )
                     }
                 }
 
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    cards.chunked(2).forEach { pair ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            pair.forEach { card ->
-                                VibrantDashboardCard(card, Modifier.weight(1f))
-                            }
-                            if (pair.size == 1) Spacer(Modifier.weight(1f))
-                        }
-                    }
-                }
+            items(cards) { card ->
+                StudyStrip(card)
             }
         } else {
             item {
@@ -278,148 +210,88 @@ private data class StudyDashboardCard(
     val subtitle: String,
     val metric: String,
     val progress: Float,
-    val colors: List<Color>,
+    val color: Color,
+    val icon: ImageVector,
     val onClick: () -> Unit
 )
 
 @Composable
-private fun VibrantDashboardCard(
+private fun StudyStrip(
     card: StudyDashboardCard,
     modifier: Modifier = Modifier
 ) {
-    val cardShape = RoundedCornerShape(22.dp)
-    Box(
+    Row(
         modifier = modifier
-            .aspectRatio(1.02f)
-            .shadow(
-                elevation = 7.dp,
-                shape = cardShape,
-                ambientColor = card.colors.last().copy(alpha = 0.12f),
-                spotColor = Color.Black.copy(alpha = 0.08f)
-            )
-            .clip(cardShape)
-            .background(
-                androidx.compose.ui.graphics.Brush.radialGradient(
-                    colors = card.colors
-                )
-            )
-            .border(
-                width = 1.dp,
-                brush = androidx.compose.ui.graphics.Brush.linearGradient(
-                    colors = listOf(
-                        Color.White.copy(alpha = 0.76f),
-                        Color.White.copy(alpha = 0.20f),
-                        Color.Black.copy(alpha = 0.05f)
-                    )
-                ),
-                shape = cardShape
-            )
+            .fillMaxWidth()
+            .height(132.dp)
+            .background(card.color)
             .clickable(onClick = card.onClick)
+            .padding(horizontal = 18.dp, vertical = 18.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        // A soft central bloom keeps the color source in the middle.
-        Box(
-            modifier = Modifier
-                .align(Alignment.Center)
-                .size(132.dp)
-                .background(
-                    brush = androidx.compose.ui.graphics.Brush.radialGradient(
-                        colors = listOf(
-                            Color.White.copy(alpha = 0.23f),
-                            Color.White.copy(alpha = 0.07f),
-                            Color.Transparent
-                        )
-                    ),
-                    shape = CircleShape
-                )
+        Icon(
+            imageVector = card.icon,
+            contentDescription = null,
+            tint = Color.Black,
+            modifier = Modifier.size(52.dp)
         )
-
-        // Restrained glass reflections: light catches the rim instead of forming side bands.
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .fillMaxWidth()
-                .height(38.dp)
-                .background(
-                    androidx.compose.ui.graphics.Brush.verticalGradient(
-                        colors = listOf(
-                            Color.White.copy(alpha = 0.20f),
-                            Color.White.copy(alpha = 0.05f),
-                            Color.Transparent
-                        )
-                    )
-                )
-        )
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .height(28.dp)
-                .background(
-                    androidx.compose.ui.graphics.Brush.verticalGradient(
-                        colors = listOf(
-                            Color.Transparent,
-                            Color.Black.copy(alpha = 0.035f)
-                        )
-                    )
-                )
-        )
-
+        Spacer(Modifier.width(12.dp))
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp, vertical = 15.dp),
+            modifier = Modifier.weight(1f),
+            horizontalAlignment = Alignment.Start
+        ) {
+            Text(
+                text = card.title,
+                fontSize = 28.sp,
+                lineHeight = 30.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
+            )
+            Text(
+                text = card.subtitle,
+                fontSize = 16.sp,
+                lineHeight = 19.sp,
+                color = Color.Black.copy(alpha = 0.82f),
+                maxLines = 1
+            )
+        }
+        Column(
+            modifier = Modifier.width(105.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = card.eyebrow,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center,
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Normal,
-                color = Color.Black.copy(alpha = 0.45f)
-            )
-            Spacer(Modifier.height(3.dp))
-            Text(
-                text = card.title,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center,
-                fontSize = 20.sp,
-                lineHeight = 22.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color(0xFF201F1D)
-            )
-
-            Spacer(Modifier.weight(1f))
-
-            Text(
                 text = card.metric,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center,
-                fontSize = 28.sp,
-                lineHeight = 30.sp,
-                fontWeight = FontWeight.Light,
-                color = Color.Black.copy(alpha = 0.66f)
-            )
-            Spacer(Modifier.height(3.dp))
-            Text(
-                text = card.subtitle,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center,
-                fontSize = 10.sp,
-                lineHeight = 13.sp,
-                color = Color.Black.copy(alpha = 0.48f),
-                maxLines = 2
+                fontSize = 42.sp,
+                lineHeight = 44.sp,
+                fontWeight = FontWeight.Normal,
+                color = Color.Black
             )
             Spacer(Modifier.height(10.dp))
             LinearProgressIndicator(
                 progress = { card.progress.coerceIn(0f, 1f) },
                 modifier = Modifier
-                    .fillMaxWidth(0.68f)
-                    .height(2.dp)
+                    .fillMaxWidth()
+                    .height(7.dp)
                     .clip(CircleShape),
-                color = Color.Black.copy(alpha = 0.30f),
-                trackColor = Color.White.copy(alpha = 0.42f)
+                color = Color.Black,
+                trackColor = Color.White.copy(alpha = 0.58f)
             )
+        }
+        Spacer(Modifier.width(10.dp))
+        Surface(
+            shape = CircleShape,
+            color = Color.Transparent,
+            border = BorderStroke(1.5.dp, Color.Black),
+            modifier = Modifier.size(34.dp)
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    imageVector = Icons.Default.KeyboardArrowLeft,
+                    contentDescription = "פתיחת ${card.title}",
+                    tint = Color.Black,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
         }
     }
 }
@@ -433,10 +305,11 @@ fun FloatingDarkNavBar(
 ) {
     Surface(
         shape = RoundedCornerShape(32.dp),
-        color = Color(0xFF352920),
+        color = Color(0xFFF2F2F2),
+        shadowElevation = 8.dp,
         modifier = modifier
             .width(260.dp)
-            .height(56.dp)
+            .height(60.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxSize(),
@@ -448,45 +321,53 @@ fun FloatingDarkNavBar(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .weight(1f)
+                    .fillMaxHeight()
+                    .padding(4.dp)
+                    .clip(RoundedCornerShape(28.dp))
+                    .background(if (selectedTab == HomeTab.PRAYERS) Color.White else Color.Transparent)
                     .clickable { onSelectTab(HomeTab.PRAYERS) },
                 horizontalArrangement = Arrangement.Center
             ) {
                 Icon(
                     Icons.Default.NightlightRound,
                     contentDescription = null,
-                    tint = if (selectedTab == HomeTab.PRAYERS) Color(0xFFF6C879) else Color(0xFF8B827A),
+                    tint = if (selectedTab == HomeTab.PRAYERS) Color.Black else Color(0xFF9A9A9A),
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
                     text = "תפילות",
-                    color = if (selectedTab == HomeTab.PRAYERS) Color.White else Color(0xFF8B827A),
+                    color = if (selectedTab == HomeTab.PRAYERS) Color.Black else Color(0xFF9A9A9A),
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Medium
                 )
             }
 
             // Divider
-            Box(modifier = Modifier.width(1.dp).height(24.dp).background(Color(0xFF5C5249)))
+            Box(modifier = Modifier.width(1.dp).height(24.dp).background(Color(0xFFD0D0D0)))
 
             // Study Tab (Right)
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .weight(1f)
+                    .fillMaxHeight()
+                    .padding(4.dp)
+                    .clip(RoundedCornerShape(28.dp))
+                    .background(if (selectedTab == HomeTab.STUDY) Color.White else Color.Transparent)
                     .clickable { onSelectTab(HomeTab.STUDY) },
                 horizontalArrangement = Arrangement.Center
             ) {
                 Icon(
                     Icons.Default.MenuBook,
                     contentDescription = null,
-                    tint = if (selectedTab == HomeTab.STUDY) Color(0xFFF6C879) else Color(0xFF8B827A),
+                    tint = if (selectedTab == HomeTab.STUDY) Color.Black else Color(0xFF9A9A9A),
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
                     text = "לימוד",
-                    color = if (selectedTab == HomeTab.STUDY) Color.White else Color(0xFF8B827A),
+                    color = if (selectedTab == HomeTab.STUDY) Color.Black else Color(0xFF9A9A9A),
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Medium
                 )
