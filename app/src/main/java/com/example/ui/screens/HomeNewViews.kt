@@ -138,7 +138,9 @@ fun MainContentList(
                                 eyebrow = if (uiState.preferences.selectedTrack == "three") "שלושה פרקים" else "פרק יומי",
                                 title = "רמב״ם",
                                 subtitle = rambamSubtitle,
-                                metric = "$completed/$total",
+                                metric = uiState.dailyLesson?.chapters
+                                    ?.joinToString("–") { it.chapterHebrew.removePrefix("פרק ") }
+                                    ?: "–",
                                 progress = completed.toFloat() / total,
                                 color = Color(0xFFFF681F),
                                 icon = Icons.Outlined.LibraryBooks,
@@ -148,14 +150,14 @@ fun MainContentList(
                     }
                     if (visibleStudies.contains("chumash")) {
                         val total = uiState.dailyChumash?.allAliyot?.size?.coerceAtLeast(1) ?: 7
-                        val completed = uiState.dailyChumash?.completedCount ?: 0
+                        val current = uiState.dailyChumash?.currentAliyaIndex ?: 1
                         add(
                             StudyDashboardCard(
                                 eyebrow = "חת״ת",
                                 title = "חומש",
                                 subtitle = chumashSubtitle,
-                                metric = "$completed/$total",
-                                progress = completed.toFloat() / total,
+                                metric = "$current/$total",
+                                progress = current.toFloat() / total,
                                 color = Color(0xFFF2FF38),
                                 icon = Icons.Outlined.ReceiptLong,
                                 onClick = onOpenChumash
@@ -164,12 +166,15 @@ fun MainContentList(
                     }
                     if (visibleStudies.contains("tanya")) {
                         val completed = uiState.dailyTanya?.isCompleted == true
+                        val tanyaChapter = uiState.dailyTanya?.heRef
+                            ?.let { Regex("([א-ת׳״]+):").find(it)?.groupValues?.getOrNull(1) }
+                            ?: "–"
                         add(
                             StudyDashboardCard(
                                 eyebrow = "חת״ת",
                                 title = "תניא",
                                 subtitle = tanyaSubtitle,
-                                metric = if (completed) "✓" else "0/1",
+                                metric = tanyaChapter,
                                 progress = if (completed) 1f else 0f,
                                 color = Color(0xFFE98DDE),
                                 icon = Icons.Outlined.MenuBook,
@@ -178,13 +183,14 @@ fun MainContentList(
                         )
                     }
                     if (visibleStudies.contains("tehillim")) {
+                        val day = uiState.dailyTehillim?.dayOfMonth ?: 1
                         add(
                             StudyDashboardCard(
                                 eyebrow = "תהילים יומי",
                                 title = "תהילים",
                                 subtitle = tehillimSubtitle,
-                                metric = "12/30",
-                                progress = 0.40f,
+                                metric = "$day/30",
+                                progress = day / 30f,
                                 color = Color(0xFFBCCB72),
                                 icon = Icons.Outlined.MusicNote,
                                 onClick = onOpenTehillim

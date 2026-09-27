@@ -5,6 +5,26 @@ import java.time.LocalDate
 
 object HebrewDateHelper {
 
+    /** Parses Hebrew numerals such as ט״ז, כ״ט and ל׳. */
+    fun parseHebrewNumeral(value: String): Int? {
+        val normalized = value
+            .replace("׳", "")
+            .replace("״", "")
+            .replace("'", "")
+            .replace("\"", "")
+            .filter { it in 'א'..'ת' }
+        if (normalized.isBlank()) return null
+
+        val values = mapOf(
+            'א' to 1, 'ב' to 2, 'ג' to 3, 'ד' to 4, 'ה' to 5,
+            'ו' to 6, 'ז' to 7, 'ח' to 8, 'ט' to 9, 'י' to 10,
+            'כ' to 20, 'ל' to 30, 'מ' to 40, 'נ' to 50, 'ס' to 60,
+            'ע' to 70, 'פ' to 80, 'צ' to 90, 'ק' to 100,
+            'ר' to 200, 'ש' to 300, 'ת' to 400
+        )
+        return normalized.sumOf { values[it] ?: return null }
+    }
+
     fun getHebrewDayOfWeekShort(dayOfWeek: DayOfWeek): String {
         return when (dayOfWeek) {
             DayOfWeek.SUNDAY -> "א׳"

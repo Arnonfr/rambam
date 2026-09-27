@@ -428,12 +428,9 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
             val dayNumStr = HebrewDateHelper.extractHebrewDayNumeral(hebDateStr) // e.g. "ה׳"
             val monthName = HebrewDateHelper.extractHebrewMonth(hebDateStr) // e.g. "תשרי"
             
-            val dayOfMonth = when (dayNumStr.trim().removeSuffix("׳")) {
-                "א" -> 1; "ב" -> 2; "ג" -> 3; "ד" -> 4; "ה" -> 5; "ו" -> 6; "ז" -> 7; "ח" -> 8; "ט" -> 9; "י" -> 10
-                "יא" -> 11; "יב" -> 12; "יג" -> 13; "יד" -> 14; "טו" -> 15; "טז" -> 16; "יז" -> 17; "יח" -> 18; "יט" -> 19; "כ" -> 20
-                "כא" -> 21; "כב" -> 22; "כג" -> 23; "כד" -> 24; "כה" -> 25; "כו" -> 26; "כז" -> 27; "כח" -> 28; "כט" -> 29; "ל" -> 30
-                else -> 1
-            }
+            val dayOfMonth = HebrewDateHelper.parseHebrewNumeral(dayNumStr)
+                ?.takeIf { it in 1..30 }
+                ?: 1
 
             val lesson = tehillimRepository.getDailyTehillimLesson(
                 dayOfMonth = dayOfMonth,
@@ -499,6 +496,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
                 quoteFingerprint = ""
             )
             repository.saveReadingPosition(position)
+            _uiState.update { it.copy(latestTehillimPosition = position) }
         }
     }
 

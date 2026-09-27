@@ -397,6 +397,8 @@ fun ReaderScreen(
                                 halacha = row.halacha,
                                 preferences = preferences,
                                 fontFamily = activeFontFamily,
+                                isReadingAnchor = row.chapter.id == savedPosition?.chapterId &&
+                                    row.indexInChapter == savedPosition?.halachaIndex,
                                 modifier = Modifier.padding(bottom = 20.dp)
                             )
                         }
@@ -610,6 +612,7 @@ private fun HalachaBlock(
     halacha: HalachaEntity,
     preferences: UserPreferences,
     fontFamily: FontFamily,
+    isReadingAnchor: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     StudyTextBlock(
@@ -619,6 +622,7 @@ private fun HalachaBlock(
         preferences = preferences,
         fontFamily = fontFamily,
         textColor = MaterialTheme.colorScheme.onBackground,
+        isReadingAnchor = isReadingAnchor,
         modifier = modifier,
         testTag = "halacha_item_${halacha.halachaNumber}"
     )

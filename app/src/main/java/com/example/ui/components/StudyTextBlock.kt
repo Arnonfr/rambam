@@ -41,6 +41,7 @@ fun StudyTextBlock(
     fontFamily: FontFamily = FontStyleOption.fromId(preferences.fontFamily).fontFamily,
     textColor: Color = MaterialTheme.colorScheme.onBackground,
     fontSizeSp: Float? = null,
+    isReadingAnchor: Boolean = false,
     testTag: String = ""
 ) {
     val rawText = if (preferences.showNikud) textWithNikud else textPlain
@@ -65,6 +66,13 @@ fun StudyTextBlock(
             .fillMaxWidth()
             .then(if (testTag.isNotBlank()) Modifier.testTag(testTag) else Modifier)
     ) {
+        if (isReadingAnchor) {
+            androidx.compose.material3.HorizontalDivider(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 7.dp),
+                thickness = 3.dp,
+                color = Color(0xFF69C8F2)
+            )
+        }
         Text(
             text = formattedText,
             fontSize = activeFontSizeSp.sp,

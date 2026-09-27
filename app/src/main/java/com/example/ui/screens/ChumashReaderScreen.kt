@@ -190,24 +190,20 @@ fun ChumashReaderScreen(
     val listState = rememberLazyListState()
 
     // Scroll to saved position on first load
-    var hasScrolledToSavedPosition by remember { mutableStateOf(false) }
+    var hasScrolledToSavedPosition by remember(chumashLesson?.date, selectedAliyaIndex) { mutableStateOf(false) }
     LaunchedEffect(flatRows, savedPosition) {
-        if (!hasScrolledToSavedPosition && savedPosition != null && flatRows.isNotEmpty()) {
+        if (!hasScrolledToSavedPosition && flatRows.isNotEmpty()) {
             val targetIdx = flatRows.indexOfFirst { row ->
-                row is ChumashUiRow.VerseRow &&
+                row is ChumashUiRow.VerseRow && savedPosition != null &&
                     row.aliya.aliyaIndex == savedPosition.chapterNumber &&
                     row.verse.verseNumber == (savedPosition.halachaIndex + 1)
             }
             if (targetIdx >= 0) {
                 listState.scrollToItem(targetIdx)
+            } else {
+                listState.scrollToItem(0)
             }
             hasScrolledToSavedPosition = true
-        }
-    }
-
-    LaunchedEffect(selectedAliyaIndex, chumashLesson?.date) {
-        if (hasScrolledToSavedPosition) {
-            listState.scrollToItem(0)
         }
     }
 
@@ -260,7 +256,8 @@ fun ChumashReaderScreen(
 
     // Persist the final settled row. collectLatest cancels an older pending save,
     // so a fast fling cannot leave the anchor at the first row of the fling.
-    LaunchedEffect(listState, flatRows) {
+    LaunchedEffect(listState, flatRows, hasScrolledToSavedPosition) {
+        if (!hasScrolledToSavedPosition) return@LaunchedEffect
         snapshotFlow { listState.firstVisibleItemIndex }
             .collectLatest { visibleIndex ->
                 delay(250)
@@ -273,8 +270,9 @@ fun ChumashReaderScreen(
     // A back press, app switch or process stop must save without waiting for
     // the settling delay above.
     val lifecycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(lifecycleOwner, flatRows) {
+    DisposableEffect(lifecycleOwner, flatRows, hasScrolledToSavedPosition) {
         fun saveVisibleRow() {
+            if (!hasScrolledToSavedPosition) return
             getActiveVerseInfo(listState.firstVisibleItemIndex).first?.let { activeVerse ->
                 onSavePosition(activeVerse.verse, activeVerse.aliya)
             }
@@ -378,6 +376,8 @@ fun ChumashReaderScreen(
                                 fontFamily = activeFontFamily,
                                 textColor = MaterialTheme.colorScheme.onBackground,
                                 fontSizeSp = preferences.chumashFontSizeSp,
+                                isReadingAnchor = row.aliya.aliyaIndex == savedPosition?.chapterNumber &&
+                                    row.verse.verseNumber == savedPosition?.halachaIndex?.plus(1),
                                 modifier = Modifier.padding(bottom = 20.dp),
                                 testTag = "verse_item_${row.verse.verseNumber}"
                             )

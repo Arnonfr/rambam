@@ -135,12 +135,14 @@ fun TanyaReaderScreen(
     }
 
     // Scroll to saved position on first load
-    var hasScrolledToSavedPosition by remember { mutableStateOf(false) }
+    var hasScrolledToSavedPosition by remember(lesson.date) { mutableStateOf(false) }
     LaunchedEffect(sections, savedPosition) {
-        if (!hasScrolledToSavedPosition && savedPosition != null && sections.isNotEmpty()) {
-            val targetIdx = savedPosition.halachaIndex + 1 // +1 for header item
-            if (targetIdx in 0..sections.size) {
-                listState.scrollToItem(targetIdx)
+        if (!hasScrolledToSavedPosition && sections.isNotEmpty()) {
+            if (savedPosition != null) {
+                val targetIdx = savedPosition.halachaIndex + 1 // +1 for header item
+                if (targetIdx in 0..sections.size) {
+                    listState.scrollToItem(targetIdx)
+                }
             }
             hasScrolledToSavedPosition = true
         }
@@ -149,7 +151,8 @@ fun TanyaReaderScreen(
     fun activeSectionAt(visibleIndex: Int): TanyaSection? =
         sections.getOrNull((visibleIndex - 1).coerceAtLeast(0))
 
-    LaunchedEffect(listState, sections, lesson) {
+    LaunchedEffect(listState, sections, lesson, hasScrolledToSavedPosition) {
+        if (!hasScrolledToSavedPosition) return@LaunchedEffect
         snapshotFlow { listState.firstVisibleItemIndex }
             .collectLatest { visibleIndex ->
                 delay(250)
@@ -158,8 +161,9 @@ fun TanyaReaderScreen(
     }
 
     val lifecycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(lifecycleOwner, sections, lesson) {
+    DisposableEffect(lifecycleOwner, sections, lesson, hasScrolledToSavedPosition) {
         fun saveVisibleSection() {
+            if (!hasScrolledToSavedPosition) return
             activeSectionAt(listState.firstVisibleItemIndex)?.let { onSavePosition(it, lesson) }
         }
         val observer = LifecycleEventObserver { _, event ->
@@ -265,6 +269,7 @@ fun TanyaReaderScreen(
                         fontFamily = activeFontFamily,
                         textColor = textColor,
                         fontSizeSp = preferences.fontSizeSp,
+                        isReadingAnchor = section.sectionIndex == savedPosition?.halachaIndex?.plus(1),
                         modifier = Modifier.padding(bottom = 18.dp),
                         testTag = "tanya_section_${section.sectionIndex}"
                     )

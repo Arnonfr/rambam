@@ -106,11 +106,6 @@ fun TehillimReaderScreen(
         }
     }
 
-    // Reset list state when switching tabs
-    LaunchedEffect(activeTab) {
-        listState.scrollToItem(0)
-    }
-
     if (isLoading || lesson == null) {
         CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
             Box(
@@ -208,22 +203,30 @@ fun TehillimReaderScreen(
     }
 
     // Scroll to saved position on first load
-    var hasScrolledToSavedPosition by remember { mutableStateOf(false) }
-    LaunchedEffect(flatRows, savedPosition) {
-        if (!hasScrolledToSavedPosition && savedPosition != null && flatRows.isNotEmpty()) {
+    var hasScrolledToSavedPosition by remember(lesson.date, activeTab) { mutableStateOf(false) }
+    LaunchedEffect(flatRows, savedPosition, activeTab) {
+        if (!hasScrolledToSavedPosition && flatRows.isNotEmpty()) {
+            if (activeTab == TehillimTab.ELUL) {
+                listState.scrollToItem(0)
+                hasScrolledToSavedPosition = true
+                return@LaunchedEffect
+            }
             val targetIdx = flatRows.indexOfFirst { row ->
                 row is TehillimUiRow.VerseRow &&
-                    row.chapter.chapterNumber == savedPosition.chapterNumber &&
-                    row.verse.verseNumber == (savedPosition.halachaIndex + 1)
+                    row.chapter.chapterNumber == savedPosition?.chapterNumber &&
+                    row.verse.verseNumber == ((savedPosition?.halachaIndex ?: -1) + 1)
             }
             if (targetIdx >= 0) {
                 listState.scrollToItem(targetIdx)
+            } else {
+                listState.scrollToItem(0)
             }
             hasScrolledToSavedPosition = true
         }
     }
 
-    LaunchedEffect(listState, flatRows) {
+    LaunchedEffect(listState, flatRows, hasScrolledToSavedPosition, activeTab) {
+        if (!hasScrolledToSavedPosition || activeTab != TehillimTab.DAILY) return@LaunchedEffect
         snapshotFlow { listState.firstVisibleItemIndex }
             .collectLatest { visibleIndex ->
                 delay(250)
@@ -234,8 +237,9 @@ fun TehillimReaderScreen(
     }
 
     val lifecycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(lifecycleOwner, flatRows) {
+    DisposableEffect(lifecycleOwner, flatRows, hasScrolledToSavedPosition, activeTab) {
         fun saveVisibleRow() {
+            if (!hasScrolledToSavedPosition || activeTab != TehillimTab.DAILY) return
             getActiveVerseInfo(listState.firstVisibleItemIndex).first?.let { activeVerse ->
                 onSavePosition(activeVerse.verse, activeVerse.chapter)
             }
@@ -425,6 +429,9 @@ fun TehillimReaderScreen(
                                 fontFamily = activeFontFamily,
                                 textColor = textColor,
                                 fontSizeSp = preferences.chumashFontSizeSp,
+                                isReadingAnchor = activeTab == TehillimTab.DAILY &&
+                                    row.chapter.chapterNumber == savedPosition?.chapterNumber &&
+                                    row.verse.verseNumber == (savedPosition?.halachaIndex?.plus(1)),
                                 modifier = Modifier.padding(bottom = 18.dp),
                                 testTag = "tehillim_verse_${row.chapter.chapterNumber}_${row.verse.verseNumber}"
                             )
