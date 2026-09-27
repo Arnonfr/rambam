@@ -2,6 +2,8 @@ package com.example.ui.components
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -17,9 +19,17 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -27,8 +37,190 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.Velocity
 import com.example.data.local.UserPreferences
 import com.example.ui.theme.*
+import kotlinx.coroutines.delay
+
+private val ReaderBarBrown = Color(0xFF4A3828)
+
+@Stable
+class EndOfLessonPullState internal constructor(
+    private val thresholdPx: Float,
+    private val canScrollForward: () -> Boolean,
+    private val onCompleted: () -> Unit,
+    private val performHaptic: () -> Unit
+) {
+    var pullDistancePx by mutableFloatStateOf(0f)
+        private set
+    var isConfirmed by mutableStateOf(false)
+        private set
+    private var settling = false
+
+    val progress: Float
+        get() = (pullDistancePx / thresholdPx).coerceIn(0f, 1f)
+
+    val connection = object : NestedScrollConnection {
+        override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
+            if (source == NestedScrollSource.UserInput && !canScrollForward() && available.y < 0f && !settling) {
+                pullDistancePx = (pullDistancePx + (-available.y * 0.48f)).coerceAtMost(thresholdPx * 1.25f)
+            }
+            return Offset.Zero
+        }
+
+        override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+            if (source == NestedScrollSource.UserInput && available.y > 0f && pullDistancePx > 0f && !settling) {
+                pullDistancePx = (pullDistancePx - available.y).coerceAtLeast(0f)
+            }
+            return Offset.Zero
+        }
+
+        override suspend fun onPreFling(available: Velocity): Velocity {
+            settle()
+            return Velocity.Zero
+        }
+
+        override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
+            settle()
+            return Velocity.Zero
+        }
+    }
+
+    private suspend fun settle() {
+        if (settling || pullDistancePx <= 0f) return
+        settling = true
+        if (progress >= 1f && !isConfirmed) {
+            isConfirmed = true
+            performHaptic()
+            onCompleted()
+            delay(650)
+        }
+        pullDistancePx = 0f
+        delay(120)
+        isConfirmed = false
+        settling = false
+    }
+}
+
+@Composable
+fun rememberEndOfLessonPullState(
+    key: Any?,
+    canScrollForward: () -> Boolean,
+    onCompleted: () -> Unit
+): EndOfLessonPullState {
+    val density = LocalDensity.current
+    val haptics = LocalHapticFeedback.current
+    val latestOnCompleted by rememberUpdatedState(onCompleted)
+    val latestCanScrollForward by rememberUpdatedState(canScrollForward)
+    return remember(key, density) {
+        EndOfLessonPullState(
+            thresholdPx = with(density) { 92.dp.toPx() },
+            canScrollForward = { latestCanScrollForward() },
+            onCompleted = { latestOnCompleted() },
+            performHaptic = { haptics.performHapticFeedback(HapticFeedbackType.LongPress) }
+        )
+    }
+}
+
+fun Modifier.endOfLessonPull(state: EndOfLessonPullState): Modifier = nestedScroll(state.connection)
+
+@Composable
+fun EndOfLessonPullIndicator(
+    state: EndOfLessonPullState,
+    accentColor: Color,
+    modifier: Modifier = Modifier
+) {
+    val visible = state.pullDistancePx > 1f || state.isConfirmed
+    val checkScale by animateFloatAsState(
+        targetValue = if (state.isConfirmed) 1f else 0.55f,
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = 420f),
+        label = "lessonCompleteCheckScale"
+    )
+    AnimatedVisibility(visible = visible, modifier = modifier) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(58.dp)) {
+                CircularProgressIndicator(
+                    progress = { if (state.isConfirmed) 1f else state.progress },
+                    modifier = Modifier.fillMaxSize(),
+                    color = accentColor,
+                    trackColor = Color.Black.copy(alpha = 0.10f),
+                    strokeWidth = 4.dp
+                )
+                if (state.isConfirmed || state.progress >= 0.78f) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = "השיעור הושלם",
+                        tint = Color.Black,
+                        modifier = Modifier.size(30.dp).scale(checkScale)
+                    )
+                }
+            }
+            if (!state.isConfirmed) {
+                Text(
+                    text = "משכו לסיום",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color.Black.copy(alpha = 0.48f),
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun CompactReaderHeader(
+    title: String,
+    location: String,
+    accentColor: Color,
+    scrollProgress: Float,
+    readerTheme: String,
+    modifier: Modifier = Modifier
+) {
+    val surface = when (readerTheme) {
+        "dark" -> Color(0xFF18191D)
+        "sepia" -> Color(0xFFF5EEDA)
+        else -> Color(0xFFFFFDF8)
+    }
+    val foreground = if (readerTheme == "dark") Color.White else Color.Black
+    Surface(
+        color = surface.copy(alpha = 0.98f),
+        modifier = modifier.fillMaxWidth(),
+        tonalElevation = 0.dp,
+        shadowElevation = 1.dp
+    ) {
+        Column(modifier = Modifier.statusBarsPadding()) {
+            Row(
+                modifier = Modifier.fillMaxWidth().height(46.dp).padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Box(
+                    modifier = Modifier.size(20.dp).clip(RoundedCornerShape(3.dp)).background(accentColor),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Default.MenuBook, contentDescription = null, tint = Color.Black, modifier = Modifier.size(14.dp))
+                }
+                Text(title, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold, color = foreground)
+                Text("•", fontSize = 12.sp, color = foreground.copy(alpha = 0.42f))
+                Text(
+                    text = location,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = foreground.copy(alpha = 0.68f),
+                    maxLines = 1,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+            LinearProgressIndicator(
+                progress = { scrollProgress },
+                modifier = Modifier.fillMaxWidth().height(2.dp),
+                color = accentColor,
+                trackColor = foreground.copy(alpha = 0.07f)
+            )
+        }
+    }
+}
 
 @Composable
 fun FloatingReaderBar(
@@ -51,49 +243,22 @@ fun FloatingReaderBar(
                 .clip(RoundedCornerShape(28.dp)),
             color = when (readerTheme) {
                 "dark" -> Color(0xFF1E222A)
-                "sepia" -> Color(0xFF4A3828)
-                else -> DeepNavy
+                else -> ReaderBarBrown
             },
             contentColor = Color.White
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
-                // Scroll progress indicator along top edge
-                LinearProgressIndicator(
-                    progress = { scrollProgress },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(3.dp),
-                    color = GoldAccent,
-                    trackColor = Color.White.copy(alpha = 0.15f)
-                )
-
                 Row(
                     modifier = Modifier
-                        .padding(horizontal = 10.dp, vertical = 6.dp)
+                        .padding(horizontal = 12.dp, vertical = 7.dp)
                         .fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.Center
                 ) {
-                    // Back Button (חץ חזרה) on the bar, pointing right (RTL Back)
-                    IconButton(
-                        onClick = onBack,
-                        modifier = Modifier
-                            .size(38.dp)
-                            .testTag("reader_bottom_back_button")
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowForward,
-                            contentDescription = "חזרה למסך הבית",
-                            tint = Color.White,
-                            modifier = Modifier.size(22.dp)
-                        )
-                    }
-
-                    // Middle Section with Day Navigation Arrows and Hebrew Date
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         if (onPrevDay != null) {
                             Surface(
@@ -157,24 +322,6 @@ fun FloatingReaderBar(
                             }
                         }
 
-                        // Specific Halacha Indicator Capsule (only if provided and non-empty)
-                        if (currentHalachaText.isNotBlank()) {
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Surface(
-                                shape = RoundedCornerShape(14.dp),
-                                color = Color.White.copy(alpha = 0.10f)
-                            ) {
-                                Text(
-                                    text = currentHalachaText,
-                                    fontSize = 10.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = Color.White.copy(alpha = 0.9f),
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
-                                    textAlign = TextAlign.Center
-                                )
-                            }
-                        }
-
                         if (onNextDay != null) {
                             Spacer(modifier = Modifier.width(8.dp))
                             Surface(
@@ -197,21 +344,6 @@ fun FloatingReaderBar(
                                 }
                             }
                         }
-                    }
-
-                    // Typography settings button (TT)
-                    IconButton(
-                        onClick = onTypographyClick,
-                        modifier = Modifier
-                            .size(38.dp)
-                            .testTag("reader_typography_button")
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.FormatSize,
-                            contentDescription = "הגדרות גופן ולימוד",
-                            tint = GoldWarm,
-                            modifier = Modifier.size(20.dp)
-                        )
                     }
                 }
             }

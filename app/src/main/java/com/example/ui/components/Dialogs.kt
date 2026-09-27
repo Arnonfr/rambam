@@ -29,6 +29,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.DialogProperties
 import com.example.data.local.UserPreferences
 import com.example.domain.schedule.DailyLessonResult
 import com.example.domain.sunset.CityLocation
@@ -54,6 +55,7 @@ fun SettingsDialog(
     onDayBoundaryChange: (String) -> Unit,
     onCityChange: (String) -> Unit,
     onFontFamilyChange: (String) -> Unit = {},
+    onToggleStudy: (String) -> Unit = {},
     onOpenAttribution: () -> Unit
 ) {
     var expandedCityDropdown by remember { mutableStateOf(false) }
@@ -73,333 +75,161 @@ fun SettingsDialog(
         }
     }
 
+    val ink = Color(0xFF111111)
+    val paper = Color(0xFFFFFCF6)
+    val studies = listOf(
+        Triple("rambam", "רמב״ם", Color(0xFFFF6422)),
+        Triple("chumash", "חומש", Color(0xFFEDFF24)),
+        Triple("tanya", "תניא", Color(0xFFEA78D5)),
+        Triple("tehillim", "תהילים", Color(0xFFB9C96B))
+    )
+
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         AlertDialog(
             onDismissRequest = onDismiss,
-            containerColor = Color(0xFFF8FAFC), // Light surface matching home screen
-            shape = RoundedCornerShape(24.dp), // More rounded corners
+            modifier = Modifier.fillMaxWidth(0.92f).heightIn(max = 760.dp).border(1.5.dp, ink, RoundedCornerShape(22.dp)),
+            properties = DialogProperties(usePlatformDefaultWidth = false),
+            containerColor = paper,
+            shape = RoundedCornerShape(22.dp),
             title = {
-                Text(
-                    text = "הגדרות האפליקציה",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 22.sp,
-                    color = Color(0xFF2D3748), // TextDark from theme
-                    textAlign = TextAlign.Start,
-                    modifier = Modifier.fillMaxWidth()
-                )
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text("הגדרות האפליקציה", fontWeight = FontWeight.ExtraBold, fontSize = 23.sp, color = ink, modifier = Modifier.weight(1f))
+                    IconButton(onClick = onDismiss, modifier = Modifier.size(32.dp)) {
+                        Icon(Icons.Default.Close, contentDescription = "סגירה", tint = ink)
+                    }
+                }
             },
             text = {
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    horizontalAlignment = Alignment.Start
+                    Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // Track selection
-                    Text(
-                        text = "מסלול לימוד ראשי",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
-                        color = Color(0xFF2D3748),
-                        textAlign = TextAlign.Start,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    // Modern styled segmented pill for track with sharp contrast
-                    Surface(
-                        shape = RoundedCornerShape(8.dp),
-                        color = Color(0xFFE2E8F0),
-                        border = BorderStroke(1.dp, Color(0xFFCBD5E1)),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 2.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(4.dp),
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            // 1 Chapter
-                            val isOneSelected = preferences.selectedTrack == "one"
-                            Surface(
-                                shape = RoundedCornerShape(8.dp),
-                                color = if (isOneSelected) Color.White else Color.Transparent,
-                                border = if (isOneSelected) BorderStroke(1.5.dp, Color(0xFF4C51C6)) else null,
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .clickable { onTrackChange("one") }
-                                    .then(
-                                        if (isOneSelected) Modifier.shadow(2.dp, RoundedCornerShape(8.dp)) else Modifier
-                                    )
-                            ) {
-                                Text(
-                                    text = "פרק אחד ליום",
-                                    fontSize = 13.sp,
-                                    fontWeight = if (isOneSelected) FontWeight.Bold else FontWeight.Medium,
-                                    color = if (isOneSelected) Color(0xFF4C51C6) else Color(0xFF4A5568),
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier.padding(vertical = 9.dp)
-                                )
+                    Text("השיעורים שלי", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, color = ink)
+                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        studies.forEach { (key, name, color) ->
+                            val subtitle = when (key) {
+                                "rambam" -> if (preferences.selectedTrack == "three") "שלושה פרקים ליום" else "פרק אחד ליום"
+                                "chumash" -> "העלייה היומית"
+                                "tanya" -> "השיעור היומי"
+                                else -> "לפי ימי החודש"
                             }
-
-                            // 3 Chapters
-                            val isThreeSelected = preferences.selectedTrack == "three"
-                            Surface(
-                                shape = RoundedCornerShape(8.dp),
-                                color = if (isThreeSelected) Color.White else Color.Transparent,
-                                border = if (isThreeSelected) BorderStroke(1.5.dp, Color(0xFF4C51C6)) else null,
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .clickable { onTrackChange("three") }
-                                    .then(
-                                        if (isThreeSelected) Modifier.shadow(2.dp, RoundedCornerShape(8.dp)) else Modifier
-                                    )
+                            val icon = when (key) {
+                                "rambam" -> Icons.Default.MenuBook
+                                "chumash" -> Icons.Default.AutoStories
+                                "tanya" -> Icons.Default.Book
+                                else -> Icons.Default.MusicNote
+                            }
+                            Row(
+                                Modifier.fillMaxWidth().height(58.dp).background(color).clickable { onToggleStudy(key) }.padding(horizontal = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(
-                                    text = "שלושה פרקים ליום",
-                                    fontSize = 13.sp,
-                                    fontWeight = if (isThreeSelected) FontWeight.Bold else FontWeight.Medium,
-                                    color = if (isThreeSelected) Color(0xFF4C51C6) else Color(0xFF4A5568),
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier.padding(vertical = 9.dp)
+                                Icon(icon, contentDescription = null, tint = ink, modifier = Modifier.size(27.dp))
+                                Spacer(Modifier.width(10.dp))
+                                Column(Modifier.weight(1f)) {
+                                    Text(name, fontSize = 17.sp, fontWeight = FontWeight.ExtraBold, color = ink)
+                                    Text(subtitle, fontSize = 11.sp, color = ink.copy(alpha = 0.72f))
+                                }
+                                Switch(
+                                    checked = preferences.visibleStudies.contains(key),
+                                    onCheckedChange = { onToggleStudy(key) },
+                                    colors = SwitchDefaults.colors(
+                                        checkedThumbColor = Color.White,
+                                        checkedTrackColor = ink,
+                                        uncheckedThumbColor = Color.White,
+                                        uncheckedTrackColor = ink.copy(alpha = 0.35f),
+                                        uncheckedBorderColor = Color.Transparent
+                                    )
                                 )
                             }
                         }
                     }
 
-                    HorizontalDivider(color = Color(0xFFE2E8F0))
+                    HorizontalDivider(color = ink, thickness = 1.dp)
+                    Text("מסלול לימוד", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, color = ink)
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        listOf("one" to "פרק אחד ליום", "three" to "שלושה פרקים ליום").forEach { (value, label) ->
+                            val selected = preferences.selectedTrack == value
+                            Surface(
+                                color = if (selected) ink else Color.Transparent,
+                                contentColor = if (selected) Color.White else ink,
+                                border = BorderStroke(1.5.dp, ink),
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier.weight(1f).clickable { onTrackChange(value) }
+                            ) { Text(label, fontSize = 12.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, modifier = Modifier.padding(vertical = 10.dp)) }
+                        }
+                    }
 
-                    // Font Family selection
-                    Text(
-                        text = "סגנון גופן הלימוד",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
-                        color = Color(0xFF2D3748),
-                        textAlign = TextAlign.Start,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
+                    HorizontalDivider(color = ink, thickness = 1.dp)
+                    Text("גופן הלימוד", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, color = ink)
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         FontStyleOption.entries.forEach { option ->
-                            val isSelected = preferences.fontFamily == option.id
+                            val selected = preferences.fontFamily == option.id
                             Surface(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .clickable { onFontFamilyChange(option.id) }
-                                    .border(
-                                        width = if (isSelected) 2.dp else 1.5.dp,
-                                        color = if (isSelected) Color(0xFF4C51C6) else Color(0xFFE2E8F0),
-                                        shape = RoundedCornerShape(8.dp)
-                                    ),
-                                color = if (isSelected) Color(0xFFF3F4F6) else Color.White
+                                modifier = Modifier.weight(1f).clickable { onFontFamilyChange(option.id) },
+                                color = if (selected) ink else Color.Transparent,
+                                contentColor = if (selected) Color.White else ink,
+                                border = BorderStroke(1.2.dp, ink),
+                                shape = RoundedCornerShape(7.dp)
                             ) {
-                                Column(
-                                    modifier = Modifier.padding(vertical = 8.dp, horizontal = 2.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    Text(
-                                        text = "רמב״ם",
-                                        fontFamily = option.fontFamily,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 13.sp,
-                                        color = if (isSelected) Color(0xFF4C51C6) else Color(0xFF2D3748)
-                                    )
-                                    Spacer(modifier = Modifier.height(2.dp))
-                                    Text(
-                                        text = option.title,
-                                        fontSize = 11.sp,
-                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                        color = if (isSelected) Color(0xFF4C51C6) else Color(0xFF718096)
-                                    )
+                                Column(Modifier.padding(vertical = 7.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text("רמב״ם", fontFamily = option.fontFamily, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                    Text(option.title, fontSize = 9.sp, maxLines = 1)
                                 }
                             }
                         }
                     }
 
-                    HorizontalDivider(color = Color(0xFFE2E8F0))
-
-                    // Day boundary mode
-                    Text(
-                        text = "מועד החלפת יום הלימוד",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
-                        color = Color(0xFF2D3748),
-                        textAlign = TextAlign.Start,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Text(
-                        text = "קובע מתי לוח הלימוד עובר לשיעור של היום הבא",
-                        fontSize = 12.sp,
-                        color = Color(0xFF718096),
-                        textAlign = TextAlign.Start,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = Color(0xFFF8FAFC),
-                            border = BorderStroke(1.dp, if (preferences.dayBoundary == "midnight") Color(0xFF4C51C6) else Color(0xFFCBD5E1)),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(8.dp))
-                                .clickable { onDayBoundaryChange("midnight") }
+                    HorizontalDivider(color = ink, thickness = 1.dp)
+                    Text("מועד החלפת היום", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, color = ink)
+                    listOf(
+                        "midnight" to Pair("חצות מקומי (ברירת מחדל)", "לפי שעון המכשיר"),
+                        "sunset" to Pair("שקיעת החמה (הלכתי)", "לפי שקיעת השמש")
+                    ).forEach { (value, copy) ->
+                        val selected = preferences.dayBoundary == value
+                        Row(
+                            Modifier.fillMaxWidth().border(1.2.dp, ink, RoundedCornerShape(8.dp)).clickable { onDayBoundaryChange(value) }.padding(10.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                RadioButton(
-                                    selected = preferences.dayBoundary == "midnight",
-                                    onClick = { onDayBoundaryChange("midnight") },
-                                    modifier = Modifier.testTag("day_boundary_midnight"),
-                                    colors = RadioButtonDefaults.colors(selectedColor = Color(0xFF4C51C6))
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Column(horizontalAlignment = Alignment.Start) {
-                                    Text(
-                                        text = "חצות מקומי (ברירת מחדל)",
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 14.sp,
-                                        color = Color(0xFF2D3748),
-                                        textAlign = TextAlign.Start
-                                    )
-                                    Text(
-                                        text = "מתאים לסדר יום קבוע לפי שעון המכשיר",
-                                        fontSize = 12.sp,
-                                        color = Color(0xFF718096),
-                                        textAlign = TextAlign.Start
-                                    )
-                                }
-                            }
-                        }
-
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = Color(0xFFF8FAFC),
-                            border = BorderStroke(1.dp, if (preferences.dayBoundary == "sunset") Color(0xFF4C51C6) else Color(0xFFCBD5E1)),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(8.dp))
-                                .clickable { onDayBoundaryChange("sunset") }
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                RadioButton(
-                                    selected = preferences.dayBoundary == "sunset",
-                                    onClick = { onDayBoundaryChange("sunset") },
-                                    modifier = Modifier.testTag("day_boundary_sunset"),
-                                    colors = RadioButtonDefaults.colors(selectedColor = Color(0xFF4C51C6))
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Column(horizontalAlignment = Alignment.Start) {
-                                    Text(
-                                        text = "שקיעת החמה (הלכתי)",
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 14.sp,
-                                        color = Color(0xFF2D3748),
-                                        textAlign = TextAlign.Start
-                                    )
-                                    Text(
-                                        text = "היום העברי מתחלף עם שקיעת השמש",
-                                        fontSize = 12.sp,
-                                        color = Color(0xFF718096),
-                                        textAlign = TextAlign.Start
-                                    )
-                                }
+                            RadioButton(selected = selected, onClick = { onDayBoundaryChange(value) }, colors = RadioButtonDefaults.colors(selectedColor = ink))
+                            Column(Modifier.padding(start = 8.dp)) {
+                                Text(copy.first, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = ink)
+                                Text(copy.second, fontSize = 10.sp, color = ink.copy(alpha = 0.55f))
                             }
                         }
                     }
 
-                    // City selector for sunset calculation
                     if (preferences.dayBoundary == "sunset") {
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = Color(0xFFF3F4F6),
-                            border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Column(modifier = Modifier.padding(12.dp), horizontalAlignment = Alignment.Start) {
-                                Text(
-                                    text = "עיר לחישוב זמן שקיעה:",
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF2D3748),
-                                    textAlign = TextAlign.Start
-                                )
-                                Spacer(modifier = Modifier.height(6.dp))
-
-                                ExposedDropdownMenuBox(
-                                    expanded = expandedCityDropdown,
-                                    onExpandedChange = { expandedCityDropdown = it }
-                                ) {
-                                    OutlinedTextField(
-                                        value = "${selectedCity.nameHebrew} (שקיעה היום: $sunsetTimeStr)",
-                                        onValueChange = {},
-                                        readOnly = true,
-                                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedCityDropdown) },
-                                        modifier = Modifier
-                                            .menuAnchor()
-                                            .fillMaxWidth()
-                                    )
-
-                                    ExposedDropdownMenu(
-                                        expanded = expandedCityDropdown,
-                                        onDismissRequest = { expandedCityDropdown = false }
-                                    ) {
-                                        SupportedCities.CITIES.forEach { city ->
-                                            DropdownMenuItem(
-                                                text = { Text("${city.nameHebrew} (${city.nameEnglish})") },
-                                                onClick = {
-                                                    onCityChange(city.nameHebrew)
-                                                    expandedCityDropdown = false
-                                                }
-                                            )
-                                        }
-                                    }
+                        ExposedDropdownMenuBox(expanded = expandedCityDropdown, onExpandedChange = { expandedCityDropdown = it }) {
+                            OutlinedTextField(
+                                value = "${selectedCity.nameHebrew} · $sunsetTimeStr",
+                                onValueChange = {}, readOnly = true,
+                                label = { Text("עיר לחישוב שקיעה") },
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expandedCityDropdown) },
+                                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = ink, unfocusedBorderColor = ink),
+                                modifier = Modifier.menuAnchor().fillMaxWidth()
+                            )
+                            ExposedDropdownMenu(expanded = expandedCityDropdown, onDismissRequest = { expandedCityDropdown = false }) {
+                                SupportedCities.CITIES.forEach { city ->
+                                    DropdownMenuItem(text = { Text(city.nameHebrew) }, onClick = { onCityChange(city.nameHebrew); expandedCityDropdown = false })
                                 }
                             }
                         }
                     }
 
-                    HorizontalDivider(color = Color(0xFFE2E8F0))
-
-                    // About & Attribution Button
-                    TextButton(
-                        onClick = {
-                            onDismiss()
-                            onOpenAttribution()
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Icon(Icons.Default.Info, contentDescription = null, modifier = Modifier.size(18.dp), tint = Color(0xFF4C51C6))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("אודות התוכן, מקורות ורישוי", color = Color(0xFF4C51C6), fontWeight = FontWeight.Bold)
+                    TextButton(onClick = { onDismiss(); onOpenAttribution() }, modifier = Modifier.fillMaxWidth()) {
+                        Icon(Icons.Default.Info, contentDescription = null, tint = ink, modifier = Modifier.size(17.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text("אודות התוכן, מקורות ורישוי", color = ink, fontWeight = FontWeight.Bold)
                     }
                 }
             },
             confirmButton = {
                 Button(
                     onClick = onDismiss,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4C51C6)),
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.testTag("close_settings_button")
-                ) {
-                    Text("סגור", color = Color.White, fontWeight = FontWeight.Bold)
-                }
+                    colors = ButtonDefaults.buttonColors(containerColor = ink),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.fillMaxWidth().height(48.dp).testTag("close_settings_button")
+                ) { Text("שמירה", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 16.sp) }
             }
         )
     }

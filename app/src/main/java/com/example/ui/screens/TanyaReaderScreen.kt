@@ -35,8 +35,12 @@ import com.example.data.local.UserPreferences
 import com.example.domain.tanya.DailyTanyaLesson
 import com.example.domain.tanya.TanyaSection
 import com.example.ui.components.FloatingReaderBar
+import com.example.ui.components.CompactReaderHeader
+import com.example.ui.components.EndOfLessonPullIndicator
 import com.example.ui.components.ReaderTypographySheet
 import com.example.ui.components.StudyTextBlock
+import com.example.ui.components.endOfLessonPull
+import com.example.ui.components.rememberEndOfLessonPullState
 import com.example.ui.theme.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -106,6 +110,12 @@ fun TanyaReaderScreen(
         }
         return
     }
+
+    val completionPullState = rememberEndOfLessonPullState(
+        key = lesson.date,
+        canScrollForward = { listState.canScrollForward },
+        onCompleted = { if (!lesson.isCompleted) onToggleCompletion() }
+    )
 
     val sections = lesson.sections
 
@@ -202,9 +212,9 @@ fun TanyaReaderScreen(
                 state = listState,
                 modifier = Modifier
                     .fillMaxSize()
-                    .statusBarsPadding()
+                    .endOfLessonPull(completionPullState)
                     .padding(horizontal = 20.dp),
-                contentPadding = PaddingValues(top = 24.dp, bottom = 170.dp)
+                contentPadding = PaddingValues(top = 72.dp, bottom = 118.dp)
             ) {
                 // 1. Header Card (Same structure as Tehillim and Chumash)
                 item(key = "tanya_intro_card") {
@@ -275,91 +285,24 @@ fun TanyaReaderScreen(
                     )
                 }
 
-                // 3. Completion Card
-                item(key = "tanya_completed_card") {
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 16.dp, bottom = 28.dp)
-                            .clip(RoundedCornerShape(16.dp)),
-                        color = MaterialTheme.colorScheme.surface,
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .padding(24.dp)
-                                .fillMaxWidth(),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Icon(
-                                imageVector = if (lesson.isCompleted) Icons.Default.CheckCircle else Icons.Default.Stars,
-                                contentDescription = null,
-                                tint = if (lesson.isCompleted) CompletedGreen else GoldAccent,
-                                modifier = Modifier.size(44.dp)
-                            )
-                            Spacer(modifier = Modifier.height(12.dp))
-                            Text(
-                                text = "סיימת את שיעור התניא היומי!",
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                textAlign = TextAlign.Center
-                            )
-                            Spacer(modifier = Modifier.height(6.dp))
-                            Text(
-                                text = "אשריך שזכית לעסוק בפנימיות התורה",
-                                fontSize = 13.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = TextAlign.Center
-                            )
-                            Spacer(modifier = Modifier.height(20.dp))
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(10.dp)
-                            ) {
-                                Button(
-                                    onClick = onToggleCompletion,
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = CompletedGreen,
-                                        contentColor = Color.White
-                                    ),
-                                    shape = RoundedCornerShape(10.dp),
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .height(46.dp)
-                                        .testTag("tanya_toggle_complete_button")
-                                ) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(
-                                            imageVector = Icons.Default.Check,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(16.dp)
-                                        )
-                                        Spacer(modifier = Modifier.width(6.dp))
-                                        Text(
-                                            text = if (lesson.isCompleted) "הושלם ✓" else "סמן כהושלם",
-                                            fontSize = 13.sp,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                    }
-                                }
-                                OutlinedButton(
-                                    onClick = onBack,
-                                    shape = RoundedCornerShape(10.dp),
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .height(46.dp)
-                                        .testTag("tanya_back_home_button")
-                                ) {
-                                    Text("חזרה לדף הבית", fontSize = 13.sp, fontWeight = FontWeight.Medium)
-                                }
-                            }
-                        }
-                    }
-                }
             }
 
-            // 4. Floating Reader Bar at Bottom
+            CompactReaderHeader(
+                title = "תניא",
+                location = "${lesson.chapterTitle} • ${currentSectionText.value}",
+                accentColor = Color(0xFFEA78D5),
+                scrollProgress = scrollProgress,
+                readerTheme = preferences.readerTheme,
+                modifier = Modifier.align(Alignment.TopCenter)
+            )
+
+            EndOfLessonPullIndicator(
+                state = completionPullState,
+                accentColor = Color(0xFFEA78D5),
+                modifier = Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(bottom = 92.dp)
+            )
+
+            // Floating date navigation.
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)

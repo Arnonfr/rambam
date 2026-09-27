@@ -39,8 +39,12 @@ import com.example.data.local.UserPreferences
 import com.example.domain.schedule.DailyLessonResult
 import com.example.ui.ReaderChapterData
 import com.example.ui.components.FloatingReaderBar
+import com.example.ui.components.CompactReaderHeader
+import com.example.ui.components.EndOfLessonPullIndicator
 import com.example.ui.components.ReaderTypographySheet
 import com.example.ui.components.StudyTextBlock
+import com.example.ui.components.endOfLessonPull
+import com.example.ui.components.rememberEndOfLessonPullState
 import com.example.ui.theme.*
 import com.example.ui.util.HebrewNumberFormatter
 
@@ -77,12 +81,6 @@ sealed interface ReaderUiRow {
         override val key: String = "transition_${completedChapter.id}"
     }
 
-    data class LessonCompletedCard(
-        val totalChapters: Int,
-        val allCompleted: Boolean
-    ) : ReaderUiRow {
-        override val key: String = "lesson_completion"
-    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -196,14 +194,6 @@ fun ReaderScreen(
             }
         }
 
-        // Completion card at the end of the entire lesson
-        rows.add(
-            ReaderUiRow.LessonCompletedCard(
-                totalChapters = totalChapters,
-                allCompleted = continuousChapters.all { completedChapterIds.contains(it.chapter.id) }
-            )
-        )
-
         rows
     }
 
@@ -234,6 +224,15 @@ fun ReaderScreen(
     val listState = rememberLazyListState(
         initialFirstVisibleItemIndex = initialListIndex,
         initialFirstVisibleItemScrollOffset = initialOffset
+    )
+    val completionPullState = rememberEndOfLessonPullState(
+        key = dailyLesson?.studyDate ?: chapter.id,
+        canScrollForward = { listState.canScrollForward },
+        onCompleted = {
+            continuousChapters
+                .filterNot { completedChapterIds.contains(it.chapter.id) }
+                .forEach { onMarkCompleted(it.chapter.id) }
+        }
     )
 
     // Helper to extract active halacha or chapter header from visible row
@@ -343,9 +342,9 @@ fun ReaderScreen(
                 state = listState,
                 modifier = Modifier
                     .fillMaxSize()
-                    .statusBarsPadding()
+                    .endOfLessonPull(completionPullState)
                     .padding(horizontal = 20.dp),
-                contentPadding = PaddingValues(top = 16.dp, bottom = 90.dp)
+                contentPadding = PaddingValues(top = 72.dp, bottom = 118.dp)
             ) {
                 items(
                     items = flatRows,
@@ -475,104 +474,26 @@ fun ReaderScreen(
                             }
                         }
 
-                        is ReaderUiRow.LessonCompletedCard -> {
-                            // Completion card at the very end of all chapters
-                            Surface(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 16.dp, bottom = 28.dp)
-                                    .clip(RoundedCornerShape(16.dp)),
-                                color = MaterialTheme.colorScheme.surface,
-                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
-                            ) {
-                                Column(
-                                    modifier = Modifier
-                                        .padding(24.dp)
-                                        .fillMaxWidth(),
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    Icon(
-                                        imageVector = if (row.allCompleted) Icons.Default.CheckCircle else Icons.Default.Stars,
-                                        contentDescription = null,
-                                        tint = if (row.allCompleted) CompletedGreen else GoldAccent,
-                                        modifier = Modifier.size(44.dp)
-                                    )
-
-                                    Spacer(modifier = Modifier.height(12.dp))
-
-                                    Text(
-                                        text = if (row.totalChapters > 1) "סיימת את השיעור היומי (${row.totalChapters} פרקים)!" else "סיימת את השיעור היומי!",
-                                        fontSize = 18.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        textAlign = TextAlign.Center
-                                    )
-
-                                    Spacer(modifier = Modifier.height(6.dp))
-
-                                    Text(
-                                        text = "כל הכבוד על ההתמדה בלימוד הרמב״ם היומי",
-                                        fontSize = 13.sp,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        textAlign = TextAlign.Center
-                                    )
-
-                                    Spacer(modifier = Modifier.height(16.dp))
-
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                                    ) {
-                                        Button(
-                                            onClick = {
-                                                continuousChapters.forEach { chData ->
-                                                    onMarkCompleted(chData.chapter.id)
-                                                }
-                                            },
-                                            colors = ButtonDefaults.buttonColors(
-                                                containerColor = CompletedGreen,
-                                                contentColor = Color.White
-                                            ),
-                                            shape = RoundedCornerShape(10.dp),
-                                            modifier = Modifier
-                                                .weight(1f)
-                                                .height(46.dp)
-                                                .testTag("mark_all_lesson_completed_button")
-                                        ) {
-                                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                                Icon(
-                                                    imageVector = Icons.Default.Check,
-                                                    contentDescription = null,
-                                                    modifier = Modifier.size(16.dp)
-                                                )
-                                                Spacer(modifier = Modifier.width(6.dp))
-                                                Text(
-                                                    text = if (row.allCompleted) "השיעור הושלם ✓" else "סמן הכל כהושלם",
-                                                    fontSize = 13.sp,
-                                                    fontWeight = FontWeight.Bold
-                                                )
-                                            }
-                                        }
-
-                                        OutlinedButton(
-                                            onClick = onBack,
-                                            shape = RoundedCornerShape(10.dp),
-                                            modifier = Modifier
-                                                .weight(1f)
-                                                .height(46.dp)
-                                                .testTag("back_to_home_button")
-                                        ) {
-                                            Text("חזרה לדף הבית", fontSize = 13.sp, fontWeight = FontWeight.Medium)
-                                        }
-                                    }
-                                }
-                            }
-                        }
                     }
                 }
             }
 
-            // Floating Bottom Bar with back arrow, halacha indicator, date picker, and typography
+            CompactReaderHeader(
+                title = "רמב״ם",
+                location = currentHalachaText.value,
+                accentColor = Color(0xFFFF6422),
+                scrollProgress = scrollProgress,
+                readerTheme = preferences.readerTheme,
+                modifier = Modifier.align(Alignment.TopCenter)
+            )
+
+            EndOfLessonPullIndicator(
+                state = completionPullState,
+                accentColor = Color(0xFFFF6422),
+                modifier = Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(bottom = 92.dp)
+            )
+
+            // Floating navigation: date and previous/next day only.
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)

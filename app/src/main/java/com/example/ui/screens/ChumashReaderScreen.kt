@@ -37,8 +37,12 @@ import com.example.domain.chumash.ChumashAliya
 import com.example.domain.chumash.ChumashVerse
 import com.example.domain.chumash.DailyChumashLesson
 import com.example.ui.components.FloatingReaderBar
+import com.example.ui.components.CompactReaderHeader
+import com.example.ui.components.EndOfLessonPullIndicator
 import com.example.ui.components.ReaderTypographySheet
 import com.example.ui.components.StudyTextBlock
+import com.example.ui.components.endOfLessonPull
+import com.example.ui.components.rememberEndOfLessonPullState
 import com.example.ui.theme.*
 import com.example.ui.util.HebrewNumberFormatter
 import kotlinx.coroutines.delay
@@ -77,12 +81,6 @@ sealed interface ChumashUiRow {
         override val key: String = "transition_${completedAliya.aliyaIndex}"
     }
 
-    data class LessonCompletedCard(
-        val totalAliyot: Int,
-        val allCompleted: Boolean
-    ) : ChumashUiRow {
-        override val key: String = "lesson_completion"
-    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -175,19 +173,22 @@ fun ChumashReaderScreen(
                 }
             }
 
-            if (totalAliyot > 0) {
-                rows.add(
-                    ChumashUiRow.LessonCompletedCard(
-                        totalAliyot = totalAliyot,
-                        allCompleted = aliyotToDisplay.all { it.isCompleted }
-                    )
-                )
-            }
         }
         rows
     }
 
     val listState = rememberLazyListState()
+    val completionPullState = rememberEndOfLessonPullState(
+        key = chumashLesson?.date?.toString() to selectedAliyaIndex,
+        canScrollForward = { listState.canScrollForward },
+        onCompleted = {
+            chumashLesson?.let { daily ->
+                aliyotToDisplay.filterNot { it.isCompleted }.forEach { aliya ->
+                    onToggleAliyaCompletion(daily.parashaName, aliya.aliyaIndex)
+                }
+            }
+        }
+    )
 
     // Scroll to saved position on first load
     var hasScrolledToSavedPosition by remember(chumashLesson?.date, selectedAliyaIndex) { mutableStateOf(false) }
@@ -306,9 +307,9 @@ fun ChumashReaderScreen(
                 state = listState,
                 modifier = Modifier
                     .fillMaxSize()
-                    .statusBarsPadding()
+                    .endOfLessonPull(completionPullState)
                     .padding(horizontal = 20.dp),
-                contentPadding = PaddingValues(top = 24.dp, bottom = 170.dp)
+                contentPadding = PaddingValues(top = 72.dp, bottom = 118.dp)
             ) {
                 items(
                     items = flatRows,
@@ -451,92 +452,24 @@ fun ChumashReaderScreen(
                             }
                         }
 
-                        is ChumashUiRow.LessonCompletedCard -> {
-                            Surface(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 16.dp, bottom = 28.dp)
-                                    .clip(RoundedCornerShape(16.dp)),
-                                color = MaterialTheme.colorScheme.surface,
-                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
-                            ) {
-                                Column(
-                                    modifier = Modifier
-                                        .padding(24.dp)
-                                        .fillMaxWidth(),
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    Icon(
-                                        imageVector = if (row.allCompleted) Icons.Default.CheckCircle else Icons.Default.Stars,
-                                        contentDescription = null,
-                                        tint = if (row.allCompleted) CompletedGreen else GoldAccent,
-                                        modifier = Modifier.size(44.dp)
-                                    )
-                                    Spacer(modifier = Modifier.height(12.dp))
-                                    Text(
-                                        text = if (row.totalAliyot > 1) "סיימת את השיעור היומי!" else "סיימת את העליה היומית!",
-                                        fontSize = 18.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        textAlign = TextAlign.Center
-                                    )
-                                    Spacer(modifier = Modifier.height(6.dp))
-                                    Text(
-                                        text = "כל הכבוד על ההתמדה בלימוד החומש היומי",
-                                        fontSize = 13.sp,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        textAlign = TextAlign.Center
-                                    )
-                                    Spacer(modifier = Modifier.height(16.dp))
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                                    ) {
-                                        Button(
-                                            onClick = {
-                                                aliyotToDisplay.forEach { aliya ->
-                                                    onToggleAliyaCompletion(chumashLesson!!.parashaName, aliya.aliyaIndex)
-                                                }
-                                            },
-                                            colors = ButtonDefaults.buttonColors(
-                                                containerColor = CompletedGreen,
-                                                contentColor = Color.White
-                                            ),
-                                            shape = RoundedCornerShape(10.dp),
-                                            modifier = Modifier
-                                                .weight(1f)
-                                                .height(46.dp)
-                                        ) {
-                                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                                Icon(
-                                                    imageVector = Icons.Default.Check,
-                                                    contentDescription = null,
-                                                    modifier = Modifier.size(16.dp)
-                                                )
-                                                Spacer(modifier = Modifier.width(6.dp))
-                                                Text(
-                                                    text = if (row.allCompleted) "הושלם ✓" else "סמן כהושלם",
-                                                    fontSize = 13.sp,
-                                                    fontWeight = FontWeight.Bold
-                                                )
-                                            }
-                                        }
-                                        OutlinedButton(
-                                            onClick = onBack,
-                                            shape = RoundedCornerShape(10.dp),
-                                            modifier = Modifier
-                                                .weight(1f)
-                                                .height(46.dp)
-                                        ) {
-                                            Text("חזרה לדף הבית", fontSize = 13.sp, fontWeight = FontWeight.Medium)
-                                        }
-                                    }
-                                }
-                            }
-                        }
                     }
                 }
             }
+
+            CompactReaderHeader(
+                title = "חומש",
+                location = "פרשת ${chumashLesson?.parashaName.orEmpty()} • ${currentVerseText.value}",
+                accentColor = Color(0xFFEDFF24),
+                scrollProgress = scrollProgress,
+                readerTheme = preferences.readerTheme,
+                modifier = Modifier.align(Alignment.TopCenter)
+            )
+
+            EndOfLessonPullIndicator(
+                state = completionPullState,
+                accentColor = Color(0xFFEDFF24),
+                modifier = Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(bottom = 92.dp)
+            )
 
             Box(
                 modifier = Modifier

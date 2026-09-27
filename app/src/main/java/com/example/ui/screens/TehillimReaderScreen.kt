@@ -36,8 +36,12 @@ import com.example.data.local.UserPreferences
 import com.example.domain.tehillim.DailyTehillimLesson
 import com.example.domain.tehillim.TehillimChapter
 import com.example.ui.components.FloatingReaderBar
+import com.example.ui.components.CompactReaderHeader
+import com.example.ui.components.EndOfLessonPullIndicator
 import com.example.ui.components.ReaderTypographySheet
 import com.example.ui.components.StudyTextBlock
+import com.example.ui.components.endOfLessonPull
+import com.example.ui.components.rememberEndOfLessonPullState
 import com.example.ui.theme.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -158,6 +162,11 @@ fun TehillimReaderScreen(
         }
         rows
     }
+    val completionPullState = rememberEndOfLessonPullState(
+        key = lesson.date to activeTab,
+        canScrollForward = { listState.canScrollForward },
+        onCompleted = {}
+    )
 
     // Identify current active chapter and verse from scroll index
     fun getActiveVerseInfo(visibleIndex: Int): Pair<TehillimUiRow.VerseRow?, TehillimUiRow.ChapterHeader?> {
@@ -287,9 +296,9 @@ fun TehillimReaderScreen(
                 state = listState,
                 modifier = Modifier
                     .fillMaxSize()
-                    .statusBarsPadding()
+                    .endOfLessonPull(completionPullState)
                     .padding(horizontal = 20.dp),
-                contentPadding = PaddingValues(top = 24.dp, bottom = 170.dp)
+                contentPadding = PaddingValues(top = 72.dp, bottom = 118.dp)
             ) {
                 // Header card explaining the standard day of the month portion
                 item(key = "tehillim_intro_card") {
@@ -439,6 +448,21 @@ fun TehillimReaderScreen(
                     }
                 }
             }
+
+            CompactReaderHeader(
+                title = "תהילים",
+                location = currentVerseText.value,
+                accentColor = Color(0xFFB9C96B),
+                scrollProgress = scrollProgress,
+                readerTheme = preferences.readerTheme,
+                modifier = Modifier.align(Alignment.TopCenter)
+            )
+
+            EndOfLessonPullIndicator(
+                state = completionPullState,
+                accentColor = Color(0xFFB9C96B),
+                modifier = Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(bottom = 92.dp)
+            )
 
             // Unified bottom bar container
             Column(

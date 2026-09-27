@@ -267,6 +267,7 @@ class MainActivity : ComponentActivity() {
                                 onDayBoundaryChange = { viewModel.setDayBoundary(it) },
                                 onCityChange = { viewModel.setCity(it) },
                                 onFontFamilyChange = { viewModel.setFontFamily(it) },
+                                onToggleStudy = { viewModel.toggleStudyVisibility(it) },
                                 onOpenAttribution = { viewModel.setShowAttribution(true) }
                             )
                         }
