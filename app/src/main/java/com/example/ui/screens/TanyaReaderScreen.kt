@@ -375,7 +375,7 @@ fun TanyaReaderScreen(
                         Switch(checked = preferences.tanyaBookView, onCheckedChange = onBookViewChange)
                     }
                     if (preferences.tanyaBookView) Text(
-                        "פריסה בהשראת הספר, לא התאמה מאומתת לשורות הדפוס. ההגדלה שומרת על השורות; אפשר לגלול גם לצדדים. הפונט במצב זה קבוע: Frank Ruhl Libre (OFL).",
+                        "פריסה בהשראת הספר, לא התאמה מאומתת לשורות הדפוס. ההגדלה שומרת על השורות; אפשר לגלול גם לצדדים. הפונט במצב זה קבוע: Romm Vilna (OFL).",
                         fontSize = 11.sp, modifier = Modifier.padding(bottom = 12.dp))
                 }
             )

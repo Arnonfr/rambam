@@ -237,136 +237,66 @@ fun FloatingReaderBar(
     onPrevDay: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
+    val dark = readerTheme == "dark"
+    val foreground = if (dark) Color.White else Color.Black
+    val surface = if (dark) Color(0xFF1E222A) else Color.White
+    val outline = foreground.copy(alpha = .13f)
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         Surface(
-            modifier = modifier
-                .padding(horizontal = 16.dp, vertical = 10.dp)
-                .shadow(12.dp, RoundedCornerShape(28.dp))
-                .clip(RoundedCornerShape(28.dp)),
-            color = when (readerTheme) {
-                "dark" -> Color(0xFF1E222A)
-                else -> ReaderBarBrown
-            },
-            contentColor = Color.White
+            modifier = modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+            shape = RoundedCornerShape(28.dp),
+            color = surface,
+            contentColor = foreground,
+            border = BorderStroke(1.dp, outline),
+            shadowElevation = 3.dp
         ) {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Row(
-                    modifier = Modifier
-                        .padding(horizontal = 12.dp, vertical = 7.dp)
-                        .fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
+            Row(
+                Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 7.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                if (onPrevDay != null) {
+                    IconButton(onClick = onPrevDay,
+                        modifier = Modifier.size(44.dp).testTag("reader_prev_day_button")) {
+                        Icon(Icons.Default.KeyboardArrowRight, "יום קודם", tint = foreground)
+                    }
+                }
+                Surface(
+                    modifier = Modifier.weight(1f).clip(RoundedCornerShape(16.dp))
+                        .clickable(onClick = onOpenDatePicker)
+                        .testTag("reader_bottom_date_picker_button"),
+                    color = if (dark) Color(0xFF2C3038) else Color(0xFFF3F4F5),
+                    shape = RoundedCornerShape(16.dp)
                 ) {
-                    Row(
+                    Row(Modifier.padding(horizontal = 8.dp, vertical = 10.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Surface(
-                            shape = CircleShape,
-                            color = Color.White.copy(alpha = 0.20f),
-                            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.35f)),
-                            modifier = Modifier
-                                .size(44.dp)
-                                .clip(CircleShape)
-                                .clickable(onClick = onTypographyClick)
-                                .testTag("reader_typography_button")
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    imageVector = Icons.Default.FormatSize,
-                                    contentDescription = "התאמת טקסט",
-                                    tint = GoldWarm,
-                                    modifier = Modifier.size(22.dp)
-                                )
-                            }
-                        }
-                        Spacer(modifier = Modifier.width(8.dp))
-
-                        if (onPrevDay != null) {
-                            Surface(
-                                shape = CircleShape,
-                                color = Color.White.copy(alpha = 0.20f),
-                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.35f)),
-                                modifier = Modifier
-                                    .size(44.dp)
-                                    .clip(CircleShape)
-                                    .clickable(onClick = onPrevDay)
-                                    .testTag("reader_prev_day_button")
-                            ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Icon(
-                                        imageVector = Icons.Default.KeyboardArrowRight,
-                                        contentDescription = "יום קודם",
-                                        tint = Color.White,
-                                        modifier = Modifier.size(28.dp)
-                                    )
-                                }
-                            }
-                            Spacer(modifier = Modifier.width(8.dp))
-                        }
-
-                        // Hebrew Date Button
-                        if (hebrewDateText.isNotBlank()) {
-                            Surface(
-                                shape = RoundedCornerShape(16.dp),
-                                color = Color.White.copy(alpha = 0.18f),
-                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.25f)),
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .clickable(onClick = onOpenDatePicker)
-                                    .testTag("reader_bottom_date_picker_button")
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.CalendarMonth,
-                                        contentDescription = "מעבר ליום אחר",
-                                        tint = GoldWarm,
-                                        modifier = Modifier.size(15.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(6.dp))
-                                    Text(
-                                        text = hebrewDateText,
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color.White
-                                    )
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Icon(
-                                        imageVector = Icons.Default.ArrowDropDown,
-                                        contentDescription = null,
-                                        tint = Color.White.copy(alpha = 0.8f),
-                                        modifier = Modifier.size(15.dp)
-                                    )
-                                }
-                            }
-                        }
-
-                        if (onNextDay != null) {
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Surface(
-                                shape = CircleShape,
-                                color = Color.White.copy(alpha = 0.20f),
-                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.35f)),
-                                modifier = Modifier
-                                    .size(44.dp)
-                                    .clip(CircleShape)
-                                    .clickable(onClick = onNextDay)
-                                    .testTag("reader_next_day_button")
-                            ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Icon(
-                                        imageVector = Icons.Default.KeyboardArrowLeft,
-                                        contentDescription = "יום הבא",
-                                        tint = Color.White,
-                                        modifier = Modifier.size(28.dp)
-                                    )
-                                }
-                            }
-                        }
+                        horizontalArrangement = Arrangement.Center) {
+                        Icon(Icons.Default.CalendarMonth, "מעבר ליום אחר",
+                            tint = foreground, modifier = Modifier.size(15.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text(hebrewDateText, fontSize = 12.sp, fontWeight = FontWeight.Bold,
+                            color = foreground, maxLines = 1, modifier = Modifier.weight(1f),
+                            textAlign = TextAlign.Center)
+                        Icon(Icons.Default.ArrowDropDown, null,
+                            tint = foreground, modifier = Modifier.size(15.dp))
+                    }
+                }
+                if (onNextDay != null) {
+                    IconButton(onClick = onNextDay,
+                        modifier = Modifier.size(44.dp).testTag("reader_next_day_button")) {
+                        Icon(Icons.Default.KeyboardArrowLeft, "יום הבא", tint = foreground)
+                    }
+                }
+                // Last in an RTL row = physical left edge, in every reader.
+                Surface(
+                    modifier = Modifier.size(44.dp).clip(CircleShape)
+                        .clickable(onClick = onTypographyClick)
+                        .testTag("reader_typography_button"),
+                    shape = CircleShape, color = Color(0xFF73D4ED)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(Icons.Default.FormatSize, "התאמת טקסט",
+                            tint = Color.Black, modifier = Modifier.size(22.dp))
                     }
                 }
             }
