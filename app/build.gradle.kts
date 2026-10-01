@@ -17,8 +17,8 @@ android {
     applicationId = "com.aistudio.dailyrambam.kzjvw"
     minSdk = 24
     targetSdk = 36
-    versionCode = 106
-    versionName = "1.0.106"
+    versionCode = 107
+    versionName = "1.0.107"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
@@ -54,7 +54,11 @@ android {
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
       signingConfig = signingConfigs.getByName("release")
     }
-    debug { signingConfig = signingConfigs.getByName("debugConfig") }
+    debug {
+      applicationIdSuffix = ".debug"
+      versionNameSuffix = "-debug"
+      signingConfig = signingConfigs.getByName("debugConfig")
+    }
   }
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_11

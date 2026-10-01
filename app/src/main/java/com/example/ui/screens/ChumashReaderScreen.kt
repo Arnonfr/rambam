@@ -109,6 +109,7 @@ fun ChumashReaderScreen(
     BackHandler(onBack = onBack)
 
     var showTypographySheet by remember { mutableStateOf(false) }
+    val resumePosition = remember(chumashLesson?.parashaName, selectedAliyaIndex) { savedPosition }
 
     // Keep screen on during study
     val context = LocalContext.current
@@ -192,12 +193,12 @@ fun ChumashReaderScreen(
 
     // Scroll to saved position on first load
     var hasScrolledToSavedPosition by remember(chumashLesson?.date, selectedAliyaIndex) { mutableStateOf(false) }
-    LaunchedEffect(flatRows, savedPosition) {
+    LaunchedEffect(flatRows, resumePosition) {
         if (!hasScrolledToSavedPosition && flatRows.isNotEmpty()) {
             val targetIdx = flatRows.indexOfFirst { row ->
-                row is ChumashUiRow.VerseRow && savedPosition != null &&
-                    row.aliya.aliyaIndex == savedPosition.chapterNumber &&
-                    row.verse.verseNumber == (savedPosition.halachaIndex + 1)
+            row is ChumashUiRow.VerseRow && resumePosition != null &&
+                row.aliya.aliyaIndex == resumePosition.chapterNumber &&
+                row.verse.verseNumber == (resumePosition.halachaIndex + 1)
             }
             if (targetIdx >= 0) {
                 listState.scrollToItem(targetIdx)
@@ -377,8 +378,8 @@ fun ChumashReaderScreen(
                                 fontFamily = activeFontFamily,
                                 textColor = MaterialTheme.colorScheme.onBackground,
                                 fontSizeSp = preferences.chumashFontSizeSp,
-                                isReadingAnchor = row.aliya.aliyaIndex == savedPosition?.chapterNumber &&
-                                    row.verse.verseNumber == savedPosition?.halachaIndex?.plus(1),
+                                isReadingAnchor = row.aliya.aliyaIndex == resumePosition?.chapterNumber &&
+                                    row.verse.verseNumber == resumePosition?.halachaIndex?.plus(1),
                                 modifier = Modifier.padding(bottom = 20.dp),
                                 testTag = "verse_item_${row.verse.verseNumber}"
                             )
@@ -497,6 +498,7 @@ fun ChumashReaderScreen(
             if (showTypographySheet) {
                 ReaderTypographySheet(
                     preferences = preferences,
+                    fontSizeSp = preferences.chumashFontSizeSp,
                     onDismiss = { showTypographySheet = false },
                     onFontSizeChange = onChangeFontSize,
                     onLineSpacingChange = onLineSpacingChange,

@@ -9,6 +9,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.data.local.ChapterCompletionEntity
 import com.example.data.local.ChapterEntity
 import com.example.data.local.ContentSectionEntity
+import com.example.data.local.ContentReadingAnchor
+import com.example.data.local.ContentReadingAnchorManager
 import com.example.data.local.DatabaseInitializer
 import com.example.data.local.HalachaEntity
 import com.example.data.local.RambamDatabase
@@ -21,11 +23,15 @@ import com.example.data.repository.RambamRepository
 import com.example.data.chumash.ChumashRepository
 import com.example.data.tehillim.TehillimRepository
 import com.example.data.tanya.TanyaRepository
+import com.example.data.mitzvot.MitzvahLessonEntry
+import com.example.data.mitzvot.SeferHamitzvotRepository
 import com.example.domain.chumash.DailyChumashLesson
 import com.example.domain.tehillim.DailyTehillimLesson
 import com.example.domain.tehillim.TehillimChapter
 import com.example.domain.tanya.DailyTanyaLesson
 import com.example.domain.tanya.TanyaSection
+import com.example.domain.mitzvot.DailyMitzvahAssignment
+import com.example.domain.mitzvot.SeferHamitzvotSchedule
 import com.example.domain.schedule.DailyLessonResult
 import com.example.domain.schedule.DailyScheduleEngine
 import com.example.ui.util.HebrewNumberFormatter
@@ -99,7 +105,11 @@ data class DailyRambamUiState(
     val dailyTanya: DailyTanyaLesson? = null,
     val isTanyaReaderOpen: Boolean = false,
     val isTanyaLoading: Boolean = false,
-    val latestTanyaPosition: ReadingPositionEntity? = null
+    val latestTanyaPosition: ReadingPositionEntity? = null,
+    val dailyMitzvahAssignment: DailyMitzvahAssignment? = null,
+    val dailyMitzvahEntries: List<MitzvahLessonEntry> = emptyList(),
+    val isMitzvahReaderOpen: Boolean = false,
+    val savedMitzvahAnchor: ContentReadingAnchor? = null
 )
 
 class DailyRambamViewModel(application: Application) : AndroidViewModel(application) {
@@ -112,8 +122,10 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
     private val chumashRepository = ChumashRepository(application)
     private val tehillimRepository = TehillimRepository(application)
     private val tanyaRepository = TanyaRepository(application)
+    private val mitzvotRepository = SeferHamitzvotRepository(application)
     private val dbInitializer = DatabaseInitializer(application, dao)
     private val readingStateManager = ReadingStateManager(application)
+    private val contentReadingAnchorManager = ContentReadingAnchorManager(application)
 
     private val _uiState = MutableStateFlow(DailyRambamUiState())
     val uiState: StateFlow<DailyRambamUiState> = _uiState.asStateFlow()
@@ -151,11 +163,13 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
 
         viewModelScope.launch {
             dbInitializer.initializeIfNeeded()
+            prefsRepository.ensureStudyListV2Migrated()
             observePreferences()
             observeSectionsAndChapters()
             refreshDailyChumash(effective)
             refreshDailyTehillim(effective)
             refreshDailyTanya(effective)
+            refreshDailyMitzvah(effective)
         }
     }
 
@@ -361,6 +375,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
             refreshDailyChumash(targetDate)
             refreshDailyTehillim(targetDate)
             refreshDailyTanya(targetDate)
+            refreshDailyMitzvah(targetDate)
         }
     }
 
@@ -391,6 +406,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
         refreshDailyChumash(selected)
         refreshDailyTehillim(selected)
         refreshDailyTanya(selected)
+        refreshDailyMitzvah(selected)
     }
 
     fun setSelectedStudyDate(date: LocalDate) {
@@ -416,6 +432,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
         refreshDailyChumash(date)
         refreshDailyTehillim(date)
         refreshDailyTanya(date)
+        refreshDailyMitzvah(date)
         if (_uiState.value.activeChapter != null) {
             openDailyLesson(forceStartAtBeginning = true)
         }
@@ -444,6 +461,50 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
                 )
             }
         }
+    }
+
+    fun refreshDailyMitzvah(date: LocalDate = _uiState.value.selectedStudyDate) {
+        val assignment = SeferHamitzvotSchedule.assignmentFor(date)
+        val entries = assignment?.let(mitzvotRepository::getLessonEntries).orEmpty()
+        val anchor = contentReadingAnchorManager.get("sefer_hamitzvot", date.toString())
+        _uiState.update {
+            it.copy(
+                dailyMitzvahAssignment = assignment,
+                dailyMitzvahEntries = entries,
+                savedMitzvahAnchor = anchor
+            )
+        }
+    }
+
+    fun openMitzvahReader(open: Boolean) {
+        if (open && _uiState.value.dailyMitzvahAssignment == null) {
+            _uiState.update { it.copy(noticeMessage = "לוח ספר המצוות אינו זמין לתאריך הזה") }
+            return
+        }
+        val date = _uiState.value.selectedStudyDate.toString()
+        _uiState.update {
+            it.copy(
+                isMitzvahReaderOpen = open,
+                savedMitzvahAnchor = if (open) {
+                    contentReadingAnchorManager.get("sefer_hamitzvot", date)
+                } else {
+                    it.savedMitzvahAnchor
+                }
+            )
+        }
+    }
+
+    fun saveMitzvahPosition(blockIndex: Int, blockId: String, sectionId: String) {
+        val assignment = _uiState.value.dailyMitzvahAssignment ?: return
+        val anchor = ContentReadingAnchor(
+            contentId = "sefer_hamitzvot",
+            assignmentDate = assignment.studyDate.toString(),
+            sectionId = sectionId,
+            blockId = blockId,
+            blockIndex = blockIndex
+        )
+        contentReadingAnchorManager.save(anchor)
+        _uiState.update { it.copy(savedMitzvahAnchor = anchor) }
     }
 
     fun openTehillimReader(open: Boolean) {
@@ -1189,6 +1250,10 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
         viewModelScope.launch {
             prefsRepository.updateLineSpacing(multiplier)
         }
+    }
+
+    fun setTanyaBookView(enabled: Boolean) {
+        viewModelScope.launch { prefsRepository.updateTanyaBookView(enabled) }
     }
 
     fun setFontFamily(family: String) {

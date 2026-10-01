@@ -116,6 +116,7 @@ fun ReaderScreen(
     BackHandler(onBack = onBack)
 
     var showTypographySheet by remember { mutableStateOf(false) }
+    val resumePosition = remember(chapter.id, dailyLesson?.studyDate) { savedPosition }
 
     // Keep screen on during study
     val context = LocalContext.current
@@ -199,16 +200,16 @@ fun ReaderScreen(
 
     // Find initial row index to scroll to
     val initialListIndex = remember(flatRows) {
-        if (savedPosition != null) {
+        if (resumePosition != null) {
             val halachaTarget = flatRows.indexOfFirst { row ->
                 row is ReaderUiRow.HalachaRow &&
-                row.chapter.id == savedPosition.chapterId &&
-                row.indexInChapter == savedPosition.halachaIndex
+                row.chapter.id == resumePosition.chapterId &&
+                row.indexInChapter == resumePosition.halachaIndex
             }
             if (halachaTarget >= 0) halachaTarget
             else {
                 val chapterHeaderTarget = flatRows.indexOfFirst { row ->
-                    row is ReaderUiRow.ChapterHeader && row.chapter.id == savedPosition.chapterId
+                    row is ReaderUiRow.ChapterHeader && row.chapter.id == resumePosition.chapterId
                 }
                 if (chapterHeaderTarget >= 0) chapterHeaderTarget else 0
             }
@@ -216,8 +217,8 @@ fun ReaderScreen(
     }
 
     val initialOffset = remember(flatRows) {
-        if (savedPosition != null) {
-            (savedPosition.scrollOffsetFraction.coerceIn(0f, 1f) * 200).toInt()
+        if (resumePosition != null) {
+            (resumePosition.scrollOffsetFraction.coerceIn(0f, 1f) * 200).toInt()
         } else 0
     }
 
@@ -396,8 +397,8 @@ fun ReaderScreen(
                                 halacha = row.halacha,
                                 preferences = preferences,
                                 fontFamily = activeFontFamily,
-                                isReadingAnchor = row.chapter.id == savedPosition?.chapterId &&
-                                    row.indexInChapter == savedPosition?.halachaIndex,
+                                isReadingAnchor = row.chapter.id == resumePosition?.chapterId &&
+                                    row.indexInChapter == resumePosition?.halachaIndex,
                                 modifier = Modifier.padding(bottom = 20.dp)
                             )
                         }

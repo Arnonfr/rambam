@@ -16,6 +16,15 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.saveable.rememberSaveable
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import com.example.data.prayers.PrayerBook
+import com.example.data.prayers.PrayerRepository
+import com.example.ui.screens.PrayerReaderScreen
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.Lifecycle
@@ -30,6 +39,7 @@ import com.example.ui.components.SettingsDialog
 import com.example.ui.screens.ChumashReaderScreen
 import com.example.ui.screens.TehillimReaderScreen
 import com.example.ui.screens.TanyaReaderScreen
+import com.example.ui.screens.MitzvahReaderScreen
 import com.example.ui.screens.HomeScreen
 import com.example.ui.screens.ReaderScreen
 import com.example.ui.theme.DailyRambamTheme
@@ -44,6 +54,11 @@ class MainActivity : ComponentActivity() {
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
             val snackbarHostState = remember { SnackbarHostState() }
             val lifecycleOwner = LocalLifecycleOwner.current
+            var prayerId by rememberSaveable { mutableStateOf<String?>(null) }
+            val prayers by produceState<PrayerBook?>(null) {
+                value = withContext(Dispatchers.IO) { PrayerRepository(applicationContext).load() }
+            }
+            val prayer = prayers?.sections?.firstOrNull { it.id == prayerId }
 
             DisposableEffect(lifecycleOwner) {
                 val observer = LifecycleEventObserver { _, event ->
@@ -76,6 +91,25 @@ class MainActivity : ComponentActivity() {
                     ) {
                         if (uiState.isLoading && uiState.allSections.isEmpty()) {
                             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                        } else if (prayer != null) {
+                            androidx.compose.runtime.key(prayer.id, uiState.selectedStudyDate) {
+                                PrayerReaderScreen(
+                                    section = prayer,
+                                    studyDate = uiState.selectedStudyDate.toString(),
+                                    hebrewDate = uiState.dailyLesson?.hebrewDate.orEmpty(),
+                                    preferences = uiState.preferences,
+                                    onBack = { prayerId = null },
+                                    onNextDay = { viewModel.stepSelectedDate(1) },
+                                    onPrevDay = { viewModel.stepSelectedDate(-1) },
+                                    onOpenDatePicker = { viewModel.setShowDatePicker(true) },
+                                    onFontSizeChange = { viewModel.setFontSize(it) },
+                                    onLineSpacingChange = { viewModel.setLineSpacing(it) },
+                                    onFontFamilyChange = { viewModel.setFontFamily(it) },
+                                    onNikudToggle = { viewModel.toggleShowNikud(it) },
+                                    onThemeChange = { viewModel.setReaderTheme(it) },
+                                    onKeepScreenOnChange = { viewModel.setKeepScreenOn(it) }
+                                )
+                            }
                         } else if (uiState.isChumashReaderOpen) {
                             BackHandler(enabled = true) {
                                 viewModel.closeChumashReader()
@@ -132,6 +166,7 @@ class MainActivity : ComponentActivity() {
                                 viewModel.openTanyaReader(false)
                             }
                             TanyaReaderScreen(
+                                onBookViewChange = { viewModel.setTanyaBookView(it) },
                                 lesson = uiState.dailyTanya,
                                 isLoading = uiState.isTanyaLoading,
                                 onBack = { viewModel.openTanyaReader(false) },
@@ -139,7 +174,7 @@ class MainActivity : ComponentActivity() {
                                 onFontSizeChange = { viewModel.changeChumashFontSize(it) },
                                 onLineSpacingChange = { viewModel.setLineSpacing(it) },
                                 onFontFamilyChange = { viewModel.setFontFamily(it) },
-                                onNikudToggle = { viewModel.toggleChumashShowTeamim() },
+                                onNikudToggle = { viewModel.toggleShowNikud(it) },
                                 onThemeChange = { viewModel.setReaderTheme(it) },
                                 onKeepScreenOnChange = { viewModel.setKeepScreenOn(it) },
                                 hebrewDateText = uiState.dailyLesson?.hebrewDate ?: "",
@@ -149,6 +184,30 @@ class MainActivity : ComponentActivity() {
                                 onToggleCompletion = { viewModel.toggleTanyaCompletion() },
                                 onSavePosition = { sec, les -> viewModel.saveTanyaPosition(sec, les) },
                                 savedPosition = uiState.latestTanyaPosition
+                            )
+                        } else if (uiState.isMitzvahReaderOpen && uiState.dailyMitzvahAssignment != null) {
+                            BackHandler(enabled = true) {
+                                viewModel.openMitzvahReader(false)
+                            }
+                            MitzvahReaderScreen(
+                                assignment = uiState.dailyMitzvahAssignment!!,
+                                entries = uiState.dailyMitzvahEntries,
+                                preferences = uiState.preferences,
+                                hebrewDateText = uiState.dailyLesson?.hebrewDate ?: "",
+                                savedAnchor = uiState.savedMitzvahAnchor,
+                                onBack = { viewModel.openMitzvahReader(false) },
+                                onSavePosition = { index, blockId, sectionId ->
+                                    viewModel.saveMitzvahPosition(index, blockId, sectionId)
+                                },
+                                onNextDay = { viewModel.stepSelectedDate(1) },
+                                onPrevDay = { viewModel.stepSelectedDate(-1) },
+                                onOpenDatePicker = { viewModel.setShowDatePicker(true) },
+                                onFontSizeChange = { viewModel.setFontSize(it) },
+                                onLineSpacingChange = { viewModel.setLineSpacing(it) },
+                                onFontFamilyChange = { viewModel.setFontFamily(it) },
+                                onNikudToggle = { viewModel.toggleShowNikud(it) },
+                                onThemeChange = { viewModel.setReaderTheme(it) },
+                                onKeepScreenOnChange = { viewModel.setKeepScreenOn(it) }
                             )
                         } else if (uiState.activeChapter != null) {
                             ReaderScreen(
@@ -244,7 +303,12 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onOpenTanya = {
                                     viewModel.openTanyaReader(true)
-                                }
+                                },
+                                onOpenMitzvah = {
+                                    viewModel.openMitzvahReader(true)
+                                },
+                                prayerSections = prayers?.sections.orEmpty(),
+                                onOpenPrayer = { prayerId = it }
                             )
                         }
 

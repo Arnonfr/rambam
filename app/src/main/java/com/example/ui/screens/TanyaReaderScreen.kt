@@ -32,6 +32,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.example.data.local.UserPreferences
+import com.example.data.local.ContentReadingAnchor
+import com.example.data.local.ContentReadingAnchorManager
 import com.example.domain.tanya.DailyTanyaLesson
 import com.example.domain.tanya.TanyaSection
 import com.example.ui.components.FloatingReaderBar
@@ -39,6 +41,7 @@ import com.example.ui.components.CompactReaderHeader
 import com.example.ui.components.EndOfLessonPullIndicator
 import com.example.ui.components.ReaderTypographySheet
 import com.example.ui.components.StudyTextBlock
+import com.example.ui.components.TanyaBookText
 import com.example.ui.components.endOfLessonPull
 import com.example.ui.components.rememberEndOfLessonPullState
 import com.example.ui.theme.*
@@ -51,6 +54,7 @@ fun TanyaReaderScreen(
     isLoading: Boolean,
     onBack: () -> Unit,
     preferences: UserPreferences,
+    onBookViewChange: (Boolean) -> Unit = {},
     onFontSizeChange: (Float) -> Unit = {},
     onLineSpacingChange: (Float) -> Unit = {},
     onFontFamilyChange: (String) -> Unit = {},
@@ -70,9 +74,14 @@ fun TanyaReaderScreen(
 
     var showTypographySheet by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
+    val resumePosition = remember(lesson?.date) { savedPosition }
 
     // Keep screen on during study
     val context = LocalContext.current
+    val anchorManager = remember { ContentReadingAnchorManager(context) }
+    val entryAnchor = remember(lesson?.date) {
+        lesson?.let { anchorManager.get("tanya", it.date) }
+    }
     DisposableEffect(preferences.keepScreenOn) {
         val window = (context as? Activity)?.window
         if (preferences.keepScreenOn) {
@@ -146,10 +155,12 @@ fun TanyaReaderScreen(
 
     // Scroll to saved position on first load
     var hasScrolledToSavedPosition by remember(lesson.date) { mutableStateOf(false) }
-    LaunchedEffect(sections, savedPosition) {
+    LaunchedEffect(sections, resumePosition) {
         if (!hasScrolledToSavedPosition && sections.isNotEmpty()) {
-            if (savedPosition != null) {
-                val targetIdx = savedPosition.halachaIndex + 1 // +1 for header item
+            if (entryAnchor != null) {
+                listState.scrollToItem(entryAnchor.blockIndex.coerceIn(0, sections.size), entryAnchor.textOffset)
+            } else if (resumePosition != null) {
+                val targetIdx = resumePosition.halachaIndex + 1 // +1 for header item
                 if (targetIdx in 0..sections.size) {
                     listState.scrollToItem(targetIdx)
                 }
@@ -161,11 +172,19 @@ fun TanyaReaderScreen(
     fun activeSectionAt(visibleIndex: Int): TanyaSection? =
         sections.getOrNull((visibleIndex - 1).coerceAtLeast(0))
 
+    fun saveAnchor() {
+        if (!hasScrolledToSavedPosition) return
+        anchorManager.save(ContentReadingAnchor("tanya", lesson.date, lesson.fullRef,
+            "section_${listState.firstVisibleItemIndex}", listState.firstVisibleItemIndex,
+            textOffset = listState.firstVisibleItemScrollOffset))
+    }
+
     LaunchedEffect(listState, sections, lesson, hasScrolledToSavedPosition) {
         if (!hasScrolledToSavedPosition) return@LaunchedEffect
-        snapshotFlow { listState.firstVisibleItemIndex }
-            .collectLatest { visibleIndex ->
+        snapshotFlow { listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset }
+            .collectLatest { (visibleIndex, _) ->
                 delay(250)
+                saveAnchor()
                 activeSectionAt(visibleIndex)?.let { onSavePosition(it, lesson) }
             }
     }
@@ -174,6 +193,7 @@ fun TanyaReaderScreen(
     DisposableEffect(lifecycleOwner, sections, lesson, hasScrolledToSavedPosition) {
         fun saveVisibleSection() {
             if (!hasScrolledToSavedPosition) return
+            saveAnchor()
             activeSectionAt(listState.firstVisibleItemIndex)?.let { onSavePosition(it, lesson) }
         }
         val observer = LifecycleEventObserver { _, event ->
@@ -271,15 +291,23 @@ fun TanyaReaderScreen(
                     items = sections,
                     key = { idx, sec -> "tanya_sec_${sec.sectionIndex}_$idx" }
                 ) { _, section ->
-                    StudyTextBlock(
+                    if (preferences.tanyaBookView) {
+                        TanyaBookText(
+                            text = if (preferences.showNikud) section.textWithNikud else section.textPlain,
+                            textColor = textColor,
+                            zoom = preferences.chumashFontSizeSp / 22f,
+                            isReadingAnchor = section.sectionIndex == (entryAnchor?.blockIndex ?: resumePosition?.halachaIndex?.plus(1))
+                        )
+                        Spacer(Modifier.height(10.dp))
+                    } else StudyTextBlock(
                         indexLetter = section.sectionHebrew,
                         textWithNikud = section.textWithNikud,
                         textPlain = section.textPlain,
                         preferences = preferences,
                         fontFamily = activeFontFamily,
                         textColor = textColor,
-                        fontSizeSp = preferences.fontSizeSp,
-                        isReadingAnchor = section.sectionIndex == savedPosition?.halachaIndex?.plus(1),
+                        fontSizeSp = preferences.chumashFontSizeSp,
+                        isReadingAnchor = section.sectionIndex == (entryAnchor?.blockIndex ?: resumePosition?.halachaIndex?.plus(1)),
                         modifier = Modifier.padding(bottom = 18.dp),
                         testTag = "tanya_section_${section.sectionIndex}"
                     )
@@ -330,13 +358,26 @@ fun TanyaReaderScreen(
         if (showTypographySheet) {
             ReaderTypographySheet(
                 preferences = preferences,
+                fontSizeSp = preferences.chumashFontSizeSp,
                 onDismiss = { showTypographySheet = false },
                 onFontSizeChange = onFontSizeChange,
                 onLineSpacingChange = onLineSpacingChange,
                 onFontFamilyChange = onFontFamilyChange,
                 onNikudToggle = onNikudToggle,
                 onThemeChange = onThemeChange,
-                onKeepScreenOnChange = onKeepScreenOnChange
+                onKeepScreenOnChange = onKeepScreenOnChange,
+                extraControls = {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text("תצוגת ספר — ניסיונית", fontWeight = FontWeight.Bold)
+                            Text("טקסט חי · פונט דפוס · שורות קבועות", fontSize = 12.sp)
+                        }
+                        Switch(checked = preferences.tanyaBookView, onCheckedChange = onBookViewChange)
+                    }
+                    if (preferences.tanyaBookView) Text(
+                        "פריסה בהשראת הספר, לא התאמה מאומתת לשורות הדפוס. ההגדלה שומרת על השורות; אפשר לגלול גם לצדדים. הפונט במצב זה קבוע: Frank Ruhl Libre (OFL).",
+                        fontSize = 11.sp, modifier = Modifier.padding(bottom = 12.dp))
+                }
             )
         }
     }

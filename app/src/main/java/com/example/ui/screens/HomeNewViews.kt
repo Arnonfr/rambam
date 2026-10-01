@@ -37,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.border
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -45,6 +46,9 @@ import com.example.domain.schedule.DailyLessonResult
 import com.example.ui.DailyRambamUiState
 import com.example.ui.HomeTab
 import com.example.ui.util.HebrewDateHelper
+import com.example.ui.util.HebrewNumberFormatter
+import com.example.domain.mitzvot.MitzvahAssignmentType
+import com.example.data.prayers.PrayerSection
 import java.time.LocalDate
 
 @Composable
@@ -56,7 +60,10 @@ fun MainContentList(
     onOpenChumash: () -> Unit,
     onOpenTehillim: () -> Unit,
     onOpenTanya: () -> Unit,
+    onOpenMitzvah: () -> Unit,
     onOpenSettings: () -> Unit,
+    prayerSections: List<PrayerSection> = emptyList(),
+    onOpenPrayer: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val rambamSubtitle = remember(uiState.dailyLesson) {
@@ -120,6 +127,22 @@ fun MainContentList(
         }
     }
 
+    val mitzvahSubtitle = remember(uiState.dailyMitzvahAssignment) {
+        val assignment = uiState.dailyMitzvahAssignment
+        if (assignment == null) {
+            "הלוח אינו זמין לתאריך זה"
+        } else {
+            val first = assignment.items.firstOrNull()
+            val itemTitle = when (first?.type) {
+                MitzvahAssignmentType.POSITIVE -> "מצוות עשה ${HebrewNumberFormatter.toHebrewNumeral(first.number ?: 0, true)}"
+                MitzvahAssignmentType.NEGATIVE -> "מצוות לא תעשה ${HebrewNumberFormatter.toHebrewNumeral(first.number ?: 0, true)}"
+                MitzvahAssignmentType.SPECIAL -> first.title.orEmpty()
+                null -> ""
+            }
+            "שיעור ${assignment.lessonNumber} · $itemTitle"
+        }
+    }
+
     LazyColumn(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(0.dp),
@@ -145,6 +168,32 @@ fun MainContentList(
                                 color = Color(0xFFFF681F),
                                 icon = Icons.Outlined.LibraryBooks,
                                 onClick = onOpenDailyLesson
+                            )
+                        )
+                    }
+                    if (visibleStudies.contains("mitzvot")) {
+                        val assignment = uiState.dailyMitzvahAssignment
+                        val total = uiState.dailyMitzvahEntries.sumOf { entry ->
+                            entry.paragraphs.size + 1
+                        }.coerceAtLeast(1)
+                        val current = uiState.savedMitzvahAnchor?.blockIndex?.plus(1) ?: 0
+                        val metric = assignment?.items?.firstOrNull()?.let { item ->
+                            when (item.type) {
+                                MitzvahAssignmentType.POSITIVE,
+                                MitzvahAssignmentType.NEGATIVE -> HebrewNumberFormatter.toHebrewNumeral(item.number ?: 0, true)
+                                MitzvahAssignmentType.SPECIAL -> "–"
+                            }
+                        } ?: "–"
+                        add(
+                            StudyDashboardCard(
+                                eyebrow = "רמב״ם יומי",
+                                title = "ספר המצוות",
+                                subtitle = mitzvahSubtitle,
+                                metric = metric,
+                                progress = current.toFloat() / total,
+                                color = Color(0xFF72D7E8),
+                                icon = Icons.Outlined.MenuBook,
+                                onClick = onOpenMitzvah
                             )
                         )
                     }
@@ -204,7 +253,18 @@ fun MainContentList(
             }
         } else {
             item {
-                Text("תפילות", fontSize = 18.sp, color = Color.Black)
+                Text("נוסח האר״י · סידור תורה אור", fontSize = 16.sp, color = Color.Black,
+                    modifier = Modifier.padding(20.dp))
+                Text("מהדורת בדיקה — חלק מהתמלולים חלקיים. טרם הוגה מול תהלת השם.",
+                    fontSize = 12.sp, color = Color.DarkGray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp))
+            }
+            items(prayerSections, key = { it.id }) { section ->
+                ListItem(
+                    headlineContent = { Text(section.title, fontWeight = FontWeight.Bold) },
+                    supportingContent = { Text("נוסח חב״ד · התאמת טקסט ושמירת מיקום") },
+                    colors = ListItemDefaults.colors(containerColor = Color(0xFFB3E9F2)),
+                    modifier = Modifier.clickable { onOpenPrayer(section.id) }.padding(bottom = 2.dp)
+                )
             }
         }
     }
@@ -309,14 +369,38 @@ fun FloatingDarkNavBar(
     onOpenEditSheet: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Surface(
-        shape = RoundedCornerShape(32.dp),
-        color = Color(0xFFF2F2F2),
-        shadowElevation = 8.dp,
-        modifier = modifier
-            .width(260.dp)
-            .height(60.dp)
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
+        Surface(
+            shape = CircleShape,
+            color = Color.Black,
+            contentColor = Color.White,
+            shadowElevation = 8.dp,
+            modifier = Modifier
+                .size(52.dp)
+                .clickable(onClick = onOpenEditSheet)
+                .testTag("home_customize_button")
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "התאמת מסך הבית",
+                    modifier = Modifier.size(22.dp)
+                )
+            }
+        }
+
+        Surface(
+            shape = RoundedCornerShape(32.dp),
+            color = Color(0xFFF2F2F2),
+            shadowElevation = 8.dp,
+            modifier = Modifier
+                .width(260.dp)
+                .height(60.dp)
+        ) {
         Row(
             modifier = Modifier.fillMaxSize(),
             verticalAlignment = Alignment.CenterVertically,
@@ -378,6 +462,7 @@ fun FloatingDarkNavBar(
                     fontWeight = FontWeight.Medium
                 )
             }
+        }
         }
     }
 }

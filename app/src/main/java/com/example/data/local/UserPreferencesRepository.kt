@@ -25,10 +25,11 @@ data class UserPreferences(
     val readerTheme: String = "light", // "light", "sepia", "dark"
     val lastOpenedChapterId: String? = null,
     val keepScreenOn: Boolean = true,
-    val visibleStudies: Set<String> = setOf("rambam", "chumash", "tehillim", "tanya"),
+    val visibleStudies: Set<String> = setOf("rambam", "mitzvot", "chumash", "tehillim", "tanya"),
     val chumashFontSizeSp: Float = 22f,
     val chumashShowTeamim: Boolean = false,
-    val completedAliyot: Set<String> = emptySet()
+    val completedAliyot: Set<String> = emptySet(),
+    val tanyaBookView: Boolean = false
 )
 
 class UserPreferencesRepository(private val context: Context) {
@@ -45,9 +46,11 @@ class UserPreferencesRepository(private val context: Context) {
         val LAST_OPENED_CHAPTER_ID = stringPreferencesKey("last_opened_chapter_id")
         val KEEP_SCREEN_ON = booleanPreferencesKey("keep_screen_on")
         val VISIBLE_STUDIES = stringSetPreferencesKey("visible_studies")
+        val VISIBLE_STUDIES_V2_MIGRATED = booleanPreferencesKey("visible_studies_v2_migrated")
         val CHUMASH_FONT_SIZE = floatPreferencesKey("chumash_font_size")
         val CHUMASH_SHOW_TEAMIM = booleanPreferencesKey("chumash_show_teamim")
         val COMPLETED_ALIYOT = stringSetPreferencesKey("completed_aliyot")
+        val TANYA_BOOK_VIEW = booleanPreferencesKey("tanya_book_view")
     }
 
     val userPreferencesFlow: Flow<UserPreferences> = context.dataStore.data
@@ -63,15 +66,21 @@ class UserPreferencesRepository(private val context: Context) {
                 readerTheme = preferences[PreferencesKeys.READER_THEME] ?: "light",
                 lastOpenedChapterId = preferences[PreferencesKeys.LAST_OPENED_CHAPTER_ID],
                 keepScreenOn = preferences[PreferencesKeys.KEEP_SCREEN_ON] ?: true,
-                visibleStudies = preferences[PreferencesKeys.VISIBLE_STUDIES] ?: setOf("rambam", "chumash", "tehillim", "tanya"),
+                visibleStudies = preferences[PreferencesKeys.VISIBLE_STUDIES]
+                    ?: setOf("rambam", "mitzvot", "chumash", "tehillim", "tanya"),
                 chumashFontSizeSp = preferences[PreferencesKeys.CHUMASH_FONT_SIZE] ?: 22f,
                 chumashShowTeamim = preferences[PreferencesKeys.CHUMASH_SHOW_TEAMIM] ?: false,
-                completedAliyot = preferences[PreferencesKeys.COMPLETED_ALIYOT] ?: emptySet()
+                completedAliyot = preferences[PreferencesKeys.COMPLETED_ALIYOT] ?: emptySet(),
+                tanyaBookView = preferences[PreferencesKeys.TANYA_BOOK_VIEW] ?: false
             )
         }
 
     suspend fun updateTrack(track: String) {
         context.dataStore.edit { it[PreferencesKeys.SELECTED_TRACK] = track }
+    }
+
+    suspend fun updateTanyaBookView(enabled: Boolean) {
+        context.dataStore.edit { it[PreferencesKeys.TANYA_BOOK_VIEW] = enabled }
     }
 
     suspend fun updateDayBoundary(boundary: String) {
@@ -112,6 +121,17 @@ class UserPreferencesRepository(private val context: Context) {
 
     suspend fun updateVisibleStudies(studies: Set<String>) {
         context.dataStore.edit { it[PreferencesKeys.VISIBLE_STUDIES] = studies }
+    }
+
+    suspend fun ensureStudyListV2Migrated() {
+        context.dataStore.edit { preferences ->
+            if (preferences[PreferencesKeys.VISIBLE_STUDIES_V2_MIGRATED] != true) {
+                val current = preferences[PreferencesKeys.VISIBLE_STUDIES]
+                    ?: setOf("rambam", "chumash", "tehillim", "tanya")
+                preferences[PreferencesKeys.VISIBLE_STUDIES] = current + "mitzvot"
+                preferences[PreferencesKeys.VISIBLE_STUDIES_V2_MIGRATED] = true
+            }
+        }
     }
 
     suspend fun updateChumashFontSize(sizeSp: Float) {

@@ -95,6 +95,7 @@ fun TehillimReaderScreen(
     var activeTab by remember { mutableStateOf(TehillimTab.DAILY) }
     var showTypographySheet by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
+    val resumePosition = remember(lesson?.dayOfMonth) { savedPosition }
 
     // Keep screen on during study
     val context = LocalContext.current
@@ -213,7 +214,7 @@ fun TehillimReaderScreen(
 
     // Scroll to saved position on first load
     var hasScrolledToSavedPosition by remember(lesson.date, activeTab) { mutableStateOf(false) }
-    LaunchedEffect(flatRows, savedPosition, activeTab) {
+    LaunchedEffect(flatRows, resumePosition, activeTab) {
         if (!hasScrolledToSavedPosition && flatRows.isNotEmpty()) {
             if (activeTab == TehillimTab.ELUL) {
                 listState.scrollToItem(0)
@@ -222,8 +223,8 @@ fun TehillimReaderScreen(
             }
             val targetIdx = flatRows.indexOfFirst { row ->
                 row is TehillimUiRow.VerseRow &&
-                    row.chapter.chapterNumber == savedPosition?.chapterNumber &&
-                    row.verse.verseNumber == ((savedPosition?.halachaIndex ?: -1) + 1)
+                    row.chapter.chapterNumber == resumePosition?.chapterNumber &&
+                    row.verse.verseNumber == ((resumePosition?.halachaIndex ?: -1) + 1)
             }
             if (targetIdx >= 0) {
                 listState.scrollToItem(targetIdx)
@@ -439,8 +440,8 @@ fun TehillimReaderScreen(
                                 textColor = textColor,
                                 fontSizeSp = preferences.chumashFontSizeSp,
                                 isReadingAnchor = activeTab == TehillimTab.DAILY &&
-                                    row.chapter.chapterNumber == savedPosition?.chapterNumber &&
-                                    row.verse.verseNumber == (savedPosition?.halachaIndex?.plus(1)),
+                                    row.chapter.chapterNumber == resumePosition?.chapterNumber &&
+                                    row.verse.verseNumber == (resumePosition?.halachaIndex?.plus(1)),
                                 modifier = Modifier.padding(bottom = 18.dp),
                                 testTag = "tehillim_verse_${row.chapter.chapterNumber}_${row.verse.verseNumber}"
                             )
@@ -545,6 +546,7 @@ fun TehillimReaderScreen(
         if (showTypographySheet) {
             ReaderTypographySheet(
                 preferences = preferences,
+                fontSizeSp = preferences.chumashFontSizeSp,
                 onDismiss = { showTypographySheet = false },
                 onFontSizeChange = onFontSizeChange,
                 onLineSpacingChange = onLineSpacingChange,

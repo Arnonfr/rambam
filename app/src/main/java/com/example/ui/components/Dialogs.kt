@@ -79,6 +79,7 @@ fun SettingsDialog(
     val paper = Color(0xFFFFFCF6)
     val studies = listOf(
         Triple("rambam", "רמב״ם", Color(0xFFFF6422)),
+        Triple("mitzvot", "ספר המצוות", Color(0xFF72D7E8)),
         Triple("chumash", "חומש", Color(0xFFEDFF24)),
         Triple("tanya", "תניא", Color(0xFFEA78D5)),
         Triple("tehillim", "תהילים", Color(0xFFB9C96B))
@@ -109,12 +110,14 @@ fun SettingsDialog(
                         studies.forEach { (key, name, color) ->
                             val subtitle = when (key) {
                                 "rambam" -> if (preferences.selectedTrack == "three") "שלושה פרקים ליום" else "פרק אחד ליום"
+                                "mitzvot" -> "השיעור המקביל למסלול ג׳ פרקים"
                                 "chumash" -> "העלייה היומית"
                                 "tanya" -> "השיעור היומי"
                                 else -> "לפי ימי החודש"
                             }
                             val icon = when (key) {
                                 "rambam" -> Icons.Default.MenuBook
+                                "mitzvot" -> Icons.Default.FactCheck
                                 "chumash" -> Icons.Default.AutoStories
                                 "tanya" -> Icons.Default.Book
                                 else -> Icons.Default.MusicNote

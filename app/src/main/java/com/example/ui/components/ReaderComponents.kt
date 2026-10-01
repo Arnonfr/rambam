@@ -8,6 +8,8 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -260,6 +262,27 @@ fun FloatingReaderBar(
                         horizontalArrangement = Arrangement.Center,
                         modifier = Modifier.fillMaxWidth()
                     ) {
+                        Surface(
+                            shape = CircleShape,
+                            color = Color.White.copy(alpha = 0.20f),
+                            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.35f)),
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clip(CircleShape)
+                                .clickable(onClick = onTypographyClick)
+                                .testTag("reader_typography_button")
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Default.FormatSize,
+                                    contentDescription = "התאמת טקסט",
+                                    tint = GoldWarm,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+
                         if (onPrevDay != null) {
                             Surface(
                                 shape = CircleShape,
@@ -355,13 +378,15 @@ fun FloatingReaderBar(
 @Composable
 fun ReaderTypographySheet(
     preferences: UserPreferences,
+    fontSizeSp: Float = preferences.fontSizeSp,
     onDismiss: () -> Unit,
     onFontSizeChange: (Float) -> Unit,
     onLineSpacingChange: (Float) -> Unit,
     onFontFamilyChange: (String) -> Unit,
     onNikudToggle: (Boolean) -> Unit,
     onThemeChange: (String) -> Unit,
-    onKeepScreenOnChange: (Boolean) -> Unit
+    onKeepScreenOnChange: (Boolean) -> Unit,
+    extraControls: @Composable () -> Unit = {}
 ) {
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -384,6 +409,7 @@ fun ReaderTypographySheet(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
                     .padding(horizontal = 20.dp)
                     .padding(bottom = 36.dp),
                 horizontalAlignment = Alignment.Start
@@ -399,6 +425,8 @@ fun ReaderTypographySheet(
                         .padding(bottom = 16.dp),
                     textAlign = TextAlign.Center
                 )
+
+                extraControls()
 
                 // 1. ערכת נושא (Theme Selection)
                 Text(
@@ -551,19 +579,19 @@ fun ReaderTypographySheet(
                             }
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 FilledTonalIconButton(
-                                    onClick = { if (preferences.fontSizeSp > 15f) onFontSizeChange(preferences.fontSizeSp - 1f) },
+                                    onClick = { if (fontSizeSp > 15f) onFontSizeChange(fontSizeSp - 1f) },
                                     modifier = Modifier.size(36.dp)
                                 ) {
                                     Icon(Icons.Default.Remove, contentDescription = "הקטן", modifier = Modifier.size(16.dp))
                                 }
                                 Text(
-                                    text = "${preferences.fontSizeSp.toInt()}",
+                                    text = "${fontSizeSp.toInt()}",
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold,
                                     modifier = Modifier.padding(horizontal = 16.dp)
                                 )
                                 FilledTonalIconButton(
-                                    onClick = { if (preferences.fontSizeSp < 32f) onFontSizeChange(preferences.fontSizeSp + 1f) },
+                                    onClick = { if (fontSizeSp < 32f) onFontSizeChange(fontSizeSp + 1f) },
                                     modifier = Modifier.size(36.dp)
                                 ) {
                                     Icon(Icons.Default.Add, contentDescription = "הגדל", modifier = Modifier.size(16.dp))

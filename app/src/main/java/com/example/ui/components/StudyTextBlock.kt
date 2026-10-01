@@ -22,6 +22,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.local.UserPreferences
 import com.example.ui.theme.FontStyleOption
+import com.example.ui.theme.NotoSansHebrewFontFamily
+import com.example.ui.util.HebrewTextNormalizer
 
 /**
  * Reusable Study Text Block ("תבנית לימוד אחודה")
@@ -44,8 +46,16 @@ fun StudyTextBlock(
     isReadingAnchor: Boolean = false,
     testTag: String = ""
 ) {
-    val rawText = if (preferences.showNikud) textWithNikud else textPlain
+    val sourceText = if (preferences.showNikud) textWithNikud else textPlain
+    val rawText = remember(sourceText) { HebrewTextNormalizer.forDisplay(sourceText) }
     val activeFontSizeSp = fontSizeSp ?: preferences.fontSizeSp
+    val displayFontFamily = remember(rawText, fontFamily) {
+        if (HebrewTextNormalizer.containsCantillationOrRareMarks(rawText)) {
+            NotoSansHebrewFontFamily
+        } else {
+            fontFamily
+        }
+    }
 
     // Normalize text to start cleanly with "$indexLetter. " e.g. "א. ", "ב. ", etc.
     val formattedText = remember(rawText, indexLetter) {
@@ -67,6 +77,13 @@ fun StudyTextBlock(
             .then(if (testTag.isNotBlank()) Modifier.testTag(testTag) else Modifier)
     ) {
         if (isReadingAnchor) {
+            Text(
+                text = "כאן עצרת בפעם הקודמת",
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF2799CC),
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
             androidx.compose.material3.HorizontalDivider(
                 modifier = Modifier.fillMaxWidth().padding(bottom = 7.dp),
                 thickness = 3.dp,
@@ -77,7 +94,7 @@ fun StudyTextBlock(
             text = formattedText,
             fontSize = activeFontSizeSp.sp,
             lineHeight = (activeFontSizeSp * preferences.lineSpacingMultiplier).sp,
-            fontFamily = fontFamily,
+            fontFamily = displayFontFamily,
             color = textColor,
             textAlign = TextAlign.Start,
             modifier = Modifier.fillMaxWidth()
@@ -90,7 +107,7 @@ fun StudyTextBlock(
                     text = parseHtmlBold(rashiText),
                     fontSize = (activeFontSizeSp * 0.85f).sp,
                     lineHeight = (activeFontSizeSp * 0.85f * preferences.lineSpacingMultiplier).sp,
-                    fontFamily = fontFamily,
+                    fontFamily = displayFontFamily,
                     color = textColor.copy(alpha = 0.85f),
                     textAlign = TextAlign.Start,
                     modifier = Modifier.fillMaxWidth().padding(start = 16.dp, bottom = 12.dp)

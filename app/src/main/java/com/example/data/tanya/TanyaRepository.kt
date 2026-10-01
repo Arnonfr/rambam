@@ -11,6 +11,7 @@ import org.json.JSONObject
 import java.io.File
 import java.net.URLEncoder
 import java.time.LocalDate
+import java.text.Normalizer
 import java.util.concurrent.TimeUnit
 
 class TanyaRepository(private val context: Context) {
@@ -228,11 +229,12 @@ class TanyaRepository(private val context: Context) {
     }
 
     private fun cleanText(text: String): String {
-        return text.replace(Regex("<[^>]+>"), "")
+        val cleaned = text.replace(Regex("<[^>]+>"), "")
             .replace("&nbsp;", " ")
             .replace("&#39;", "'")
             .replace("&quot;", "\"")
             .trim()
+        return Normalizer.normalize(cleaned, Normalizer.Form.NFC)
     }
 
     private fun stripNikud(text: String): String {

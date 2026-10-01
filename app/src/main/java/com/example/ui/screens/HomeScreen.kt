@@ -69,7 +69,10 @@ fun HomeScreen(
     onOpenAttribution: () -> Unit,
     onOpenChumash: () -> Unit = {},
     onOpenTehillim: () -> Unit = {},
-    onOpenTanya: () -> Unit = {}
+    onOpenTanya: () -> Unit = {},
+    onOpenMitzvah: () -> Unit = {},
+    prayerSections: List<com.example.data.prayers.PrayerSection> = emptyList(),
+    onOpenPrayer: (String) -> Unit = {}
 ) {
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         Box(
@@ -107,7 +110,10 @@ fun HomeScreen(
                     onOpenChumash = onOpenChumash,
                     onOpenTehillim = onOpenTehillim,
                     onOpenTanya = onOpenTanya,
+                    onOpenMitzvah = onOpenMitzvah,
                     onOpenSettings = onOpenSettings,
+                    prayerSections = prayerSections,
+                    onOpenPrayer = onOpenPrayer,
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -1498,6 +1504,7 @@ private fun EditDailyStudySheet(
 
                 val studies = listOf(
                     "rambam" to "רמב״ם (משנה תורה)",
+                    "mitzvot" to "רמב״ם – ספר המצוות",
                     "chumash" to "חומש",
                     "tehillim" to "תהילים",
                     "tanya" to "תניא"

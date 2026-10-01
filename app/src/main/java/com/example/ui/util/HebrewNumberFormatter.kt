@@ -8,23 +8,37 @@ object HebrewNumberFormatter {
      */
     fun toHebrewNumeral(number: Int, withGershayim: Boolean = false): String {
         if (number <= 0) return number.toString()
-        val tens = listOf("", "י", "כ", "ל", "מ", "נ", "ס", "ע", "פ", "צ")
-        val units = listOf("", "א", "ב", "ג", "ד", "ה", "ו", "ז", "ח", "ט")
-
-        val raw = when {
-            number == 15 -> "טו"
-            number == 16 -> "טז"
-            number < 10 -> units[number]
-            number in 10..99 -> {
-                val t = number / 10
-                val u = number % 10
-                if (t == 1 && u == 5) "טו"
-                else if (t == 1 && u == 6) "טז"
-                else tens[t] + units[u]
+        if (number > 999) return number.toString()
+        var remainder = number
+        val raw = buildString {
+            while (remainder >= 400) {
+                append("ת")
+                remainder -= 400
             }
-            number == 100 -> "ק"
-            number in 101..199 -> "ק" + toHebrewNumeral(number - 100, false)
-            else -> number.toString()
+            listOf(300 to "ש", 200 to "ר", 100 to "ק").forEach { (value, letter) ->
+                if (remainder >= value) {
+                    append(letter)
+                    remainder -= value
+                }
+            }
+            if (remainder == 15) {
+                append("טו")
+                remainder = 0
+            } else if (remainder == 16) {
+                append("טז")
+                remainder = 0
+            }
+            listOf(
+                90 to "צ", 80 to "פ", 70 to "ע", 60 to "ס", 50 to "נ",
+                40 to "מ", 30 to "ל", 20 to "כ", 10 to "י", 9 to "ט",
+                8 to "ח", 7 to "ז", 6 to "ו", 5 to "ה", 4 to "ד",
+                3 to "ג", 2 to "ב", 1 to "א"
+            ).forEach { (value, letter) ->
+                if (remainder >= value) {
+                    append(letter)
+                    remainder -= value
+                }
+            }
         }
 
         if (!withGershayim) return raw
