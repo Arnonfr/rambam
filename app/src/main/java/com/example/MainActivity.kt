@@ -167,6 +167,7 @@ class MainActivity : ComponentActivity() {
                             }
                             TanyaReaderScreen(
                                 onBookViewChange = { viewModel.setTanyaBookView(it) },
+                                onBookNikudChange = { viewModel.setTanyaBookNikud(it) },
                                 lesson = uiState.dailyTanya,
                                 isLoading = uiState.isTanyaLoading,
                                 onBack = { viewModel.openTanyaReader(false) },

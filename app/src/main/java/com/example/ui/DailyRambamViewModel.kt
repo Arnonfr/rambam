@@ -1256,6 +1256,10 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
         viewModelScope.launch { prefsRepository.updateTanyaBookView(enabled) }
     }
 
+    fun setTanyaBookNikud(enabled: Boolean) {
+        viewModelScope.launch { prefsRepository.updateTanyaBookNikud(enabled) }
+    }
+
     fun setFontFamily(family: String) {
         viewModelScope.launch {
             prefsRepository.updateFontFamily(family)

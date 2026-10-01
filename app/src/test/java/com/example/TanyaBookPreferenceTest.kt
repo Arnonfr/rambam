@@ -18,11 +18,16 @@ import org.robolectric.annotation.Config
 class TanyaBookPreferenceTest {
     @Test fun `book view is opt in and preference survives new repository`() = runBlocking {
         assertFalse(UserPreferences().tanyaBookView)
+        assertFalse(UserPreferences().tanyaBookShowNikud)
         val context = ApplicationProvider.getApplicationContext<Context>()
         val repo = UserPreferencesRepository(context)
         repo.updateTanyaBookView(true)
         assertTrue(UserPreferencesRepository(context).userPreferencesFlow.first().tanyaBookView)
         repo.updateTanyaBookView(false)
         assertFalse(repo.userPreferencesFlow.first().tanyaBookView)
+        repo.updateTanyaBookNikud(true)
+        assertTrue(repo.userPreferencesFlow.first().tanyaBookShowNikud)
+        assertTrue(repo.userPreferencesFlow.first().showNikud)
+        repo.updateTanyaBookNikud(false)
     }
 }

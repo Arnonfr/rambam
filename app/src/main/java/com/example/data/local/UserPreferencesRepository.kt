@@ -29,7 +29,8 @@ data class UserPreferences(
     val chumashFontSizeSp: Float = 22f,
     val chumashShowTeamim: Boolean = false,
     val completedAliyot: Set<String> = emptySet(),
-    val tanyaBookView: Boolean = false
+    val tanyaBookView: Boolean = false,
+    val tanyaBookShowNikud: Boolean = false
 )
 
 class UserPreferencesRepository(private val context: Context) {
@@ -51,6 +52,7 @@ class UserPreferencesRepository(private val context: Context) {
         val CHUMASH_SHOW_TEAMIM = booleanPreferencesKey("chumash_show_teamim")
         val COMPLETED_ALIYOT = stringSetPreferencesKey("completed_aliyot")
         val TANYA_BOOK_VIEW = booleanPreferencesKey("tanya_book_view")
+        val TANYA_BOOK_NIKUD = booleanPreferencesKey("tanya_book_nikud")
     }
 
     val userPreferencesFlow: Flow<UserPreferences> = context.dataStore.data
@@ -71,7 +73,8 @@ class UserPreferencesRepository(private val context: Context) {
                 chumashFontSizeSp = preferences[PreferencesKeys.CHUMASH_FONT_SIZE] ?: 22f,
                 chumashShowTeamim = preferences[PreferencesKeys.CHUMASH_SHOW_TEAMIM] ?: false,
                 completedAliyot = preferences[PreferencesKeys.COMPLETED_ALIYOT] ?: emptySet(),
-                tanyaBookView = preferences[PreferencesKeys.TANYA_BOOK_VIEW] ?: false
+                tanyaBookView = preferences[PreferencesKeys.TANYA_BOOK_VIEW] ?: false,
+                tanyaBookShowNikud = preferences[PreferencesKeys.TANYA_BOOK_NIKUD] ?: false
             )
         }
 
@@ -81,6 +84,10 @@ class UserPreferencesRepository(private val context: Context) {
 
     suspend fun updateTanyaBookView(enabled: Boolean) {
         context.dataStore.edit { it[PreferencesKeys.TANYA_BOOK_VIEW] = enabled }
+    }
+
+    suspend fun updateTanyaBookNikud(enabled: Boolean) {
+        context.dataStore.edit { it[PreferencesKeys.TANYA_BOOK_NIKUD] = enabled }
     }
 
     suspend fun updateDayBoundary(boundary: String) {

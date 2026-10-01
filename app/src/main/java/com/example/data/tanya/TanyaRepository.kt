@@ -238,7 +238,7 @@ class TanyaRepository(private val context: Context) {
     }
 
     private fun stripNikud(text: String): String {
-        return text.replace(Regex("[\u0591-\u05C7]"), "")
+        return text.replace(Regex("[\u0591-\u05BD\u05BF-\u05C2\u05C4-\u05C5\u05C7]"), "")
     }
 
     private fun toHebrewNumber(num: Int): String {

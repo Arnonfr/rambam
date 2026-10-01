@@ -55,6 +55,7 @@ fun TanyaReaderScreen(
     onBack: () -> Unit,
     preferences: UserPreferences,
     onBookViewChange: (Boolean) -> Unit = {},
+    onBookNikudChange: (Boolean) -> Unit = {},
     onFontSizeChange: (Float) -> Unit = {},
     onLineSpacingChange: (Float) -> Unit = {},
     onFontFamilyChange: (String) -> Unit = {},
@@ -293,7 +294,7 @@ fun TanyaReaderScreen(
                 ) { _, section ->
                     if (preferences.tanyaBookView) {
                         TanyaBookText(
-                            text = if (preferences.showNikud) section.textWithNikud else section.textPlain,
+                            text = if (preferences.tanyaBookShowNikud) section.textWithNikud else section.textPlain,
                             textColor = textColor,
                             zoom = preferences.chumashFontSizeSp / 22f,
                             isReadingAnchor = section.sectionIndex == (entryAnchor?.blockIndex ?: resumePosition?.halachaIndex?.plus(1))
@@ -357,13 +358,13 @@ fun TanyaReaderScreen(
 
         if (showTypographySheet) {
             ReaderTypographySheet(
-                preferences = preferences,
+                preferences = if (preferences.tanyaBookView) preferences.copy(showNikud = preferences.tanyaBookShowNikud) else preferences,
                 fontSizeSp = preferences.chumashFontSizeSp,
                 onDismiss = { showTypographySheet = false },
                 onFontSizeChange = onFontSizeChange,
                 onLineSpacingChange = onLineSpacingChange,
                 onFontFamilyChange = onFontFamilyChange,
-                onNikudToggle = onNikudToggle,
+                onNikudToggle = if (preferences.tanyaBookView) onBookNikudChange else onNikudToggle,
                 onThemeChange = onThemeChange,
                 onKeepScreenOnChange = onKeepScreenOnChange,
                 extraControls = {
