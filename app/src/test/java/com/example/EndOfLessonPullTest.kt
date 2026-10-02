@@ -52,7 +52,11 @@ class EndOfLessonPullTest {
     @Test fun `ordinary scrolling before end never completes`() {
         var completions = 0
         content(true) { completions++ }
+        // Drive fling frames explicitly: Robolectric's real-time idle polling can
+        // otherwise stall on LazyColumn animation, unrelated to completion.
+        compose.mainClock.autoAdvance = false
         compose.onNodeWithTag("reader").performTouchInput { swipeUp() }
+        compose.mainClock.advanceTimeBy(5_000)
         compose.waitForIdle()
         compose.runOnIdle { assertEquals(0, completions) }
     }
