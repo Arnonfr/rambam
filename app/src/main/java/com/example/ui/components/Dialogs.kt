@@ -78,17 +78,18 @@ fun SettingsDialog(
     val ink = Color(0xFF111111)
     val paper = Color(0xFFFFFCF6)
     val studies = listOf(
-        Triple("rambam", "רמב״ם", Color(0xFFFF6422)),
+        Triple("rambam_one", "רמב״ם — פרק אחד", Color(0xFFFF873F)),
+        Triple("rambam_three", "רמב״ם — ג׳ פרקים", Color(0xFFFF873F)),
         Triple("mitzvot", "ספר המצוות", Color(0xFF72D7E8)),
-        Triple("chumash", "חומש", Color(0xFFEDFF24)),
-        Triple("tanya", "תניא", Color(0xFFEA78D5)),
-        Triple("tehillim", "תהילים", Color(0xFFB9C96B))
+        Triple("chumash", "חומש", Color(0xFFF4F66A)),
+        Triple("tanya", "תניא", Color(0xFFF0A0DD)),
+        Triple("tehillim", "תהילים", Color(0xFF9FDEEF))
     )
 
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         AlertDialog(
             onDismissRequest = onDismiss,
-            modifier = Modifier.fillMaxWidth(0.92f).heightIn(max = 760.dp).border(1.5.dp, ink, RoundedCornerShape(22.dp)),
+            modifier = Modifier.fillMaxWidth(0.92f).fillMaxHeight(0.9f).heightIn(max = 760.dp).border(1.5.dp, ink, RoundedCornerShape(22.dp)),
             properties = DialogProperties(usePlatformDefaultWidth = false),
             containerColor = paper,
             shape = RoundedCornerShape(22.dp),
@@ -105,18 +106,20 @@ fun SettingsDialog(
                     Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text("השיעורים שלי", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, color = ink)
+                    Text("השיעורים במסך הבית", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, color = ink)
+                    Text("אפשר לבחור כמה מסלולי רמב״ם במקביל.", fontSize = 12.sp, color = ink)
                     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         studies.forEach { (key, name, color) ->
                             val subtitle = when (key) {
-                                "rambam" -> if (preferences.selectedTrack == "three") "שלושה פרקים ליום" else "פרק אחד ליום"
+                                "rambam_one" -> "פרק אחד ליום"
+                                "rambam_three" -> "שלושה פרקים ליום"
                                 "mitzvot" -> "השיעור המקביל למסלול ג׳ פרקים"
                                 "chumash" -> "העלייה היומית"
                                 "tanya" -> "השיעור היומי"
                                 else -> "לפי ימי החודש"
                             }
                             val icon = when (key) {
-                                "rambam" -> Icons.Default.MenuBook
+                                "rambam_one", "rambam_three" -> Icons.Default.MenuBook
                                 "mitzvot" -> Icons.Default.FactCheck
                                 "chumash" -> Icons.Default.AutoStories
                                 "tanya" -> Icons.Default.Book
@@ -126,7 +129,7 @@ fun SettingsDialog(
                                 Modifier.fillMaxWidth().height(58.dp).background(color).clickable { onToggleStudy(key) }.padding(horizontal = 12.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(icon, contentDescription = null, tint = ink, modifier = Modifier.size(27.dp))
+                                com.example.ui.components.StudyLineIcon(key.removePrefix("rambam_"), Modifier.size(27.dp))
                                 Spacer(Modifier.width(10.dp))
                                 Column(Modifier.weight(1f)) {
                                     Text(name, fontSize = 17.sp, fontWeight = FontWeight.ExtraBold, color = ink)
@@ -144,21 +147,6 @@ fun SettingsDialog(
                                     )
                                 )
                             }
-                        }
-                    }
-
-                    HorizontalDivider(color = ink, thickness = 1.dp)
-                    Text("מסלול לימוד", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, color = ink)
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        listOf("one" to "פרק אחד ליום", "three" to "שלושה פרקים ליום").forEach { (value, label) ->
-                            val selected = preferences.selectedTrack == value
-                            Surface(
-                                color = if (selected) ink else Color.Transparent,
-                                contentColor = if (selected) Color.White else ink,
-                                border = BorderStroke(1.5.dp, ink),
-                                shape = RoundedCornerShape(8.dp),
-                                modifier = Modifier.weight(1f).clickable { onTrackChange(value) }
-                            ) { Text(label, fontSize = 12.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, modifier = Modifier.padding(vertical = 10.dp)) }
                         }
                     }
 

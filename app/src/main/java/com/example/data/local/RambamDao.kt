@@ -39,6 +39,9 @@ interface RambamDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun saveReadingPosition(position: ReadingPositionEntity)
 
+    @Query("DELETE FROM reading_positions WHERE track = :track")
+    suspend fun clearReadingPositions(track: String)
+
     @Query("SELECT * FROM chapter_completions WHERE track = :track AND chapterId = :chapterId LIMIT 1")
     fun getCompletion(track: String, chapterId: String): Flow<ChapterCompletionEntity?>
 

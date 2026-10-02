@@ -51,7 +51,8 @@ class EndOfLessonPullState internal constructor(
     private val thresholdPx: Float,
     private val canScrollForward: () -> Boolean,
     private val onCompleted: () -> Unit,
-    private val performHaptic: () -> Unit
+    private val performHaptic: () -> Unit,
+    private val onExitAfterCompletion: () -> Unit = {}
 ) {
     var pullDistancePx by mutableFloatStateOf(0f)
         private set
@@ -65,7 +66,8 @@ class EndOfLessonPullState internal constructor(
     val connection = object : NestedScrollConnection {
         override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
             if (source == NestedScrollSource.UserInput && !canScrollForward() && available.y < 0f && !settling) {
-                pullDistancePx = (pullDistancePx + (-available.y * 0.48f)).coerceAtMost(thresholdPx * 1.25f)
+                pullDistancePx = (pullDistancePx + (-available.y * 0.75f)).coerceAtMost(thresholdPx * 1.25f)
+                return available
             }
             return Offset.Zero
         }
@@ -95,7 +97,9 @@ class EndOfLessonPullState internal constructor(
             isConfirmed = true
             performHaptic()
             onCompleted()
-            delay(650)
+            delay(350)
+            onExitAfterCompletion()
+            delay(300)
         }
         pullDistancePx = 0f
         delay(120)
@@ -108,17 +112,20 @@ class EndOfLessonPullState internal constructor(
 fun rememberEndOfLessonPullState(
     key: Any?,
     canScrollForward: () -> Boolean,
-    onCompleted: () -> Unit
+    onCompleted: () -> Unit,
+    onExitAfterCompletion: () -> Unit = {}
 ): EndOfLessonPullState {
     val density = LocalDensity.current
     val haptics = LocalHapticFeedback.current
     val latestOnCompleted by rememberUpdatedState(onCompleted)
+    val latestExit by rememberUpdatedState(onExitAfterCompletion)
     val latestCanScrollForward by rememberUpdatedState(canScrollForward)
     return remember(key, density) {
         EndOfLessonPullState(
-            thresholdPx = with(density) { 92.dp.toPx() },
+            thresholdPx = with(density) { 56.dp.toPx() },
             canScrollForward = { latestCanScrollForward() },
             onCompleted = { latestOnCompleted() },
+            onExitAfterCompletion = { latestExit() },
             performHaptic = { haptics.performHapticFeedback(HapticFeedbackType.LongPress) }
         )
     }
@@ -191,9 +198,10 @@ fun CompactReaderHeader(
         tonalElevation = 0.dp,
         shadowElevation = 1.dp
     ) {
-        Column(modifier = Modifier.statusBarsPadding()) {
+        // MainActivity's Scaffold already reserves the system status-bar inset.
+        Column {
             Row(
-                modifier = Modifier.fillMaxWidth().height(46.dp).padding(horizontal = 16.dp),
+                modifier = Modifier.fillMaxWidth().height(32.dp).padding(horizontal = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -211,6 +219,8 @@ fun CompactReaderHeader(
                     fontWeight = FontWeight.Medium,
                     color = foreground.copy(alpha = 0.68f),
                     maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                    lineHeight = 13.sp,
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -235,7 +245,8 @@ fun FloatingReaderBar(
     readerTheme: String,
     onNextDay: (() -> Unit)? = null,
     onPrevDay: (() -> Unit)? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    prayerNavigation: Boolean = false
 ) {
     val dark = readerTheme == "dark"
     val foreground = if (dark) Color.White else Color.Black
@@ -258,12 +269,12 @@ fun FloatingReaderBar(
                 if (onPrevDay != null) {
                     IconButton(onClick = onPrevDay,
                         modifier = Modifier.size(44.dp).testTag("reader_prev_day_button")) {
-                        Icon(Icons.Default.KeyboardArrowRight, "יום קודם", tint = foreground)
+                        Icon(Icons.Default.KeyboardArrowRight, if (prayerNavigation) "תפילה קודמת" else "יום קודם", tint = foreground)
                     }
                 }
                 Surface(
                     modifier = Modifier.weight(1f).clip(RoundedCornerShape(16.dp))
-                        .clickable(onClick = onOpenDatePicker)
+                        .clickable(enabled = !prayerNavigation, onClick = onOpenDatePicker)
                         .testTag("reader_bottom_date_picker_button"),
                     color = if (dark) Color(0xFF2C3038) else Color(0xFFF3F4F5),
                     shape = RoundedCornerShape(16.dp)
@@ -271,20 +282,22 @@ fun FloatingReaderBar(
                     Row(Modifier.padding(horizontal = 8.dp, vertical = 10.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center) {
-                        Icon(Icons.Default.CalendarMonth, "מעבר ליום אחר",
-                            tint = foreground, modifier = Modifier.size(15.dp))
-                        Spacer(Modifier.width(6.dp))
+                        if (!prayerNavigation) {
+                            Icon(Icons.Default.CalendarMonth, "מעבר ליום אחר",
+                                tint = foreground, modifier = Modifier.size(15.dp))
+                            Spacer(Modifier.width(6.dp))
+                        }
                         Text(hebrewDateText, fontSize = 12.sp, fontWeight = FontWeight.Bold,
                             color = foreground, maxLines = 1, modifier = Modifier.weight(1f),
                             textAlign = TextAlign.Center)
-                        Icon(Icons.Default.ArrowDropDown, null,
+                        if (!prayerNavigation) Icon(Icons.Default.ArrowDropDown, null,
                             tint = foreground, modifier = Modifier.size(15.dp))
                     }
                 }
                 if (onNextDay != null) {
                     IconButton(onClick = onNextDay,
                         modifier = Modifier.size(44.dp).testTag("reader_next_day_button")) {
-                        Icon(Icons.Default.KeyboardArrowLeft, "יום הבא", tint = foreground)
+                        Icon(Icons.Default.KeyboardArrowLeft, if (prayerNavigation) "תפילה הבאה" else "יום הבא", tint = foreground)
                     }
                 }
                 // Last in an RTL row = physical left edge, in every reader.
@@ -316,7 +329,8 @@ fun ReaderTypographySheet(
     onNikudToggle: (Boolean) -> Unit,
     onThemeChange: (String) -> Unit,
     onKeepScreenOnChange: (Boolean) -> Unit,
-    extraControls: @Composable () -> Unit = {}
+    extraControls: @Composable () -> Unit = {},
+    fixedPrintLayout: Boolean = false
 ) {
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -417,6 +431,7 @@ fun ReaderTypographySheet(
                 }
 
                 // 2. בחירת גופן (Select Font)
+                if (!fixedPrintLayout) {
                 Text(
                     text = "סוג גופן",
                     fontSize = 13.sp,
@@ -457,7 +472,7 @@ fun ReaderTypographySheet(
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 Text(
-                                    text = "Aa",
+                                    text = "אב",
                                     fontFamily = option.fontFamily,
                                     fontWeight = FontWeight.SemiBold,
                                     fontSize = 18.sp,
@@ -569,6 +584,7 @@ fun ReaderTypographySheet(
                 }
 
                 // 4. הגדרות נוספות (Additional Options)
+                }
                 Text(
                     text = "הגדרות לימוד",
                     fontSize = 13.sp,
@@ -598,13 +614,15 @@ fun ReaderTypographySheet(
                             }
                             Switch(
                                 checked = preferences.keepScreenOn,
-                                onCheckedChange = onKeepScreenOnChange
+                                onCheckedChange = onKeepScreenOnChange,
+                                colors = readerSwitchColors()
                             )
                         }
 
                         HorizontalDivider(color = Color(0xFFF1F5F9))
 
                         // Nikud Switch Row
+                        if (!fixedPrintLayout) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -618,8 +636,10 @@ fun ReaderTypographySheet(
                             }
                             Switch(
                                 checked = preferences.showNikud,
-                                onCheckedChange = onNikudToggle
+                                onCheckedChange = onNikudToggle,
+                                colors = readerSwitchColors()
                             )
+                        }
                         }
                     }
                 }
@@ -627,6 +647,16 @@ fun ReaderTypographySheet(
         }
     }
 }
+
+@Composable
+fun readerSwitchColors() = SwitchDefaults.colors(
+    checkedThumbColor = Color.White,
+    checkedTrackColor = Color(0xFF20262C),
+    checkedBorderColor = Color.Transparent,
+    uncheckedThumbColor = Color.White,
+    uncheckedTrackColor = Color(0xFF9BA4AC),
+    uncheckedBorderColor = Color.Transparent
+)
 
 @Composable
 private fun ThemeCircleSwatch(

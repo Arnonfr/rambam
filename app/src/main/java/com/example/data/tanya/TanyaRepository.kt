@@ -3,6 +3,7 @@ package com.example.data.tanya
 import android.content.Context
 import com.example.domain.tanya.DailyTanyaLesson
 import com.example.domain.tanya.TanyaSection
+import com.example.domain.tanya.TanyaDailyReference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -109,6 +110,9 @@ class TanyaRepository(private val context: Context) {
             val file = File(context.cacheDir, "tanya/lesson_$dateKey.json")
             if (!file.exists()) return null
             val obj = JSONObject(file.readText())
+            // Ignore old partial lessons; fetch the complete assignment instead.
+            val cachedRef = obj.optString("fullRef", "")
+            if (TanyaDailyReference.complete(cachedRef) != cachedRef) return null
             val paragraphsArr = obj.getJSONArray("paragraphs")
             val sections = mutableListOf<TanyaSection>()
             for (i in 0 until paragraphsArr.length()) {
@@ -179,6 +183,7 @@ class TanyaRepository(private val context: Context) {
             }
 
             if (tanyaRef.isBlank()) return null
+            tanyaRef = TanyaDailyReference.complete(tanyaRef)
 
             val textUrl = "https://www.sefaria.org/api/texts/${URLEncoder.encode(tanyaRef, "UTF-8")}?context=0"
             val textReq = Request.Builder().url(textUrl).header("User-Agent", "DailyStudyApp/1.0").build()

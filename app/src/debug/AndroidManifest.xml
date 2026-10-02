@@ -1,0 +1,7 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <application android:label="לימוד יומי — בדיקות" tools:replace="android:label">
+        <activity android:name="com.example.TanyaPagePilotActivity" android:exported="true"
+            android:label="תניא — פיילוט" />
+    </application>
+</manifest>

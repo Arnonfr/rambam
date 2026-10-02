@@ -131,5 +131,26 @@ class ReadingStateManager(context: Context) {
         prefs.edit().clear().commit()
     }
 
+    fun clearTrack(track: String) {
+        val editor = prefs.edit()
+        listOf(KEY_IS_READER_ACTIVE, KEY_TRACK, KEY_CHAPTER_ID, KEY_SECTION_ID,
+            KEY_CHAPTER_NUMBER, KEY_HALACHA_ID, KEY_HALACHA_INDEX, KEY_OFFSET_FRACTION,
+            KEY_UPDATED_AT, KEY_STUDY_DATE).forEach { editor.remove(key(it, track)) }
+        editor.remove("completed_$track")
+        if (prefs.getString(KEY_TRACK, null) == track) {
+            listOf(KEY_IS_READER_ACTIVE, KEY_TRACK, KEY_CHAPTER_ID, KEY_SECTION_ID,
+                KEY_CHAPTER_NUMBER, KEY_HALACHA_ID, KEY_HALACHA_INDEX, KEY_OFFSET_FRACTION,
+                KEY_UPDATED_AT, KEY_STUDY_DATE).forEach { editor.remove(it) }
+        }
+        editor.commit()
+    }
+
+    fun setCompleted(track: String, date: String, completed: Boolean = true) {
+        prefs.edit().putString("completed_$track", if (completed) date else "").commit()
+    }
+
+    fun isCompleted(track: String, date: String): Boolean =
+        prefs.getString("completed_$track", null) == date
+
     private fun key(base: String, track: String): String = "${base}_$track"
 }

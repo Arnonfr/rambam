@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+
 package com.example.ui.screens
 
 import android.app.Activity
@@ -233,7 +235,8 @@ fun ReaderScreen(
             continuousChapters
                 .filterNot { completedChapterIds.contains(it.chapter.id) }
                 .forEach { onMarkCompleted(it.chapter.id) }
-        }
+        },
+        onExitAfterCompletion = onBack
     )
 
     // Helper to extract active halacha or chapter header from visible row
@@ -305,13 +308,10 @@ fun ReaderScreen(
             if (activeHalacha != null) {
                 val currentLetter = HebrewNumberFormatter.toHebrewNumeral(activeHalacha.indexInChapter + 1)
                 val totalLetter = HebrewNumberFormatter.toHebrewNumeral(activeHalacha.totalInChapter)
-                if (activeHalacha.totalChaptersInLesson > 1) {
-                    "${activeHalacha.chapter.chapterHebrew} · הלכה $currentLetter מתוך $totalLetter"
-                } else {
-                    "הלכה $currentLetter מתוך $totalLetter"
-                }
+                val book = continuousChapters.firstOrNull { it.chapter.id == activeHalacha.chapter.id }?.section?.titleHebrew.orEmpty()
+                "$book · ${activeHalacha.chapter.chapterHebrew} · הלכה $currentLetter מתוך $totalLetter"
             } else if (activeHeader != null) {
-                "${activeHeader.chapter.chapterHebrew} · הלכה א׳"
+                "${activeHeader.section?.titleHebrew.orEmpty()} · ${activeHeader.chapter.chapterHebrew} · הלכה א׳"
             } else {
                 "טוען..."
             }
@@ -332,7 +332,8 @@ fun ReaderScreen(
     // Hebrew typography font family
     val activeFontFamily = FontStyleOption.fromId(preferences.fontFamily).fontFamily
 
-    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl,
+        androidx.compose.foundation.LocalOverscrollConfiguration provides null) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -345,7 +346,7 @@ fun ReaderScreen(
                     .fillMaxSize()
                     .endOfLessonPull(completionPullState)
                     .padding(horizontal = 20.dp),
-                contentPadding = PaddingValues(top = 72.dp, bottom = 118.dp)
+                contentPadding = PaddingValues(top = 40.dp, bottom = 118.dp)
             ) {
                 items(
                     items = flatRows,
@@ -353,6 +354,7 @@ fun ReaderScreen(
                 ) { row ->
                     when (row) {
                         is ReaderUiRow.ChapterHeader -> {
+                            if (row.chapterIndexInLesson != 1) {
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -389,6 +391,7 @@ fun ReaderScreen(
                                     thickness = 2.dp,
                                     color = GoldAccent
                                 )
+                            }
                             }
                         }
 

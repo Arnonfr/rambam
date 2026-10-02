@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+
 package com.example.ui.screens
 
 import android.app.Activity
@@ -75,6 +77,7 @@ fun TehillimReaderScreen(
     lesson: DailyTehillimLesson?,
     isLoading: Boolean,
     onBack: () -> Unit,
+    onCompleted: () -> Unit = {},
     preferences: UserPreferences,
     onFontSizeChange: (Float) -> Unit = {},
     onLineSpacingChange: (Float) -> Unit = {},
@@ -112,7 +115,8 @@ fun TehillimReaderScreen(
     }
 
     if (isLoading || lesson == null) {
-        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl,
+        androidx.compose.foundation.LocalOverscrollConfiguration provides null) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -166,7 +170,8 @@ fun TehillimReaderScreen(
     val completionPullState = rememberEndOfLessonPullState(
         key = lesson.date to activeTab,
         canScrollForward = { listState.canScrollForward },
-        onCompleted = {}
+        onCompleted = onCompleted,
+        onExitAfterCompletion = onBack
     )
 
     // Identify current active chapter and verse from scroll index
@@ -287,7 +292,8 @@ fun TehillimReaderScreen(
         else -> DeepNavy
     }
 
-    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl,
+        androidx.compose.foundation.LocalOverscrollConfiguration provides null) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -299,46 +305,11 @@ fun TehillimReaderScreen(
                     .fillMaxSize()
                     .endOfLessonPull(completionPullState)
                     .padding(horizontal = 20.dp),
-                contentPadding = PaddingValues(top = 72.dp, bottom = 118.dp)
+                contentPadding = PaddingValues(top = 40.dp, bottom = 118.dp)
             ) {
                 // Header card explaining the standard day of the month portion
-                item(key = "tehillim_intro_card") {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "ספר התהילים היומי",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = when (preferences.readerTheme) {
-                                "dark" -> GoldAccent
-                                "sepia" -> Color(0xFF8C6D4F)
-                                else -> PurplePrimary
-                            },
-                            fontFamily = activeFontFamily,
-                            textAlign = TextAlign.Center
-                        )
-                        Text(
-                            text = "יום ${lesson.dayOfMonthHebrew} בחודש",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = textColor.copy(alpha = 0.7f),
-                            fontFamily = activeFontFamily,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(top = 4.dp)
-                        )
-                        HorizontalDivider(
-                            modifier = Modifier
-                                .width(80.dp)
-                                .padding(top = 12.dp),
-                            thickness = 2.dp,
-                            color = GoldAccent
-                        )
-                    }
-                }
+                // Retain the zero-height slot so existing saved paragraph indices stay valid.
+                item(key = "tehillim_intro_card") { }
 
                 // If on Elul/Tishrei tab, render the beautiful contextual banner
                 if (activeTab == TehillimTab.ELUL && lesson.elulDaysDescription != null) {

@@ -15,6 +15,8 @@ val LibertinusSerifFontFamily = FontFamily(
     Font(R.font.libertinus_serif_bold, FontWeight.Bold)
 )
 
+val FrankRuhlFontFamily = FontFamily(Font(R.font.frank_ruhl_libre))
+
 enum class FontStyleOption(
     val id: String,
     val title: String,
@@ -22,7 +24,7 @@ enum class FontStyleOption(
     val fontFamily: FontFamily
 ) {
     SANS("sans", "מודרני", "Noto Sans עברית", NotoSansHebrewFontFamily),
-    SERIF("serif", "תורני", "סריף אותיות ספר", FontFamily.Serif),
+    SERIF("serif", "תורני", "Frank Ruhl Libre", FrankRuhlFontFamily),
     LIBERTINUS("libertinus", "Libertinus", "Libertinus Serif", LibertinusSerifFontFamily),
     BONA_NOVA("bonanova", "Bona Nova", "Bona Nova (Google)", BonaNovaFontFamily);
 
@@ -35,4 +37,3 @@ enum class FontStyleOption(
         }
     }
 }
-

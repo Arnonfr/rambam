@@ -49,13 +49,9 @@ fun StudyTextBlock(
     val sourceText = if (preferences.showNikud) textWithNikud else textPlain
     val rawText = remember(sourceText) { HebrewTextNormalizer.forDisplay(sourceText) }
     val activeFontSizeSp = fontSizeSp ?: preferences.fontSizeSp
-    val displayFontFamily = remember(rawText, fontFamily) {
-        if (HebrewTextNormalizer.containsCantillationOrRareMarks(rawText)) {
-            NotoSansHebrewFontFamily
-        } else {
-            fontFamily
-        }
-    }
+    // Do not override the user's choice for an entire paragraph because of one mark.
+    // Android's font resolver can fall back for missing glyphs without replacing the font.
+    val displayFontFamily = fontFamily
 
     // Normalize text to start cleanly with "$indexLetter. " e.g. "א. ", "ב. ", etc.
     val formattedText = remember(rawText, indexLetter) {

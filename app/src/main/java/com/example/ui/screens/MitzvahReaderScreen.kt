@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+
 package com.example.ui.screens
 
 import android.app.Activity
@@ -48,6 +50,7 @@ fun MitzvahReaderScreen(
     hebrewDateText: String,
     savedAnchor: ContentReadingAnchor?,
     onBack: () -> Unit,
+    onCompleted: () -> Unit = {},
     onSavePosition: (blockIndex: Int, blockId: String, sectionId: String) -> Unit,
     onNextDay: () -> Unit,
     onPrevDay: () -> Unit,
@@ -143,7 +146,8 @@ fun MitzvahReaderScreen(
     val completionPullState = rememberEndOfLessonPullState(
         key = assignment.studyDate,
         canScrollForward = { listState.canScrollForward },
-        onCompleted = {}
+        onCompleted = onCompleted,
+        onExitAfterCompletion = onBack
     )
     val scrollProgress by remember(blocks) {
         derivedStateOf {
@@ -166,38 +170,16 @@ fun MitzvahReaderScreen(
     val accent = Color(0xFF72D7E8)
     val activeFont = FontStyleOption.fromId(preferences.fontFamily).fontFamily
 
-    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl,
+        androidx.compose.foundation.LocalOverscrollConfiguration provides null) {
         Box(modifier.fillMaxSize().background(background)) {
             LazyColumn(
                 state = listState,
                 modifier = Modifier.fillMaxSize().endOfLessonPull(completionPullState).padding(horizontal = 20.dp),
-                contentPadding = PaddingValues(top = 72.dp, bottom = 120.dp)
+                contentPadding = PaddingValues(top = 40.dp, bottom = 120.dp)
             ) {
-                item(key = "mitzvah_intro") {
-                    Column(
-                        modifier = Modifier.fillMaxWidth().padding(bottom = 22.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            "ספר המצוות לרמב״ם",
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = foreground,
-                            textAlign = TextAlign.Center
-                        )
-                        Text(
-                            "שיעור ${assignment.lessonNumber} · מחזור ${assignment.cycleNumber}",
-                            fontSize = 13.sp,
-                            color = foreground.copy(alpha = 0.62f),
-                            modifier = Modifier.padding(top = 3.dp)
-                        )
-                        HorizontalDivider(
-                            modifier = Modifier.width(84.dp).padding(top = 14.dp),
-                            thickness = 3.dp,
-                            color = accent
-                        )
-                    }
-                }
+                // Retain the zero-height slot so existing saved paragraph indices stay valid.
+                item(key = "mitzvah_intro") { }
 
                 itemsIndexed(blocks, key = { _, block -> block.id }) { index, block ->
                     if (block.isHeading) {

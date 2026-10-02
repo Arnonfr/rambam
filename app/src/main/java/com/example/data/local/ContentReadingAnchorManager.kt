@@ -24,10 +24,13 @@ class ContentReadingAnchorManager(context: Context) {
     }
 
     fun get(contentId: String, assignmentDate: String): ContentReadingAnchor? {
+        return getLatest(contentId)?.takeIf { it.assignmentDate == assignmentDate }
+    }
+
+    fun getLatest(contentId: String): ContentReadingAnchor? {
         val raw = prefs.getString(key(contentId), null) ?: return null
         return runCatching { JSONObject(raw).toAnchor() }
             .getOrNull()
-            ?.takeIf { it.assignmentDate == assignmentDate }
     }
 
     fun clear(contentId: String) {

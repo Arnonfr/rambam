@@ -25,7 +25,7 @@ data class UserPreferences(
     val readerTheme: String = "light", // "light", "sepia", "dark"
     val lastOpenedChapterId: String? = null,
     val keepScreenOn: Boolean = true,
-    val visibleStudies: Set<String> = setOf("rambam", "mitzvot", "chumash", "tehillim", "tanya"),
+    val visibleStudies: Set<String> = setOf("rambam_one", "mitzvot", "chumash", "tehillim", "tanya"),
     val chumashFontSizeSp: Float = 22f,
     val chumashShowTeamim: Boolean = false,
     val completedAliyot: Set<String> = emptySet(),
@@ -68,8 +68,11 @@ class UserPreferencesRepository(private val context: Context) {
                 readerTheme = preferences[PreferencesKeys.READER_THEME] ?: "light",
                 lastOpenedChapterId = preferences[PreferencesKeys.LAST_OPENED_CHAPTER_ID],
                 keepScreenOn = preferences[PreferencesKeys.KEEP_SCREEN_ON] ?: true,
-                visibleStudies = preferences[PreferencesKeys.VISIBLE_STUDIES]
-                    ?: setOf("rambam", "mitzvot", "chumash", "tehillim", "tanya"),
+                visibleStudies = (preferences[PreferencesKeys.VISIBLE_STUDIES]
+                    ?: setOf("rambam", "mitzvot", "chumash", "tehillim", "tanya")).let { studies ->
+                    if ("rambam" in studies) studies - "rambam" +
+                        "rambam_${preferences[PreferencesKeys.SELECTED_TRACK] ?: "one"}" else studies
+                },
                 chumashFontSizeSp = preferences[PreferencesKeys.CHUMASH_FONT_SIZE] ?: 22f,
                 chumashShowTeamim = preferences[PreferencesKeys.CHUMASH_SHOW_TEAMIM] ?: false,
                 completedAliyot = preferences[PreferencesKeys.COMPLETED_ALIYOT] ?: emptySet(),

@@ -71,6 +71,28 @@ class ReadingStateManagerTest {
         )
     }
 
+    @Test fun `previous date survives reopening storage until that track is explicitly replaced`() {
+        save("tanya", "Iggeret 23", 0, 6)
+        save("tehillim", "chapter_104", 104, 12)
+        val reopened = ReadingStateManager(ApplicationProvider.getApplicationContext<Context>())
+        assertEquals("2026-09-26", reopened.getSavedAnchor("tehillim")!!.studyDate)
+        org.junit.Assert.assertFalse(reopened.isStudyDateCurrent("tehillim", "2026-09-28"))
+        assertEquals(12, reopened.getSavedAnchor("tehillim")!!.halachaIndex)
+        reopened.clearTrack("tehillim")
+        assertNull(reopened.getSavedAnchor("tehillim"))
+        assertNull(reopened.getSavedAnchor())
+        assertEquals(6, reopened.getSavedAnchor("tanya")!!.halachaIndex)
+    }
+
+    @Test fun `completion belongs to track and date and is cleared for a new lesson`() {
+        save("one", "rambam_2", 2, 3)
+        manager.setCompleted("one", "2026-09-26")
+        org.junit.Assert.assertTrue(manager.isCompleted("one", "2026-09-26"))
+        org.junit.Assert.assertFalse(manager.isCompleted("one", "2026-09-27"))
+        manager.clearTrack("one")
+        org.junit.Assert.assertFalse(manager.isCompleted("one", "2026-09-26"))
+    }
+
     private fun assertAnchor(track: String, chapterId: String, chapterNumber: Int, index: Int) {
         val anchor = manager.getSavedAnchor(track)!!
         assertEquals(track, anchor.track)

@@ -2,6 +2,7 @@ package com.example.ui
 import com.example.domain.chumash.ChumashVerse
 import com.example.domain.chumash.ChumashAliya
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.first
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -109,7 +110,9 @@ data class DailyRambamUiState(
     val dailyMitzvahAssignment: DailyMitzvahAssignment? = null,
     val dailyMitzvahEntries: List<MitzvahLessonEntry> = emptyList(),
     val isMitzvahReaderOpen: Boolean = false,
-    val savedMitzvahAnchor: ContentReadingAnchor? = null
+    val savedMitzvahAnchor: ContentReadingAnchor? = null,
+    val bookmarkDates: Map<String, String> = emptyMap(),
+    val completedBookmarks: Set<String> = emptySet()
 )
 
 class DailyRambamViewModel(application: Application) : AndroidViewModel(application) {
@@ -134,6 +137,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
     private var completionsJob: Job? = null
 
     init {
+        updateBookmarks()
         val effective = calculateEffectiveToday(_uiState.value.preferences)
         _uiState.update { it.copy(effectiveToday = effective, selectedStudyDate = effective) }
 
@@ -177,8 +181,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
         _uiState.value.dailyLesson?.studyDate ?: _uiState.value.selectedStudyDate.toString()
 
     private fun <T : ReadingPositionEntity?> onlyForSelectedStudyDay(position: T, track: String): T? {
-        val isToday = _uiState.value.selectedStudyDate == _uiState.value.effectiveToday
-        return if (isToday && readingStateManager.isStudyDateCurrent(track, selectedStudyDateKey())) {
+        return if (readingStateManager.isStudyDateCurrent(track, selectedStudyDateKey())) {
             position
         } else {
             null
@@ -186,9 +189,8 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     private fun savedAnchorPosition(track: String): ReadingPositionEntity? {
-        val isToday = _uiState.value.selectedStudyDate == _uiState.value.effectiveToday
         val anchor = readingStateManager.getSavedAnchor(track)
-            ?.takeIf { isToday && it.studyDate == selectedStudyDateKey() }
+            ?.takeIf { it.studyDate == selectedStudyDateKey() }
             ?: return null
         return ReadingPositionEntity(
             track = anchor.track,
@@ -202,6 +204,52 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
             quoteFingerprint = "",
             updatedAt = anchor.updatedAt
         )
+    }
+
+    private fun updateBookmarks() {
+        val dates = listOf("one", "three", "chumash", "tehillim", "tanya")
+            .mapNotNull { track -> readingStateManager.getSavedAnchor(track)?.let { track to it.studyDate } }
+            .toMap().toMutableMap()
+        contentReadingAnchorManager.getLatest("sefer_hamitzvot")?.let { dates["mitzvot"] = it.assignmentDate }
+        _uiState.update { it.copy(bookmarkDates = dates,
+            completedBookmarks = dates.filter { (track, date) -> readingStateManager.isCompleted(track, date) }.keys) }
+    }
+
+    // Merely viewing another date never clears a bookmark. Entering its lesson does.
+    private suspend fun prepareLessonEntry(track: String) {
+        val previousDate = _uiState.value.bookmarkDates[track] ?: return
+        if (previousDate == selectedStudyDateKey()) return
+        autoSaveJob?.join()
+        dao.clearReadingPositions(track)
+        readingStateManager.clearTrack(track)
+        if (track == "mitzvot") contentReadingAnchorManager.clear("sefer_hamitzvot")
+        updateBookmarks()
+    }
+
+    fun completeStudy(track: String) {
+        readingStateManager.setCompleted(track, selectedStudyDateKey())
+        updateBookmarks()
+    }
+
+    fun resumeStudy(track: String) {
+        val date = _uiState.value.bookmarkDates[track]?.let { runCatching { LocalDate.parse(it) }.getOrNull() } ?: return
+        viewModelScope.launch {
+            if (track == "one" || track == "three") {
+                prefsRepository.updateTrack(track)
+                _uiState.update { it.copy(preferences = it.preferences.copy(selectedTrack = track)) }
+            }
+            setSelectedStudyDate(date)
+            when (track) {
+                "one", "three" -> {
+                    val anchor = readingStateManager.getSavedAnchor(track) ?: return@launch
+                    openChapter(anchor.chapterId, anchor.halachaIndex)
+                }
+                "chumash" -> { refreshDailyChumash(date).join(); openChumashReader() }
+                "tanya" -> { refreshDailyTanya(date).join(); openTanyaReader() }
+                "tehillim" -> { refreshDailyTehillim(date).join(); openTehillimReader(true) }
+                "mitzvot" -> { refreshDailyMitzvah(date); openMitzvahReader(true) }
+            }
+        }
     }
 
     private fun observeCompletionsForDate(track: String, studyDate: String) {
@@ -438,7 +486,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
-    fun refreshDailyTehillim(date: LocalDate = _uiState.value.selectedStudyDate) {
+    fun refreshDailyTehillim(date: LocalDate = _uiState.value.selectedStudyDate): Job =
         viewModelScope.launch {
             _uiState.update { it.copy(isTehillimLoading = true) }
             val hebDateStr = _uiState.value.dailyLesson?.hebrewDate ?: "ה׳ בתשרי תשפ״ז"
@@ -461,7 +509,6 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
                 )
             }
         }
-    }
 
     fun refreshDailyMitzvah(date: LocalDate = _uiState.value.selectedStudyDate) {
         val assignment = SeferHamitzvotSchedule.assignmentFor(date)
@@ -481,6 +528,8 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
             _uiState.update { it.copy(noticeMessage = "לוח ספר המצוות אינו זמין לתאריך הזה") }
             return
         }
+        viewModelScope.launch {
+        if (open) prepareLessonEntry("mitzvot")
         val date = _uiState.value.selectedStudyDate.toString()
         _uiState.update {
             it.copy(
@@ -491,6 +540,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
                     it.savedMitzvahAnchor
                 }
             )
+        }
         }
     }
 
@@ -504,12 +554,15 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
             blockIndex = blockIndex
         )
         contentReadingAnchorManager.save(anchor)
+        updateBookmarks()
         _uiState.update { it.copy(savedMitzvahAnchor = anchor) }
     }
 
     fun openTehillimReader(open: Boolean) {
         if (open) {
+            if (_uiState.value.dailyTehillim == null || _uiState.value.isTehillimLoading) return
             viewModelScope.launch {
+                prepareLessonEntry("tehillim")
                 val pos = onlyForSelectedStudyDay(repository.getLatestReadingPosition("tehillim").firstOrNull(), "tehillim")
                     ?: savedAnchorPosition("tehillim")
                 _uiState.update {
@@ -543,6 +596,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
             immediateCommit = true
         )
         
+        updateBookmarks()
         autoSaveJob?.cancel()
         autoSaveJob = viewModelScope.launch(NonCancellable) {
             val position = ReadingPositionEntity(
@@ -561,7 +615,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
-    fun refreshDailyTanya(date: LocalDate = _uiState.value.selectedStudyDate) {
+    fun refreshDailyTanya(date: LocalDate = _uiState.value.selectedStudyDate): Job =
         viewModelScope.launch {
             _uiState.update { it.copy(isTanyaLoading = true) }
             val lesson = tanyaRepository.getDailyTanyaLesson(date)
@@ -575,11 +629,12 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
                 )
             }
         }
-    }
 
     fun openTanyaReader(open: Boolean = true) {
         if (open) {
+            if (_uiState.value.dailyTanya == null || _uiState.value.isTanyaLoading) return
             viewModelScope.launch {
+                prepareLessonEntry("tanya")
                 val pos = onlyForSelectedStudyDay(repository.getLatestReadingPosition("tanya").firstOrNull(), "tanya")
                     ?: savedAnchorPosition("tanya")
                 _uiState.update {
@@ -610,6 +665,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
             studyDate = selectedStudyDateKey(),
             immediateCommit = true
         )
+        updateBookmarks()
         autoSaveJob?.cancel()
         autoSaveJob = viewModelScope.launch(NonCancellable) {
             val position = ReadingPositionEntity(
@@ -636,12 +692,14 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
     fun toggleTanyaCompletion() {
         val currentLesson = _uiState.value.dailyTanya ?: return
         val newStatus = !currentLesson.isCompleted
+        readingStateManager.setCompleted("tanya", selectedStudyDateKey(), newStatus)
+        updateBookmarks()
         _uiState.update {
             it.copy(dailyTanya = currentLesson.copy(isCompleted = newStatus))
         }
     }
 
-    fun refreshDailyChumash(date: LocalDate = _uiState.value.selectedStudyDate) {
+    fun refreshDailyChumash(date: LocalDate = _uiState.value.selectedStudyDate): Job =
         viewModelScope.launch {
             _uiState.update { it.copy(isChumashLoading = true) }
             val completed = _uiState.value.preferences.completedAliyot
@@ -660,10 +718,11 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
                 )
             }
         }
-    }
 
     fun openChumashReader(aliyaIndex: Int? = null) {
+        if (_uiState.value.dailyChumash == null || _uiState.value.isChumashLoading) return
         viewModelScope.launch {
+            prepareLessonEntry("chumash")
             val lesson = _uiState.value.dailyChumash
             val pos = onlyForSelectedStudyDay(repository.getLatestReadingPosition("chumash").firstOrNull(), "chumash")
                 ?: savedAnchorPosition("chumash")
@@ -701,6 +760,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
             immediateCommit = true
         )
         
+        updateBookmarks()
         autoSaveJob?.cancel()
         autoSaveJob = viewModelScope.launch(NonCancellable) {
             val position = ReadingPositionEntity(
@@ -754,6 +814,9 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
 
     fun toggleChumashAliyaCompleted(parashaName: String, aliyaIndex: Int) {
         viewModelScope.launch {
+            val wasCompleted = "$parashaName-$aliyaIndex" in _uiState.value.preferences.completedAliyot
+            readingStateManager.setCompleted("chumash", selectedStudyDateKey(), !wasCompleted)
+            updateBookmarks()
             prefsRepository.toggleAliyaCompletion(parashaName, aliyaIndex)
             val updatedKeys = _uiState.value.preferences.completedAliyot.toMutableSet()
             val key = "$parashaName-$aliyaIndex"
@@ -814,30 +877,31 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
         setSelectedStudyDate(date)
     }
 
-    fun getLessonForDate(date: LocalDate): DailyLessonResult? {
+    fun getLessonForDate(date: LocalDate, track: String = _uiState.value.preferences.selectedTrack): DailyLessonResult? {
         val prefs = _uiState.value.preferences
         val israelZone = ZoneId.of("Asia/Jerusalem")
         val testInstant = date.atTime(12, 0).atZone(israelZone).toInstant()
         return repository.getDailyLesson(
             instant = testInstant,
             zoneId = israelZone,
-            track = prefs.selectedTrack,
+            track = track,
             dayBoundary = prefs.dayBoundary,
             cityName = prefs.selectedCity
         )
     }
 
     fun openDailyLesson(forceStartAtBeginning: Boolean = false) {
-        val lesson = _uiState.value.dailyLesson ?: return
+        viewModelScope.launch {
+        val lesson = _uiState.value.dailyLesson ?: return@launch
         val chapters = lesson.chapters
-        if (chapters.isEmpty()) return
+        if (chapters.isEmpty()) return@launch
+        prepareLessonEntry(_uiState.value.preferences.selectedTrack)
 
         val completedIds = _uiState.value.completedChapterIds
-        val latestPos = _uiState.value.latestPosition
+        val latestPos = savedAnchorPosition(_uiState.value.preferences.selectedTrack)
         
         // Only resume if not forced to start at beginning AND selected date is actually today
-        val isToday = _uiState.value.selectedStudyDate == _uiState.value.effectiveToday
-        val shouldResume = !forceStartAtBeginning && isToday
+        val shouldResume = !forceStartAtBeginning
 
         // If user was currently reading a chapter from this lesson, resume it
         val matchingLatest = if (shouldResume && latestPos != null) {
@@ -854,6 +918,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
         val targetIndex = if (target == matchingLatest && latestPos != null) latestPos.halachaIndex else -1
         val targetOffset = if (target == matchingLatest && latestPos != null) latestPos.textOffset else 0
         openChapter(chId, targetIndex, targetOffset)
+        }
     }
 
     fun selectDateAndOpenLesson(date: LocalDate) {
@@ -1037,6 +1102,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
             chapters.forEach { ch ->
                 repository.setChapterCompleted(track, ch.id, dateStr)
             }
+            completeStudy(track)
         }
     }
 
@@ -1072,6 +1138,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
             immediateCommit = true
         )
 
+        updateBookmarks()
         val halachaLetter = HebrewNumberFormatter.toHebrewNumeral(safeIndex + 1)
         _uiState.update {
             it.copy(
@@ -1146,6 +1213,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
             immediateCommit = true
         )
 
+        updateBookmarks()
         val halachaLetter = HebrewNumberFormatter.toHebrewNumeral(safeIndex + 1)
         _uiState.update {
             it.copy(
@@ -1192,11 +1260,17 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
         viewModelScope.launch {
             val track = _uiState.value.preferences.selectedTrack
             val studyDate = _uiState.value.dailyLesson?.studyDate ?: LocalDate.now().toString()
-            if (_uiState.value.isCurrentChapterCompleted) {
+            val previous = repository.getCompletionsForDate(track, studyDate).first()
+            if (previous.any { it.chapterId == chapterId }) {
                 repository.removeChapterCompletion(track, chapterId)
             } else {
                 repository.setChapterCompleted(track, chapterId, studyDate)
             }
+            val completed = repository.getCompletionsForDate(track, studyDate).first().map { it.chapterId }.toSet()
+            val lessonChapters = _uiState.value.dailyLesson?.chapters.orEmpty()
+            readingStateManager.setCompleted(track, studyDate, lessonChapters.isNotEmpty() &&
+                lessonChapters.all { "${it.sectionId}_${it.chapterNumber}" in completed })
+            updateBookmarks()
         }
     }
 
@@ -1225,6 +1299,16 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
     fun selectTrack(track: String) {
         viewModelScope.launch {
             prefsRepository.updateTrack(track)
+        }
+    }
+
+    fun openRambamTrack(track: String) {
+        require(track == "one" || track == "three")
+        viewModelScope.launch {
+            prefsRepository.updateTrack(track)
+            _uiState.update { it.copy(preferences = it.preferences.copy(selectedTrack = track)) }
+            refreshDailyLesson()
+            openDailyLesson()
         }
     }
 

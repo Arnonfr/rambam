@@ -50,6 +50,8 @@ import com.example.ui.util.HebrewNumberFormatter
 import com.example.domain.mitzvot.MitzvahAssignmentType
 import com.example.data.prayers.PrayerSection
 import java.time.LocalDate
+import com.example.ui.components.StudyLineIcon
+import androidx.compose.ui.text.style.TextOverflow
 
 @Composable
 fun MainContentList(
@@ -64,6 +66,9 @@ fun MainContentList(
     onOpenSettings: () -> Unit,
     prayerSections: List<PrayerSection> = emptyList(),
     onOpenPrayer: (String) -> Unit = {},
+    onGetRambamLesson: (String) -> DailyLessonResult? = { uiState.dailyLesson },
+    onOpenRambamTrack: (String) -> Unit = { onOpenDailyLesson() },
+    onResumeStudy: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val rambamSubtitle = remember(uiState.dailyLesson) {
@@ -151,25 +156,30 @@ fun MainContentList(
         if (uiState.selectedTab == HomeTab.STUDY) {
             val visibleStudies = uiState.preferences.visibleStudies
             val cards = buildList {
-                    if (visibleStudies.contains("rambam")) {
-                        val total = uiState.dailyLesson?.chapters?.size?.coerceAtLeast(1) ?: 1
-                        val completed = uiState.dailyLesson?.chapters?.count {
+                    listOf("one", "three").forEach { track ->
+                    if (visibleStudies.contains("rambam_$track")) {
+                        val lesson = onGetRambamLesson(track)
+                        val total = lesson?.chapters?.size?.coerceAtLeast(1) ?: 1
+                        val completed = if (track == uiState.preferences.selectedTrack) lesson?.chapters?.count {
                             uiState.completedChapterIds.contains("${it.sectionId}_${it.chapterNumber}")
-                        } ?: 0
+                        } ?: 0 else 0
                         add(
                             StudyDashboardCard(
-                                eyebrow = if (uiState.preferences.selectedTrack == "three") "שלושה פרקים" else "פרק יומי",
+                                track = track,
+                                eyebrow = if (track == "three") "שלושה פרקים" else "פרק יומי",
                                 title = "רמב״ם",
-                                subtitle = rambamSubtitle,
-                                metric = uiState.dailyLesson?.chapters
+                                subtitle = (if (track == "three") "ג׳ פרקים · " else "") +
+                                    (lesson?.chapters?.joinToString(" · ") { "${it.sectionNameHebrew} ${it.chapterHebrew}" } ?: "טוען..."),
+                                metric = lesson?.chapters
                                     ?.joinToString("–") { it.chapterHebrew.removePrefix("פרק ") }
                                     ?: "–",
                                 progress = completed.toFloat() / total,
-                                color = Color(0xFFFF681F),
+                                color = Color(0xFFFF873F),
                                 icon = Icons.Outlined.LibraryBooks,
-                                onClick = onOpenDailyLesson
+                                onClick = { onOpenRambamTrack(track) }
                             )
                         )
+                    }
                     }
                     if (visibleStudies.contains("mitzvot")) {
                         val assignment = uiState.dailyMitzvahAssignment
@@ -186,6 +196,7 @@ fun MainContentList(
                         } ?: "–"
                         add(
                             StudyDashboardCard(
+                                track = "mitzvot",
                                 eyebrow = "רמב״ם יומי",
                                 title = "ספר המצוות",
                                 subtitle = mitzvahSubtitle,
@@ -202,12 +213,13 @@ fun MainContentList(
                         val current = uiState.dailyChumash?.currentAliyaIndex ?: 1
                         add(
                             StudyDashboardCard(
+                                track = "chumash",
                                 eyebrow = "חת״ת",
                                 title = "חומש",
                                 subtitle = chumashSubtitle,
                                 metric = "$current/$total",
                                 progress = current.toFloat() / total,
-                                color = Color(0xFFF2FF38),
+                                color = Color(0xFFF4F66A),
                                 icon = Icons.Outlined.ReceiptLong,
                                 onClick = onOpenChumash
                             )
@@ -220,12 +232,13 @@ fun MainContentList(
                             ?: "–"
                         add(
                             StudyDashboardCard(
+                                track = "tanya",
                                 eyebrow = "חת״ת",
                                 title = "תניא",
-                                subtitle = tanyaSubtitle,
+                                subtitle = "${uiState.dailyTanya?.bookTitle?.removePrefix("תניא, ") ?: "תניא"} · פרק $tanyaChapter",
                                 metric = tanyaChapter,
                                 progress = if (completed) 1f else 0f,
-                                color = Color(0xFFE98DDE),
+                                color = Color(0xFFF0A0DD),
                                 icon = Icons.Outlined.MenuBook,
                                 onClick = onOpenTanya
                             )
@@ -235,12 +248,13 @@ fun MainContentList(
                         val day = uiState.dailyTehillim?.dayOfMonth ?: 1
                         add(
                             StudyDashboardCard(
+                                track = "tehillim",
                                 eyebrow = "תהילים יומי",
                                 title = "תהילים",
                                 subtitle = tehillimSubtitle,
-                                metric = "$day/30",
+                                metric = "${HebrewNumberFormatter.toHebrewNumeral(day, true)}\n${uiState.dailyLesson?.hebrewDate?.let(HebrewDateHelper::extractHebrewMonth) ?: "לחודש"}",
                                 progress = day / 30f,
-                                color = Color(0xFFBCCB72),
+                                color = Color(0xFF9FDEEF),
                                 icon = Icons.Outlined.MusicNote,
                                 onClick = onOpenTehillim
                             )
@@ -249,7 +263,10 @@ fun MainContentList(
                 }
 
             items(cards) { card ->
-                StudyStrip(card)
+                val savedDate = uiState.bookmarkDates[card.track]
+                    ?.takeUnless { card.track in uiState.completedBookmarks }
+                StudyStrip(card, savedDate, uiState.selectedStudyDate.toString(),
+                    onResume = { onResumeStudy(card.track) })
             }
         } else {
             item {
@@ -271,6 +288,7 @@ fun MainContentList(
 }
 
 private data class StudyDashboardCard(
+    val track: String,
     val eyebrow: String,
     val title: String,
     val subtitle: String,
@@ -284,23 +302,20 @@ private data class StudyDashboardCard(
 @Composable
 private fun StudyStrip(
     card: StudyDashboardCard,
+    savedDate: String?,
+    selectedDate: String,
+    onResume: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val resumeToday = savedDate == selectedDate
+    Column(modifier.fillMaxWidth().height(148.dp).background(card.color)
+        .padding(horizontal = 18.dp, vertical = 12.dp)) {
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(132.dp)
-            .background(card.color)
-            .clickable(onClick = card.onClick)
-            .padding(horizontal = 18.dp, vertical = 18.dp),
+        modifier = Modifier.fillMaxWidth().weight(1f)
+            .clickable(onClick = if (resumeToday) onResume else card.onClick),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            imageVector = card.icon,
-            contentDescription = null,
-            tint = Color.Black,
-            modifier = Modifier.size(52.dp)
-        )
+        StudyLineIcon(card.track, Modifier.size(48.dp))
         Spacer(Modifier.width(12.dp))
         Column(
             modifier = Modifier.weight(1f),
@@ -308,47 +323,66 @@ private fun StudyStrip(
         ) {
             Text(
                 text = card.title,
-                fontSize = 28.sp,
-                lineHeight = 30.sp,
+                fontSize = 25.sp,
+                lineHeight = 28.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
             )
             Text(
                 text = card.subtitle,
-                fontSize = 16.sp,
-                lineHeight = 19.sp,
+                fontSize = 14.sp,
+                lineHeight = 18.sp,
                 color = Color.Black.copy(alpha = 0.82f),
-                maxLines = 1
+                maxLines = 2, overflow = TextOverflow.Ellipsis
             )
         }
         Column(
-            modifier = Modifier.width(105.dp),
+            modifier = Modifier.width(76.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            card.metric.split('\n').forEach { metricLine ->
             Text(
-                text = card.metric,
-                fontSize = 42.sp,
-                lineHeight = 44.sp,
+                text = metricLine,
+                fontSize = if (card.track == "tehillim") 19.sp else 28.sp,
+                lineHeight = 25.sp,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                softWrap = false,
+                overflow = TextOverflow.Ellipsis,
                 fontWeight = FontWeight.Normal,
                 color = Color.Black
             )
-            Spacer(Modifier.height(10.dp))
+            }
+        }
+    }
+    Row(Modifier.fillMaxWidth().height(40.dp), verticalAlignment = Alignment.CenterVertically) {
+        Box(Modifier.weight(1f).padding(end = 16.dp)) {
             LinearProgressIndicator(
                 progress = { card.progress.coerceIn(0f, 1f) },
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(7.dp)
+                    .widthIn(max = 140.dp).fillMaxWidth()
+                    .height(5.dp)
                     .clip(CircleShape),
                 color = Color.Black,
                 trackColor = Color.White.copy(alpha = 0.58f)
             )
         }
-        Spacer(Modifier.width(10.dp))
+        if (savedDate != null) {
+            Surface(onClick = onResume, color = Color(card.color.red * 0.32f,
+                card.color.green * 0.32f, card.color.blue * 0.32f),
+                shape = RoundedCornerShape(20.dp), modifier = Modifier.testTag("resume_${card.track}")) {
+                Text("מיקום אחרון", fontSize = 12.sp, color = Color.White,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp))
+            }
+            Spacer(Modifier.width(8.dp))
+        }
+        if (!resumeToday) {
         Surface(
+            onClick = card.onClick,
             shape = CircleShape,
             color = Color.Transparent,
             border = BorderStroke(1.5.dp, Color.Black),
-            modifier = Modifier.size(34.dp)
+            modifier = Modifier.size(38.dp).testTag("open_${card.track}")
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Icon(
@@ -359,6 +393,8 @@ private fun StudyStrip(
                 )
             }
         }
+        }
+    }
     }
 }
 
@@ -366,7 +402,6 @@ private fun StudyStrip(
 fun FloatingDarkNavBar(
     selectedTab: HomeTab,
     onSelectTab: (HomeTab) -> Unit,
-    onOpenEditSheet: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -374,25 +409,6 @@ fun FloatingDarkNavBar(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Surface(
-            shape = CircleShape,
-            color = Color.Black,
-            contentColor = Color.White,
-            shadowElevation = 8.dp,
-            modifier = Modifier
-                .size(52.dp)
-                .clickable(onClick = onOpenEditSheet)
-                .testTag("home_customize_button")
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Icon(
-                    imageVector = Icons.Default.Edit,
-                    contentDescription = "התאמת מסך הבית",
-                    modifier = Modifier.size(22.dp)
-                )
-            }
-        }
-
         Surface(
             shape = RoundedCornerShape(32.dp),
             color = Color(0xFFF2F2F2),

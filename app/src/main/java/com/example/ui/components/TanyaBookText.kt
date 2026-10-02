@@ -1,9 +1,7 @@
 package com.example.ui.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,9 +44,12 @@ fun TanyaBookText(text: String, textColor: Color, zoom: Float, isReadingAnchor: 
         }
         BoxWithConstraints(Modifier.fillMaxWidth()) {
             val viewportWidth = with(density) { maxWidth.toPx() }
+            // Fit the entire page to the viewport; never create a horizontal pan area.
+            // Page-mode scales uniformly. Text zoom belongs to the regular reader;
+            // it must not introduce new page-mode line breaks or horizontal overflow.
             val canonicalWidth = with(density) { 300.dp.roundToPx() }
-            val scale = viewportWidth / canonicalWidth * zoom.coerceIn(.7f, 1.65f)
-            Box(Modifier.horizontalScroll(rememberScrollState())) {
+            val scale = viewportWidth / canonicalWidth
+            Box(Modifier.fillMaxWidth()) {
                 CompositionLocalProvider(LocalDensity provides Density(density.density, 1f)) {
                     Layout(content = {
                         SelectionContainer {
@@ -58,7 +59,7 @@ fun TanyaBookText(text: String, textColor: Color, zoom: Float, isReadingAnchor: 
                         }
                     }) { measurables, _ ->
                         val page = measurables.single().measure(Constraints.fixedWidth(canonicalWidth))
-                        layout((page.width * scale).roundToInt(), (page.height * scale).roundToInt()) {
+                        layout(viewportWidth.roundToInt(), (page.height * scale).roundToInt()) {
                             page.placeWithLayer(0, 0) {
                                 scaleX = scale
                                 scaleY = scale

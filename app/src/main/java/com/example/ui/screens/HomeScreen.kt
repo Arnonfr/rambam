@@ -8,6 +8,8 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -55,6 +57,7 @@ fun HomeScreen(
     onOpenChapter: (String) -> Unit,
     onOpenDailyLesson: () -> Unit,
     onResumeReading: () -> Unit,
+    onResumeStudy: (String) -> Unit = {},
     onTrackSelect: (String) -> Unit,
     onSelectDate: (LocalDate) -> Unit,
     onStepDate: (Long) -> Unit,
@@ -72,7 +75,9 @@ fun HomeScreen(
     onOpenTanya: () -> Unit = {},
     onOpenMitzvah: () -> Unit = {},
     prayerSections: List<com.example.data.prayers.PrayerSection> = emptyList(),
-    onOpenPrayer: (String) -> Unit = {}
+    onOpenPrayer: (String) -> Unit = {},
+    onGetRambamLesson: (String) -> DailyLessonResult? = { uiState.dailyLesson },
+    onOpenRambamTrack: (String) -> Unit = { onOpenDailyLesson() }
 ) {
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         Box(
@@ -83,12 +88,6 @@ fun HomeScreen(
             Column(
                 modifier = Modifier.fillMaxSize()
             ) {
-                // 1. Top App Bar
-                TopHomeBar(
-                    onOpenSettings = onOpenSettings,
-                    onOpenAttribution = onOpenAttribution
-                )
-                
                 // 2. Date Drawer
                 DateDrawer(
                     selectedDate = uiState.selectedStudyDate,
@@ -101,12 +100,23 @@ fun HomeScreen(
                     onToggleDrawer = onToggleDateDrawer
                 )
 
+                Row(Modifier.fillMaxWidth().height(42.dp).padding(horizontal = 18.dp),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = onOpenSettings,
+                        modifier = Modifier.size(40.dp).testTag("home_settings_button")) {
+                        Icon(Icons.Default.Settings, contentDescription = "הגדרות והתאמת מסך הבית",
+                            tint = Color.Black, modifier = Modifier.size(25.dp))
+                    }
+                }
+
                 // 3. Main Content
                 MainContentList(
                     uiState = uiState,
                     onOpenChapter = onOpenChapter,
                     onOpenDailyLesson = onOpenDailyLesson,
                     onResumeReading = onResumeReading,
+                    onResumeStudy = onResumeStudy,
                     onOpenChumash = onOpenChumash,
                     onOpenTehillim = onOpenTehillim,
                     onOpenTanya = onOpenTanya,
@@ -114,6 +124,8 @@ fun HomeScreen(
                     onOpenSettings = onOpenSettings,
                     prayerSections = prayerSections,
                     onOpenPrayer = onOpenPrayer,
+                    onGetRambamLesson = onGetRambamLesson,
+                    onOpenRambamTrack = onOpenRambamTrack,
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -122,7 +134,6 @@ fun HomeScreen(
             FloatingDarkNavBar(
                 selectedTab = uiState.selectedTab,
                 onSelectTab = onSelectTab,
-                onOpenEditSheet = onOpenEditSheet,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(bottom = 24.dp)
@@ -1377,6 +1388,7 @@ private fun EditDailyStudySheet(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
                     .padding(horizontal = 24.dp, vertical = 12.dp)
             ) {
                 // Title
@@ -1404,98 +1416,11 @@ private fun EditDailyStudySheet(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Section 1: מסלול רמב״ם
+                Text("אפשר לבחור פרק אחד, שלושה פרקים וספר המצוות במקביל.",
+                    fontSize = 13.sp, color = TextMuted)
+                Spacer(modifier = Modifier.height(12.dp))
                 Text(
-                    text = "מסלול רמב״ם",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextDark
-                )
-                Spacer(modifier = Modifier.height(10.dp))
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    // Option 1: פרק אחד ביום (ברירת המחדל)
-                    Surface(
-                        shape = RoundedCornerShape(12.dp),
-                        color = if (selectedTrack == "one") PurpleSoft else Color(0xFFF8FAFC),
-                        border = BorderStroke(1.dp, if (selectedTrack == "one") PurplePrimary else Color(0xFFE2E8F0)),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onTrackChange("one") }
-                            .testTag("track_option_one")
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 14.dp, vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            RadioButton(
-                                selected = selectedTrack == "one",
-                                onClick = { onTrackChange("one") },
-                                colors = RadioButtonDefaults.colors(selectedColor = PurplePrimary)
-                            )
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Column {
-                                Text(
-                                    text = "פרק אחד ביום",
-                                    fontSize = 15.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = TextDark
-                                )
-                                Text(
-                                    text = "ברירת המחדל · סיום משנה תורה בכשלוש שנים",
-                                    fontSize = 12.sp,
-                                    color = TextMuted
-                                )
-                            }
-                        }
-                    }
-
-                    // Option 2: שלושה פרקים ביום
-                    Surface(
-                        shape = RoundedCornerShape(12.dp),
-                        color = if (selectedTrack == "three") PurpleSoft else Color(0xFFF8FAFC),
-                        border = BorderStroke(1.dp, if (selectedTrack == "three") PurplePrimary else Color(0xFFE2E8F0)),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onTrackChange("three") }
-                            .testTag("track_option_three")
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 14.dp, vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            RadioButton(
-                                selected = selectedTrack == "three",
-                                onClick = { onTrackChange("three") },
-                                colors = RadioButtonDefaults.colors(selectedColor = PurplePrimary)
-                            )
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Column {
-                                Text(
-                                    text = "שלושה פרקים ביום",
-                                    fontSize = 15.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = TextDark
-                                )
-                                Text(
-                                    text = "מסלול מואץ · סיום משנה תורה בכל שנה",
-                                    fontSize = 12.sp,
-                                    color = TextMuted
-                                )
-                            }
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                // Section 2: השיעורים שלי
-                Text(
-                    text = "השיעורים המוצגים בבית",
+                    text = "מסלולים ושיעורים בבית — בחירה מרובה",
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                     color = TextDark
@@ -1503,7 +1428,8 @@ private fun EditDailyStudySheet(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 val studies = listOf(
-                    "rambam" to "רמב״ם (משנה תורה)",
+                    "rambam_one" to "רמב״ם — פרק אחד ביום",
+                    "rambam_three" to "רמב״ם — שלושה פרקים ביום",
                     "mitzvot" to "רמב״ם – ספר המצוות",
                     "chumash" to "חומש",
                     "tehillim" to "תהילים",

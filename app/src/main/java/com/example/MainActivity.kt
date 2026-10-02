@@ -55,8 +55,8 @@ class MainActivity : ComponentActivity() {
             val snackbarHostState = remember { SnackbarHostState() }
             val lifecycleOwner = LocalLifecycleOwner.current
             var prayerId by rememberSaveable { mutableStateOf<String?>(null) }
-            val prayers by produceState<PrayerBook?>(null) {
-                value = withContext(Dispatchers.IO) { PrayerRepository(applicationContext).load() }
+            val prayers by produceState<PrayerBook?>(null, uiState.effectiveToday) {
+                value = withContext(Dispatchers.IO) { PrayerRepository(applicationContext).load(uiState.effectiveToday) }
             }
             val prayer = prayers?.sections?.firstOrNull { it.id == prayerId }
 
@@ -92,16 +92,15 @@ class MainActivity : ComponentActivity() {
                         if (uiState.isLoading && uiState.allSections.isEmpty()) {
                             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                         } else if (prayer != null) {
-                            androidx.compose.runtime.key(prayer.id, uiState.selectedStudyDate) {
+                            androidx.compose.runtime.key(prayer.id, prayer.bookmarkKey) {
+                                val prayerSections = prayers!!.sections
+                                val prayerIndex = prayerSections.indexOfFirst { it.id == prayer.id }
                                 PrayerReaderScreen(
                                     section = prayer,
-                                    studyDate = uiState.selectedStudyDate.toString(),
-                                    hebrewDate = uiState.dailyLesson?.hebrewDate.orEmpty(),
                                     preferences = uiState.preferences,
                                     onBack = { prayerId = null },
-                                    onNextDay = { viewModel.stepSelectedDate(1) },
-                                    onPrevDay = { viewModel.stepSelectedDate(-1) },
-                                    onOpenDatePicker = { viewModel.setShowDatePicker(true) },
+                                    onNextPrayer = if (prayerIndex < prayerSections.lastIndex) ({ prayerId = prayerSections[prayerIndex + 1].id }) else null,
+                                    onPrevPrayer = if (prayerIndex > 0) ({ prayerId = prayerSections[prayerIndex - 1].id }) else null,
                                     onFontSizeChange = { viewModel.setFontSize(it) },
                                     onLineSpacingChange = { viewModel.setLineSpacing(it) },
                                     onFontFamilyChange = { viewModel.setFontFamily(it) },
@@ -144,6 +143,7 @@ class MainActivity : ComponentActivity() {
                                 viewModel.openTehillimReader(false)
                             }
                             TehillimReaderScreen(
+                                onCompleted = { viewModel.completeStudy("tehillim") },
                                 lesson = uiState.dailyTehillim,
                                 isLoading = uiState.isTehillimLoading,
                                 onBack = { viewModel.openTehillimReader(false) },
@@ -191,6 +191,7 @@ class MainActivity : ComponentActivity() {
                                 viewModel.openMitzvahReader(false)
                             }
                             MitzvahReaderScreen(
+                                onCompleted = { viewModel.completeStudy("mitzvot") },
                                 assignment = uiState.dailyMitzvahAssignment!!,
                                 entries = uiState.dailyMitzvahEntries,
                                 preferences = uiState.preferences,
@@ -250,6 +251,8 @@ class MainActivity : ComponentActivity() {
                         } else {
                             HomeScreen(
                                 uiState = uiState,
+                                onGetRambamLesson = { track -> viewModel.getLessonForDate(uiState.selectedStudyDate, track) },
+                                onOpenRambamTrack = { track -> viewModel.openRambamTrack(track) },
                                 onGetHebrewDate = { date -> viewModel.getHebrewDateForDate(date) },
                                 onOpenChapter = { chapterId ->
                                     viewModel.openChapter(chapterId)
@@ -260,6 +263,7 @@ class MainActivity : ComponentActivity() {
                                 onResumeReading = {
                                     viewModel.resumeLastReading()
                                 },
+                                onResumeStudy = { track -> viewModel.resumeStudy(track) },
                                 onTrackSelect = { track ->
                                     viewModel.selectTrack(track)
                                 },

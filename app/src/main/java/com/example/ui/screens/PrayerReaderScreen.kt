@@ -35,13 +35,10 @@ import kotlinx.coroutines.withContext
 @Composable
 fun PrayerReaderScreen(
     section: PrayerSection,
-    studyDate: String,
-    hebrewDate: String,
     preferences: UserPreferences,
     onBack: () -> Unit,
-    onNextDay: () -> Unit,
-    onPrevDay: () -> Unit,
-    onOpenDatePicker: () -> Unit,
+    onNextPrayer: (() -> Unit)?,
+    onPrevPrayer: (() -> Unit)?,
     onFontSizeChange: (Float) -> Unit,
     onLineSpacingChange: (Float) -> Unit,
     onFontFamilyChange: (String) -> Unit,
@@ -58,7 +55,9 @@ fun PrayerReaderScreen(
         else window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         onDispose { window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) }
     }
-    val contentId = "prayer_${section.id}"
+    // Versioned cleaned paragraphs must not reuse indices from the old raw import.
+    val contentId = "prayer_clean_${section.id}"
+    val studyDate = section.bookmarkKey
     val entryAnchor = remember(contentId, studyDate) { manager.get(contentId, studyDate) }
     val listState = rememberLazyListState()
     var restored by remember(contentId, studyDate) { mutableStateOf(false) }
@@ -70,10 +69,10 @@ fun PrayerReaderScreen(
         else -> Color.White
     }
     val progress by remember(section) { derivedStateOf {
-        listState.firstVisibleItemIndex.toFloat() / (section.paragraphs.size + 1).coerceAtLeast(1)
+        listState.firstVisibleItemIndex.toFloat() / section.paragraphs.size.coerceAtLeast(1)
     } }
     LaunchedEffect(contentId, studyDate) {
-        listState.scrollToItem(entryAnchor?.blockIndex?.coerceIn(0, section.paragraphs.lastIndex + 1) ?: 0,
+        listState.scrollToItem(entryAnchor?.blockIndex?.coerceIn(0, section.paragraphs.lastIndex) ?: 0,
             entryAnchor?.textOffset?.coerceAtLeast(0) ?: 0)
         restored = true
     }
@@ -98,22 +97,22 @@ fun PrayerReaderScreen(
     }
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         Box(Modifier.fillMaxSize().background(background)) {
-            LazyColumn(state = listState, contentPadding = PaddingValues(top = 76.dp, bottom = 128.dp),
+            LazyColumn(state = listState, contentPadding = PaddingValues(top = 40.dp, bottom = 128.dp),
                 modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
-                item(key = "source_notice") {
-                    Text("נוסח האר״י — סידור תורה אור. מהדורת בדיקה; התמלול טרם הוגה מול תהלת השם. תוספות לימים מיוחדים מוצגות כהוראות המקור, ולא נבחרות אוטומטית.",
-                        style = MaterialTheme.typography.bodySmall, color = foreground.copy(alpha = .65f))
-                    Spacer(Modifier.height(16.dp))
-                }
                 itemsIndexed(section.paragraphs, key = { index, _ -> "${section.id}_$index" }) { index, text ->
                     StudyTextBlock(indexLetter = "", textWithNikud = text,
                         textPlain = text.replace(Regex("[\\u0591-\\u05BD\\u05BF-\\u05C2\\u05C4-\\u05C5\\u05C7]"), ""),
                         preferences = preferences, textColor = foreground,
-                        isReadingAnchor = entryAnchor?.blockIndex == index + 1,
+                        isReadingAnchor = entryAnchor?.blockIndex == index,
                         modifier = Modifier.padding(bottom = 18.dp))
                 }
                 item(key = "attribution") {
-                    Text("מקור: תורמי ויקיטקסט העברי · CC BY-SA 4.0. שינויים: חלוקה לפסקאות ונרמול תווים.",
+                    var expanded by remember { mutableStateOf(false) }
+                    TextButton(onClick = { expanded = !expanded }) { Text("אודות הנוסח ומקורות") }
+                    if (expanded) {
+                    Text("נוסח האר״י · תורה אור. התמלול טרם הוגה במלואו מול תהלת השם. תוספות עונתיות אינן נבחרות אוטומטית.",
+                        style = MaterialTheme.typography.bodySmall, color = foreground.copy(alpha = .65f))
+                    Text("מקור: תורמי ויקיטקסט העברי · CC BY-SA 4.0. שינויים: חלוקה לפסקאות, נרמול תווים והסרת הוראות והלכות. מזמורי שיר של יום: מאגר התהלים של האפליקציה.",
                         style = MaterialTheme.typography.bodySmall, color = foreground.copy(alpha = .65f))
                     TextButton(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(section.source))) }) {
                         Text("המקור והיסטוריית העריכות")
@@ -121,13 +120,14 @@ fun PrayerReaderScreen(
                     TextButton(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://creativecommons.org/licenses/by-sa/4.0/"))) }) {
                         Text("רישיון התוכן")
                     }
+                    }
                 }
             }
             CompactReaderHeader("תפילות", section.title, Color(0xFF73D4ED), progress, preferences.readerTheme,
                 Modifier.align(Alignment.TopCenter))
-            FloatingReaderBar("", hebrewDate, progress, onBack, onOpenDatePicker, { typography = true },
-                preferences.readerTheme, onNextDay, onPrevDay,
-                Modifier.align(Alignment.BottomCenter).navigationBarsPadding())
+            FloatingReaderBar("", section.title, progress, onBack, {}, { typography = true },
+                preferences.readerTheme, onNextPrayer, onPrevPrayer,
+                Modifier.align(Alignment.BottomCenter).navigationBarsPadding(), prayerNavigation = true)
         }
         if (typography) ReaderTypographySheet(preferences = preferences,
             onDismiss = { typography = false }, onFontSizeChange = onFontSizeChange,

@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+
 package com.example.ui.screens
 
 import android.app.Activity
@@ -188,7 +190,8 @@ fun ChumashReaderScreen(
                     onToggleAliyaCompletion(daily.parashaName, aliya.aliyaIndex)
                 }
             }
-        }
+        },
+        onExitAfterCompletion = onBack
     )
 
     // Scroll to saved position on first load
@@ -298,7 +301,8 @@ fun ChumashReaderScreen(
         else -> MaterialTheme.colorScheme.background
     }
 
-    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl,
+        androidx.compose.foundation.LocalOverscrollConfiguration provides null) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -310,7 +314,7 @@ fun ChumashReaderScreen(
                     .fillMaxSize()
                     .endOfLessonPull(completionPullState)
                     .padding(horizontal = 20.dp),
-                contentPadding = PaddingValues(top = 72.dp, bottom = 118.dp)
+                contentPadding = PaddingValues(top = 40.dp, bottom = 118.dp)
             ) {
                 items(
                     items = flatRows,
@@ -318,6 +322,7 @@ fun ChumashReaderScreen(
                 ) { row ->
                     when (row) {
                         is ChumashUiRow.AliyaHeader -> {
+                            if (row.aliyaIndexInSelection != 1) {
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -360,6 +365,7 @@ fun ChumashReaderScreen(
                                     thickness = 2.dp,
                                     color = GoldAccent
                                 )
+                            }
                             }
                         }
 
