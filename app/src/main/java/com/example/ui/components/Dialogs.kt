@@ -83,7 +83,8 @@ fun SettingsDialog(
         Triple("mitzvot", "ספר המצוות", Color(0xFF72D7E8)),
         Triple("chumash", "חומש", Color(0xFFF4F66A)),
         Triple("tanya", "תניא", Color(0xFFF0A0DD)),
-        Triple("tehillim", "תהילים", Color(0xFF9FDEEF))
+        Triple("tehillim", "תהילים", Color(0xFF9FDEEF)),
+        Triple("hayom_yom", "היום יום", Color(0xFFC5B8F5))
     )
 
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
@@ -116,6 +117,7 @@ fun SettingsDialog(
                                 "mitzvot" -> "השיעור המקביל למסלול ג׳ פרקים"
                                 "chumash" -> "העלייה היומית"
                                 "tanya" -> "השיעור היומי"
+                                "hayom_yom" -> "פתגם יומי לפי התאריך העברי"
                                 else -> "לפי ימי החודש"
                             }
                             val icon = when (key) {
@@ -230,6 +232,11 @@ fun SettingsDialog(
 fun AttributionDialog(
     onDismiss: () -> Unit
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var showHayomLicense by remember { mutableStateOf(false) }
+    val hayomLicense = remember {
+        context.assets.open("GFDL-1.3.txt").bufferedReader().use { it.readText() }
+    }
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         AlertDialog(
             onDismissRequest = onDismiss,
@@ -302,6 +309,13 @@ fun AttributionDialog(
                         }
                     }
 
+                    Text("היום יום", fontWeight = FontWeight.Bold)
+                    Text("מלקט: רבי מנחם מענדל שניאורסון. הטקסט מתוך חב״דטקסט, מאת תורמי האתר, ברישיון GFDL 1.3 או מאוחר יותר. הוסרו ניווט ועיצוב; פירושי מונחים מוצגים בסוגריים. המקור השקוף ומספרי הגרסאות מצורפים לאפליקציה.", fontSize = 12.sp)
+                    TextButton(onClick = { android.content.Intent(android.content.Intent.ACTION_VIEW,
+                        android.net.Uri.parse("https://text.chabadpedia.com/index.php?title=היום_יום"))
+                        .also { context.startActivity(it) } }) { Text("מקור הטקסט והתורמים") }
+                    TextButton(onClick = { showHayomLicense = !showHayomLicense }) { Text("רישיון GFDL — הנוסח המלא") }
+                    if (showHayomLicense) Text(hayomLicense, fontSize = 11.sp)
                     Text(
                         text = "הבהרה משפטית: המקורות ובעלי הזכויות אינם תומכים באפליקציה או מעניקים לה חסות רשמית. האפליקציה פותחה לשם שמיים, להפצה חינמית לחלוטין ולזיכוי הרבים.",
                         fontSize = 12.sp,

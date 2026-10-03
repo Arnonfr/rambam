@@ -182,7 +182,7 @@ class TehillimRepository(private val context: Context) {
     }
 
     private fun removeCantillation(text: String): String {
-        return text.replace(Regex("[\u0591-\u05AF]"), "")
+        return com.example.ui.util.HebrewTextNormalizer.withoutBiblicalAnnotations(text)
     }
 
     private fun cleanTehillimText(text: String): String {

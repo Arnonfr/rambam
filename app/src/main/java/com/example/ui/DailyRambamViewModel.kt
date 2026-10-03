@@ -24,6 +24,7 @@ import com.example.data.repository.RambamRepository
 import com.example.data.chumash.ChumashRepository
 import com.example.data.tehillim.TehillimRepository
 import com.example.data.tanya.TanyaRepository
+import com.example.data.hayomyom.HayomYomRepository
 import com.example.data.mitzvot.MitzvahLessonEntry
 import com.example.data.mitzvot.SeferHamitzvotRepository
 import com.example.domain.chumash.DailyChumashLesson
@@ -58,7 +59,8 @@ enum class DateDrawerState {
 
 enum class HomeTab {
     STUDY,
-    PRAYERS
+    PRAYERS,
+    PODCASTS
 }
 
 data class ReaderChapterData(
@@ -107,12 +109,15 @@ data class DailyRambamUiState(
     val isTanyaReaderOpen: Boolean = false,
     val isTanyaLoading: Boolean = false,
     val latestTanyaPosition: ReadingPositionEntity? = null,
+    val dailyHayomYom: DailyTanyaLesson? = null,
+    val isHayomYomReaderOpen: Boolean = false,
     val dailyMitzvahAssignment: DailyMitzvahAssignment? = null,
     val dailyMitzvahEntries: List<MitzvahLessonEntry> = emptyList(),
     val isMitzvahReaderOpen: Boolean = false,
     val savedMitzvahAnchor: ContentReadingAnchor? = null,
     val bookmarkDates: Map<String, String> = emptyMap(),
-    val completedBookmarks: Set<String> = emptySet()
+    val completedBookmarks: Set<String> = emptySet(),
+    val completedStudyDates: Map<String, String> = emptyMap()
 )
 
 class DailyRambamViewModel(application: Application) : AndroidViewModel(application) {
@@ -125,6 +130,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
     private val chumashRepository = ChumashRepository(application)
     private val tehillimRepository = TehillimRepository(application)
     private val tanyaRepository = TanyaRepository(application)
+    private val hayomYomRepository = HayomYomRepository(application)
     private val mitzvotRepository = SeferHamitzvotRepository(application)
     private val dbInitializer = DatabaseInitializer(application, dao)
     private val readingStateManager = ReadingStateManager(application)
@@ -207,11 +213,13 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     private fun updateBookmarks() {
-        val dates = listOf("one", "three", "chumash", "tehillim", "tanya")
+        val dates = listOf("one", "three", "chumash", "tehillim", "tanya", "hayom_yom")
             .mapNotNull { track -> readingStateManager.getSavedAnchor(track)?.let { track to it.studyDate } }
             .toMap().toMutableMap()
         contentReadingAnchorManager.getLatest("sefer_hamitzvot")?.let { dates["mitzvot"] = it.assignmentDate }
         _uiState.update { it.copy(bookmarkDates = dates,
+            completedStudyDates = listOf("one", "three", "chumash", "tehillim", "tanya", "mitzvot", "hayom_yom")
+                .mapNotNull { track -> readingStateManager.completedDate(track)?.let { track to it } }.toMap(),
             completedBookmarks = dates.filter { (track, date) -> readingStateManager.isCompleted(track, date) }.keys) }
     }
 
@@ -223,6 +231,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
         dao.clearReadingPositions(track)
         readingStateManager.clearTrack(track)
         if (track == "mitzvot") contentReadingAnchorManager.clear("sefer_hamitzvot")
+        if (track == "hayom_yom") contentReadingAnchorManager.clear("hayom_yom")
         updateBookmarks()
     }
 
@@ -248,6 +257,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
                 "tanya" -> { refreshDailyTanya(date).join(); openTanyaReader() }
                 "tehillim" -> { refreshDailyTehillim(date).join(); openTehillimReader(true) }
                 "mitzvot" -> { refreshDailyMitzvah(date); openMitzvahReader(true) }
+                "hayom_yom" -> { refreshHayomYom(date); openHayomYomReader(true) }
             }
         }
     }
@@ -511,6 +521,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
         }
 
     fun refreshDailyMitzvah(date: LocalDate = _uiState.value.selectedStudyDate) {
+        refreshHayomYom(date)
         val assignment = SeferHamitzvotSchedule.assignmentFor(date)
         val entries = assignment?.let(mitzvotRepository::getLessonEntries).orEmpty()
         val anchor = contentReadingAnchorManager.get("sefer_hamitzvot", date.toString())
@@ -521,6 +532,37 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
                 savedMitzvahAnchor = anchor
             )
         }
+    }
+
+    private fun refreshHayomYom(date: LocalDate) {
+        val lesson = hayomYomRepository.lessonFor(date)?.asReaderLesson(
+            readingStateManager.isCompleted("hayom_yom", date.toString()))
+        _uiState.update { it.copy(dailyHayomYom = lesson) }
+    }
+
+    fun openHayomYomReader(open: Boolean) {
+        if (open && _uiState.value.dailyHayomYom == null) {
+            _uiState.update { it.copy(noticeMessage = "היום יום אינו זמין לתאריך הזה") }
+            return
+        }
+        viewModelScope.launch {
+            if (open) prepareLessonEntry("hayom_yom")
+            _uiState.update { it.copy(isHayomYomReaderOpen = open) }
+        }
+    }
+
+    fun saveHayomYomPosition(section: TanyaSection, lesson: DailyTanyaLesson) {
+        if (lesson.date != _uiState.value.selectedStudyDate.toString()) return
+        readingStateManager.saveAnchor(isReaderActive = true, track = "hayom_yom",
+            chapterId = lesson.fullRef, sectionId = "hayom_yom", chapterNumber = 0,
+            halachaId = "section_${section.sectionIndex}", halachaIndex = section.sectionIndex - 1,
+            scrollOffsetFraction = 0f, studyDate = lesson.date, immediateCommit = true)
+        updateBookmarks()
+    }
+
+    fun completeHayomYom() {
+        completeStudy("hayom_yom")
+        _uiState.update { it.copy(dailyHayomYom = it.dailyHayomYom?.copy(isCompleted = true)) }
     }
 
     fun openMitzvahReader(open: Boolean) {

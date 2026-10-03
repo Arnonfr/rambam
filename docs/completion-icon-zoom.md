@@ -1,0 +1,9 @@
+# Completion hint, flat app icon, and fixed-layout pinch zoom
+
+- Home cards show a small check and `נלמד` only when that track's stored completion date equals the selected date. A full progress bar alone is never considered completion. Completion dates are loaded independently of the latest reading anchor, including Sefer HaMitzvot.
+- New book/cards app icon follows the home palette (orange, lemon, pink, sky blue) and black outline icon language. Original generated artwork is retained in `artwork/app-icon-flat.png`, with a separate 512px Play listing asset. Legacy launchers and both adaptive launchers use the new artwork, inset to protect the book under circular masks. The actual Play listing is not updated by this code change.
+- Tanya mapped print view supports two-finger pinch from 1× to 4× and panning while magnified. The existing rendered viewport is transformed: layout constraints, font sizes, original source rows, and bookmarks do not change. The reader header and bottom controls remain fixed and unscaled. Pinching back to 1× restores regular one-finger scrolling. Zoom resets when changing the lesson/date or display mode.
+- Completion pull is disabled while magnified, so panning does not accidentally complete the lesson.
+- Native tests cover pinch input, unchanged text layout dimensions/row count, zoom limits, centroid anchoring, pan bounds, and resetting to normal scale. Completion tests cover date isolation and a non-interactive hint.
+- Full unit/UI suite: 98 tests passed, zero failures/errors/skips. `assembleDebug` succeeded. Emulator confirmed the persisted completion hint after reinstall and the new adaptive launcher icon; its safe-area inset was adjusted after inspecting the circular mask.
+- Skills used: Kotlin/Jetpack Compose for shared state and fixed-layout transformations, imagegen for the redesigned artwork, Android CLI for on-device layout/icon checks. No store/Firebase release was requested or performed in this turn.

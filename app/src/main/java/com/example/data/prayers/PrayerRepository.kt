@@ -32,9 +32,9 @@ class PrayerRepository(private val context: Context) {
         fun verses(chapter: Int, limit: Int = Int.MAX_VALUE): List<String> {
             val array = psalms.getJSONArray(chapter.toString())
             return (0 until minOf(array.length(), limit)).map { i ->
-                array.getString(i).replace(Regex("<[^>]+>"), "")
+                com.example.ui.util.HebrewTextNormalizer.withoutBiblicalAnnotations(array.getString(i).replace(Regex("<[^>]+>"), "")
                     .replace("&thinsp;", " ").replace("&nbsp;", " ")
-                    .replace(Regex("\\{[פס]\\}"), "").replace(Regex("[\\u0591-\\u05AF]"), "").trim()
+                    .replace(Regex("\\{[פס]\\}"), "")).trim()
             }
         }
         val day = date.dayOfWeek

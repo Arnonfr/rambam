@@ -18,6 +18,12 @@ fun StudyLineIcon(kind: String, modifier: Modifier = Modifier) {
             fun line(build: Path.() -> Unit) = drawPath(Path().apply(build), Color.Black,
                 style = Stroke(1.8f, cap = StrokeCap.Round, join = StrokeJoin.Round))
             when (kind) {
+                "hayom_yom" -> {
+                    line { moveTo(8f,10f); lineTo(40f,10f); lineTo(40f,41f); lineTo(8f,41f); close()
+                        moveTo(8f,18f); lineTo(40f,18f)
+                        moveTo(16f,6f); lineTo(16f,13f); moveTo(32f,6f); lineTo(32f,13f)
+                        moveTo(16f,26f); lineTo(32f,26f); moveTo(16f,32f); lineTo(27f,32f) }
+                }
                 "one", "three" -> {
                     line { moveTo(7f, 12f); lineTo(32f, 6f); lineTo(43f, 9f); lineTo(18f, 16f); close() }
                     listOf(16f, 25f, 34f).forEach { y ->

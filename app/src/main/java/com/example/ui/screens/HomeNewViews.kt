@@ -64,6 +64,7 @@ fun MainContentList(
     onOpenTanya: () -> Unit,
     onOpenMitzvah: () -> Unit,
     onOpenSettings: () -> Unit,
+    onOpenHayomYom: () -> Unit = {},
     prayerSections: List<PrayerSection> = emptyList(),
     onOpenPrayer: (String) -> Unit = {},
     onGetRambamLesson: (String) -> DailyLessonResult? = { uiState.dailyLesson },
@@ -244,6 +245,16 @@ fun MainContentList(
                             )
                         )
                     }
+                    if (visibleStudies.contains("hayom_yom")) {
+                        val lesson = uiState.dailyHayomYom
+                        add(StudyDashboardCard(
+                            track = "hayom_yom", eyebrow = "פתגם יומי", title = "היום יום",
+                            subtitle = "תורת הרבי · לפי ימי השנה",
+                            metric = lesson?.hebrewDate?.replaceFirst(" ", "\n") ?: "–",
+                            progress = if (lesson?.isCompleted == true) 1f else 0f,
+                            color = Color(0xFFC5B8F5), icon = Icons.Outlined.MenuBook,
+                            onClick = onOpenHayomYom))
+                    }
                     if (visibleStudies.contains("tehillim")) {
                         val day = uiState.dailyTehillim?.dayOfMonth ?: 1
                         add(
@@ -266,8 +277,11 @@ fun MainContentList(
                 val savedDate = uiState.bookmarkDates[card.track]
                     ?.takeUnless { card.track in uiState.completedBookmarks }
                 StudyStrip(card, savedDate, uiState.selectedStudyDate.toString(),
+                    completed = uiState.completedStudyDates[card.track] == uiState.selectedStudyDate.toString(),
                     onResume = { onResumeStudy(card.track) })
             }
+        } else if (uiState.selectedTab == HomeTab.PODCASTS) {
+            item { PodcastPanel() }
         } else {
             item {
                 Text("נוסח האר״י · סידור תורה אור", fontSize = 16.sp, color = Color.Black,
@@ -275,10 +289,10 @@ fun MainContentList(
                 Text("מהדורת בדיקה — חלק מהתמלולים חלקיים. טרם הוגה מול תהלת השם.",
                     fontSize = 12.sp, color = Color.DarkGray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp))
             }
-            items(prayerSections, key = { it.id }) { section ->
+            items(com.example.data.prayers.PrayerServices.group(prayerSections), key = { it.id }) { section ->
                 ListItem(
                     headlineContent = { Text(section.title, fontWeight = FontWeight.Bold) },
-                    supportingContent = { Text("נוסח חב״ד · התאמת טקסט ושמירת מיקום") },
+                    supportingContent = { Text(section.sections.joinToString(" · ") { it.title }, maxLines = 2) },
                     colors = ListItemDefaults.colors(containerColor = Color(0xFFB3E9F2)),
                     modifier = Modifier.clickable { onOpenPrayer(section.id) }.padding(bottom = 2.dp)
                 )
@@ -304,6 +318,7 @@ private fun StudyStrip(
     card: StudyDashboardCard,
     savedDate: String?,
     selectedDate: String,
+    completed: Boolean,
     onResume: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -335,6 +350,7 @@ private fun StudyStrip(
                 color = Color.Black.copy(alpha = 0.82f),
                 maxLines = 2, overflow = TextOverflow.Ellipsis
             )
+            if (completed) StudyCompletionHint(Modifier.testTag("completed_${card.track}"))
         }
         Column(
             modifier = Modifier.width(76.dp),
@@ -399,6 +415,16 @@ private fun StudyStrip(
 }
 
 @Composable
+fun StudyCompletionHint(modifier: Modifier = Modifier) {
+    Row(modifier.padding(top = 3.dp), verticalAlignment = Alignment.CenterVertically) {
+        Icon(Icons.Default.Check, contentDescription = null, tint = Color.Black.copy(alpha = .72f),
+            modifier = Modifier.size(13.dp))
+        Spacer(Modifier.width(4.dp))
+        Text("נלמד", fontSize = 11.sp, color = Color.Black.copy(alpha = .72f))
+    }
+}
+
+@Composable
 fun FloatingDarkNavBar(
     selectedTab: HomeTab,
     onSelectTab: (HomeTab) -> Unit,
@@ -414,7 +440,7 @@ fun FloatingDarkNavBar(
             color = Color(0xFFF2F2F2),
             shadowElevation = 8.dp,
             modifier = Modifier
-                .width(260.dp)
+                .widthIn(max = 360.dp).fillMaxWidth(.95f)
                 .height(60.dp)
         ) {
         Row(
@@ -422,6 +448,15 @@ fun FloatingDarkNavBar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
+            Row(verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.weight(1f).fillMaxHeight().padding(4.dp)
+                    .clip(RoundedCornerShape(28.dp))
+                    .background(if (selectedTab == HomeTab.PODCASTS) Color.White else Color.Transparent)
+                    .clickable { onSelectTab(HomeTab.PODCASTS) }) {
+                Text("פודקאסטים", fontSize = 13.sp,
+                    color = if (selectedTab == HomeTab.PODCASTS) Color.Black else Color(0xFF777777))
+            }
             // Prayers Tab (Left)
             Row(
                 verticalAlignment = Alignment.CenterVertically,

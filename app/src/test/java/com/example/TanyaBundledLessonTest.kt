@@ -15,6 +15,23 @@ import java.time.LocalDate
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35])
 class TanyaBundledLessonTest {
+    @Test fun `all remaining assignments are complete and mapped through last page`() = runBlocking {
+        val repo = TanyaRepository(ApplicationProvider.getApplicationContext<Context>())
+        val first = LocalDate.of(2026, 10, 29)
+        repeat(31) { offset ->
+            val date = first.plusDays(offset.toLong())
+            val lesson = repo.getDailyTanyaLesson(date)!!
+            assertEquals(date.toString(), lesson.date)
+            val lines = VerifiedTanyaPrint.fullPagesForReference(lesson.fullRef)
+            assertTrue("Missing ${lesson.fullRef}", lines.isNotEmpty())
+            assertEquals("Truncated ${lesson.fullRef}", lesson.sections.size, lines.maxOf { it.section })
+            assertTrue(lesson.sections.none { it.textPlain.contains("[פ:") || it.textPlain.contains("[מ:") })
+        }
+        val last = repo.getDailyTanyaLesson(LocalDate.of(2026, 11, 28))!!
+        assertEquals("Tanya, Part V; Kuntres Acharon 9:1-12", last.fullRef)
+        assertEquals(325, VerifiedTanyaPrint.fullPagesForReference(last.fullRef).last().page)
+    }
+
     @Test fun `expanded lessons through epistle 28 load offline with full print mapping`() = runBlocking {
         val repo = TanyaRepository(ApplicationProvider.getApplicationContext<Context>())
         (6..28).forEach { day ->

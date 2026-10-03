@@ -20,7 +20,7 @@ import com.example.domain.tanya.TanyaSourceLine
 import kotlin.math.roundToInt
 import kotlin.math.ceil
 
-private val PrintTypeface = FontFamily(Font(R.font.romm_vilna_regular))
+private val PrintTypeface = com.example.ui.theme.TanyaPrintFontFamily
 
 /** One source line is always exactly one rendered line, at every screen/font scale. */
 @Composable

@@ -16,6 +16,7 @@ val LibertinusSerifFontFamily = FontFamily(
 )
 
 val FrankRuhlFontFamily = FontFamily(Font(R.font.frank_ruhl_libre))
+val TanyaPrintFontFamily = FontFamily(Font(R.font.romm_vilna_regular))
 
 enum class FontStyleOption(
     val id: String,
@@ -24,7 +25,7 @@ enum class FontStyleOption(
     val fontFamily: FontFamily
 ) {
     SANS("sans", "מודרני", "Noto Sans עברית", NotoSansHebrewFontFamily),
-    SERIF("serif", "תורני", "Frank Ruhl Libre", FrankRuhlFontFamily),
+    SERIF("serif", "דפוס תניא", "Romm Vilna", TanyaPrintFontFamily),
     LIBERTINUS("libertinus", "Libertinus", "Libertinus Serif", LibertinusSerifFontFamily),
     BONA_NOVA("bonanova", "Bona Nova", "Bona Nova (Google)", BonaNovaFontFamily);
 

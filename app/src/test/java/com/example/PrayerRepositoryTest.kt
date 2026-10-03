@@ -17,6 +17,15 @@ import org.robolectric.annotation.Config
 class PrayerRepositoryTest {
     private val book by lazy { PrayerRepository(ApplicationProvider.getApplicationContext<Context>()).load() }
 
+    @Test fun `shacharit is continuous and all imported sections appear exactly once`() {
+        val services = com.example.data.prayers.PrayerServices.group(book.sections)
+        val morning = services.single { it.id == "shacharit" }
+        assertTrue(morning.sections.any { it.id == "offerings" })
+        assertTrue(morning.sections.any { it.id == "shir_shel_yom" })
+        assertFalse(morning.sections.any { it.id == "grace" })
+        assertEquals(book.sections.map { it.id }.sorted(), services.flatMap { it.sections }.map { it.id }.sorted())
+    }
+
     @Test fun `all available prayers are bundled and attributed`() {
         assertTrue(book.edition.contains("תורה אור"))
         assertTrue(book.sections.size >= 9)
@@ -59,7 +68,7 @@ class PrayerRepositoryTest {
             assertTrue(shir.paragraphs.size > 5)
             assertEquals("shir_$date", shir.bookmarkKey)
             assertEquals(date.dayOfWeek == DayOfWeek.WEDNESDAY,
-                shir.paragraphs.any { it.contains("לְכוּ") && it.contains("נְרַנְּנָה") })
+                shir.paragraphs.any { com.example.ui.util.HebrewTextNormalizer.stripMarks(it).contains("לכו נרננה") })
             assertTrue(shir.paragraphs.last().startsWith("הוֹשִׁיעֵנוּ"))
         }
     }

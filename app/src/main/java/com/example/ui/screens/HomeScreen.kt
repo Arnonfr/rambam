@@ -73,6 +73,7 @@ fun HomeScreen(
     onOpenChumash: () -> Unit = {},
     onOpenTehillim: () -> Unit = {},
     onOpenTanya: () -> Unit = {},
+    onOpenHayomYom: () -> Unit = {},
     onOpenMitzvah: () -> Unit = {},
     prayerSections: List<com.example.data.prayers.PrayerSection> = emptyList(),
     onOpenPrayer: (String) -> Unit = {},
@@ -97,18 +98,9 @@ fun HomeScreen(
                     onGetHebrewDate = onGetHebrewDate,
                     onSelectDate = onSelectDate,
                     onStepDate = onStepDate,
-                    onToggleDrawer = onToggleDateDrawer
+                    onToggleDrawer = onToggleDateDrawer,
+                    onOpenSettings = onOpenSettings
                 )
-
-                Row(Modifier.fillMaxWidth().height(42.dp).padding(horizontal = 18.dp),
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = onOpenSettings,
-                        modifier = Modifier.size(40.dp).testTag("home_settings_button")) {
-                        Icon(Icons.Default.Settings, contentDescription = "הגדרות והתאמת מסך הבית",
-                            tint = Color.Black, modifier = Modifier.size(25.dp))
-                    }
-                }
 
                 // 3. Main Content
                 MainContentList(
@@ -120,6 +112,7 @@ fun HomeScreen(
                     onOpenChumash = onOpenChumash,
                     onOpenTehillim = onOpenTehillim,
                     onOpenTanya = onOpenTanya,
+                    onOpenHayomYom = onOpenHayomYom,
                     onOpenMitzvah = onOpenMitzvah,
                     onOpenSettings = onOpenSettings,
                     prayerSections = prayerSections,
@@ -231,7 +224,8 @@ private fun DateDrawer(
     onGetHebrewDate: (LocalDate) -> String,
     onSelectDate: (LocalDate) -> Unit,
     onStepDate: (Long) -> Unit,
-    onToggleDrawer: () -> Unit
+    onToggleDrawer: () -> Unit,
+    onOpenSettings: () -> Unit
 ) {
     val fullHebrewDate = dailyLesson?.hebrewDate ?: onGetHebrewDate(selectedDate).ifBlank { "ב׳ בתשרי תשפ״ז" }
     val monthYearTitle = HebrewDateHelper.extractHebrewMonthYear(fullHebrewDate)
@@ -247,10 +241,15 @@ private fun DateDrawer(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 28.dp, vertical = 10.dp),
+                .padding(horizontal = 12.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
+            IconButton(onClick = onOpenSettings,
+                modifier = Modifier.size(40.dp).testTag("home_settings_button")) {
+                Icon(Icons.Default.Settings, contentDescription = "הגדרות והתאמת מסך הבית",
+                    tint = Color.Black, modifier = Modifier.size(23.dp))
+            }
             // Right Arrow: Previous day
             Surface(
                 shape = CircleShape,
@@ -274,13 +273,16 @@ private fun DateDrawer(
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
+                    .weight(1f)
                     .clip(RoundedCornerShape(8.dp))
                     .clickable { onToggleDrawer() }
                     .padding(horizontal = 8.dp, vertical = 2.dp)
             ) {
                 Text(
                     text = fullHebrewDate,
-                fontSize = 28.sp,
+                fontSize = 22.sp,
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                     fontWeight = FontWeight.Bold,
                     color = TextDark
                 )

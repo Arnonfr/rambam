@@ -9,6 +9,11 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.geometry.Offset
+import com.example.ui.components.printedPageZoom
+import com.example.ui.components.printedPageZoomLayer
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -30,6 +35,52 @@ import org.robolectric.annotation.GraphicsMode
 @Config(sdk = [35], qualifiers = "w400dp-h900dp")
 class ReaderFontSelectionTest {
     @get:Rule val compose = createComposeRule()
+
+    @Test fun `two fingers zoom printed text but never change its layout width or rows`() {
+        val zoom = com.example.ui.components.PrintedPageZoomState()
+        compose.setContent { DailyRambamTheme {
+            Box(Modifier.size(300.dp).clipToBounds().printedPageZoom(zoom).testTag("zoom_viewport")) {
+                Box(Modifier.width(300.dp).printedPageZoomLayer(zoom)) {
+                    androidx.compose.material3.Text("צורת הדף נשארת קבועה", Modifier.testTag("zoom_text"))
+                }
+            }
+        } }
+        fun layout(): TextLayoutResult {
+            val results = mutableListOf<TextLayoutResult>()
+            compose.onNodeWithTag("zoom_text").performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(results) }
+            return results.single()
+        }
+        val before = layout()
+        compose.onNodeWithTag("zoom_viewport").performTouchInput {
+            down(0, Offset(center.x - 30f, center.y))
+            down(1, Offset(center.x + 30f, center.y))
+            advanceEventTime(16)
+            moveTo(0, Offset(center.x - 60f, center.y))
+            moveTo(1, Offset(center.x + 60f, center.y))
+            up(0); up(1)
+        }
+        compose.runOnIdle { assertTrue(zoom.scale > 1.5f) }
+        val after = layout()
+        assertEquals(before.size, after.size)
+        assertEquals(before.lineCount, after.lineCount)
+        assertEquals(before.layoutInput.style.fontSize, after.layoutInput.style.fontSize)
+    }
+
+    @Test fun `former torani option selects actual Tanya print font`() {
+        assertEquals("דפוס תניא", FontStyleOption.SERIF.title)
+        assertEquals(com.example.ui.theme.TanyaPrintFontFamily, FontStyleOption.SERIF.fontFamily)
+    }
+
+    @Test fun `prayer section title opens section picker`() {
+        var opened = false
+        compose.setContent { DailyRambamTheme {
+            com.example.ui.components.FloatingReaderBar("", "קרבנות", 0f, {}, {}, {}, "light",
+                {}, {}, prayerNavigation = true, onOpenPrayerSections = { opened = true })
+        } }
+        compose.onNodeWithText("קרבנות").performClick()
+        compose.runOnIdle { assertTrue(opened) }
+        compose.onNodeWithContentDescription("מעבר ליום אחר").assertDoesNotExist()
+    }
 
     @Test fun `catchword sits at physical left in RTL reader`() {
         val line = com.example.domain.tanya.VerifiedTanyaPrint.fullPagesForReference(

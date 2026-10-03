@@ -21,6 +21,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.platform.LocalContext
@@ -47,6 +48,9 @@ import com.example.ui.components.StudyTextBlock
 import com.example.ui.components.TanyaBookText
 import com.example.ui.components.endOfLessonPull
 import com.example.ui.components.rememberEndOfLessonPullState
+import com.example.ui.components.PrintedPageZoomState
+import com.example.ui.components.printedPageZoom
+import com.example.ui.components.printedPageZoomLayer
 import com.example.ui.theme.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -72,6 +76,9 @@ fun TanyaReaderScreen(
     onToggleCompletion: () -> Unit = {},
     onSavePosition: (TanyaSection, DailyTanyaLesson) -> Unit = { _, _ -> },
     savedPosition: com.example.data.local.ReadingPositionEntity? = null,
+    readerTitle: String = "תניא",
+    contentId: String = "tanya",
+    allowPrintLayout: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     BackHandler(onBack = onBack)
@@ -86,8 +93,9 @@ fun TanyaReaderScreen(
     val printLines = remember(lesson?.fullRef) {
         com.example.domain.tanya.VerifiedTanyaPrint.fullPagesForReference(lesson?.fullRef.orEmpty())
     }
-    val mappedPrint = preferences.tanyaBookView && printLines.isNotEmpty()
-    val anchorContentId = if (mappedPrint) "tanya_print" else "tanya"
+    val mappedPrint = allowPrintLayout && preferences.tanyaBookView && printLines.isNotEmpty()
+    val pageZoom = remember(lesson?.date, mappedPrint) { PrintedPageZoomState() }
+    val anchorContentId = if (mappedPrint) "tanya_print" else contentId
     val entryAnchor = remember(lesson?.date, anchorContentId) {
         lesson?.let { current ->
             anchorManager.get(anchorContentId, current.date)?.let { anchor ->
@@ -155,7 +163,7 @@ fun TanyaReaderScreen(
                 val secIdx = if (mappedPrint) (printLines.getOrNull(visibleIdx - 1)?.section ?: 1) - 1
                     else (visibleIdx - 1).coerceIn(0, (sections.size - 1).coerceAtLeast(0))
                 val sec = sections.getOrNull(secIdx)
-                if (sec != null) "סעיף ${sec.sectionHebrew}" else ""
+                if (sec != null && sec.sectionHebrew.isNotBlank()) "סעיף ${sec.sectionHebrew}" else ""
             }
         }
     }
@@ -186,6 +194,8 @@ fun TanyaReaderScreen(
             } else if (mappedPrint) {
                 val firstDaily = printLines.indexOfFirst { com.example.domain.tanya.VerifiedTanyaPrint.hasDailyWords(it) }
                 if (firstDaily >= 0) listState.scrollToItem(firstDaily + 1)
+            } else {
+                listState.scrollToItem(0)
             }
             hasScrolledToSavedPosition = true
         }
@@ -254,13 +264,17 @@ fun TanyaReaderScreen(
                 .fillMaxSize()
                 .background(if (mappedPrint) textColor.copy(alpha = .045f).compositeOver(backgroundColor) else backgroundColor)
         ) {
+            Box(Modifier.fillMaxSize().clipToBounds()
+                .then(if (mappedPrint) Modifier.printedPageZoom(pageZoom) else Modifier)) {
             LazyColumn(
                 state = listState,
+                userScrollEnabled = !mappedPrint || !pageZoom.isZoomed,
                 modifier = Modifier
                     .fillMaxSize()
-                    .endOfLessonPull(completionPullState)
+                    .then(if (mappedPrint) Modifier.printedPageZoomLayer(pageZoom) else Modifier)
+                    .then(if (!pageZoom.isZoomed) Modifier.endOfLessonPull(completionPullState) else Modifier)
                     .padding(horizontal = if (mappedPrint) 6.dp else 20.dp),
-                contentPadding = PaddingValues(top = 40.dp, bottom = 118.dp)
+                contentPadding = PaddingValues(top = 40.dp, bottom = 220.dp)
             ) {
                 // 1. Header Card (Same structure as Tehillim and Chumash)
                 // Retain the zero-height slot so existing saved paragraph indices stay valid.
@@ -297,12 +311,13 @@ fun TanyaReaderScreen(
                 }
 
             }
+            }
 
             CompactReaderHeader(
-                title = "תניא",
+                title = readerTitle,
                 location = listOf(lesson.chapterTitle.removePrefix("תניא, "), currentSectionText.value)
                     .filter { it.isNotBlank() }.joinToString(" · "),
-                accentColor = Color(0xFFEA78D5),
+                accentColor = if (allowPrintLayout) Color(0xFFEA78D5) else Color(0xFFB8ACF4),
                 scrollProgress = scrollProgress,
                 readerTheme = preferences.readerTheme,
                 modifier = Modifier.align(Alignment.TopCenter)
@@ -341,17 +356,18 @@ fun TanyaReaderScreen(
 
         if (showTypographySheet) {
             ReaderTypographySheet(
-                preferences = if (preferences.tanyaBookView) preferences.copy(showNikud = preferences.tanyaBookShowNikud) else preferences,
+                preferences = if (allowPrintLayout && preferences.tanyaBookView) preferences.copy(showNikud = preferences.tanyaBookShowNikud) else preferences,
                 fontSizeSp = preferences.chumashFontSizeSp,
                 onDismiss = { showTypographySheet = false },
                 onFontSizeChange = onFontSizeChange,
                 onLineSpacingChange = onLineSpacingChange,
                 onFontFamilyChange = onFontFamilyChange,
-                onNikudToggle = if (preferences.tanyaBookView) onBookNikudChange else onNikudToggle,
+                onNikudToggle = if (allowPrintLayout && preferences.tanyaBookView) onBookNikudChange else onNikudToggle,
                 onThemeChange = onThemeChange,
                 onKeepScreenOnChange = onKeepScreenOnChange,
-                fixedPrintLayout = preferences.tanyaBookView,
+                fixedPrintLayout = allowPrintLayout && preferences.tanyaBookView,
                 extraControls = {
+                    if (allowPrintLayout) {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
                             Text("צורת הדף", fontWeight = FontWeight.Bold)
@@ -361,8 +377,9 @@ fun TanyaReaderScreen(
                             colors = com.example.ui.components.readerSwitchColors())
                     }
                     if (preferences.tanyaBookView) Text(
-                        "הרוחב והגופן קבועים לפי המקור, ללא ניקוד וללא גלילה לצדדים. מיפוי השורות הורחב לעמודים 270–295. העמודים מוצגים במלואם; הטקסט שמחוץ לשיעור באפור. הפתיחה מובילה למיקום השמור או לתחילת השיעור. בשיעור שחורג מהעמודים שמופו מוצג הטקסט הרגיל במלואו.",
+                        "הרוחב והגופן קבועים לפי המקור, ללא ניקוד. אפשר להתקרב בשתי אצבעות ולהזיז את הדף המוגדל בלי לשנות שורות; כיווץ בחזרה מחזיר לגלילה רגילה. העמודים מוצגים במלואם; הטקסט שמחוץ לשיעור באפור. הפתיחה מובילה למיקום השמור או לתחילת השיעור. בשיעור שחורג מהעמודים שמופו מוצג הטקסט הרגיל במלואו.",
                         fontSize = 11.sp, modifier = Modifier.padding(bottom = 12.dp))
+                    }
                 }
             )
         }

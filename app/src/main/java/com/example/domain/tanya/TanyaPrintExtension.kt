@@ -5,7 +5,10 @@ internal object TanyaPrintExtension {
     private data class Row(val line: TanyaSourceLine, val wordSections: List<Int>)
     private val marker = Regex("\\[(\\d+):(\\d+)\\]")
     private val reference = Regex("Tanya, Part IV; Iggeret HaKodesh (\\d+):(\\d+)(?:-(\\d+))?")
-    private val completeSectionLimits = mapOf(25 to 40, 26 to 36, 27 to 19, 28 to 6)
+    private val finalReference = Regex("Tanya, Part V; Kuntres Acharon (\\d+):(\\d+)(?:-(\\d+))?")
+    private val completeSectionLimits = mapOf(25 to 40, 26 to 36, 27 to 19, 28 to 9,
+        29 to 27, 30 to 5, 31 to 9, 32 to 10, 101 to 6, 102 to 6, 103 to 7,
+        104 to 58, 105 to 10, 106 to 15, 107 to 6, 108 to 8, 109 to 12)
     private val rows by lazy {
         var section = 0
         TanyaPrintExtensionData.pages.flatMap { page ->
@@ -39,8 +42,9 @@ internal object TanyaPrintExtension {
     }
 
     fun fullPagesForReference(ref: String): List<TanyaSourceLine> {
-        val match = reference.matchEntire(ref) ?: return emptyList()
-        val chapter = match.groupValues[1].toInt()
+        val isFinal = finalReference.matches(ref)
+        val match = (if (isFinal) finalReference else reference).matchEntire(ref) ?: return emptyList()
+        val chapter = match.groupValues[1].toInt() + if (isFinal) 100 else 0
         val start = match.groupValues[2].toInt()
         val end = match.groupValues[3].toIntOrNull() ?: start
         // Do not show a truncated lesson if its end lies beyond the proofread coverage.

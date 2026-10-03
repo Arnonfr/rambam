@@ -58,7 +58,8 @@ class MainActivity : ComponentActivity() {
             val prayers by produceState<PrayerBook?>(null, uiState.effectiveToday) {
                 value = withContext(Dispatchers.IO) { PrayerRepository(applicationContext).load(uiState.effectiveToday) }
             }
-            val prayer = prayers?.sections?.firstOrNull { it.id == prayerId }
+            val prayerServices = prayers?.let { com.example.data.prayers.PrayerServices.group(it.sections) }.orEmpty()
+            val prayer = prayerServices.firstOrNull { it.id == prayerId }
 
             DisposableEffect(lifecycleOwner) {
                 val observer = LifecycleEventObserver { _, event ->
@@ -92,11 +93,11 @@ class MainActivity : ComponentActivity() {
                         if (uiState.isLoading && uiState.allSections.isEmpty()) {
                             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                         } else if (prayer != null) {
-                            androidx.compose.runtime.key(prayer.id, prayer.bookmarkKey) {
-                                val prayerSections = prayers!!.sections
+                            androidx.compose.runtime.key(prayer.id) {
+                                val prayerSections = prayerServices
                                 val prayerIndex = prayerSections.indexOfFirst { it.id == prayer.id }
                                 PrayerReaderScreen(
-                                    section = prayer,
+                                    service = prayer,
                                     preferences = uiState.preferences,
                                     onBack = { prayerId = null },
                                     onNextPrayer = if (prayerIndex < prayerSections.lastIndex) ({ prayerId = prayerSections[prayerIndex + 1].id }) else null,
@@ -185,6 +186,25 @@ class MainActivity : ComponentActivity() {
                                 onToggleCompletion = { viewModel.toggleTanyaCompletion() },
                                 onSavePosition = { sec, les -> viewModel.saveTanyaPosition(sec, les) },
                                 savedPosition = uiState.latestTanyaPosition
+                            )
+                        } else if (uiState.isHayomYomReaderOpen) {
+                            TanyaReaderScreen(
+                                lesson = uiState.dailyHayomYom, isLoading = false,
+                                readerTitle = "היום יום", contentId = "hayom_yom", allowPrintLayout = false,
+                                onBack = { viewModel.openHayomYomReader(false) },
+                                preferences = uiState.preferences,
+                                onFontSizeChange = { viewModel.changeChumashFontSize(it) },
+                                onLineSpacingChange = { viewModel.setLineSpacing(it) },
+                                onFontFamilyChange = { viewModel.setFontFamily(it) },
+                                onNikudToggle = { viewModel.toggleShowNikud(it) },
+                                onThemeChange = { viewModel.setReaderTheme(it) },
+                                onKeepScreenOnChange = { viewModel.setKeepScreenOn(it) },
+                                hebrewDateText = uiState.dailyHayomYom?.hebrewDate.orEmpty(),
+                                onNextDay = { viewModel.stepSelectedDate(1) },
+                                onPrevDay = { viewModel.stepSelectedDate(-1) },
+                                onOpenDatePicker = { viewModel.setShowDatePicker(true) },
+                                onToggleCompletion = { viewModel.completeHayomYom() },
+                                onSavePosition = { section, lesson -> viewModel.saveHayomYomPosition(section, lesson) }
                             )
                         } else if (uiState.isMitzvahReaderOpen && uiState.dailyMitzvahAssignment != null) {
                             BackHandler(enabled = true) {
@@ -312,6 +332,7 @@ class MainActivity : ComponentActivity() {
                                 onOpenMitzvah = {
                                     viewModel.openMitzvahReader(true)
                                 },
+                                onOpenHayomYom = { viewModel.openHayomYomReader(true) },
                                 prayerSections = prayers?.sections.orEmpty(),
                                 onOpenPrayer = { prayerId = it }
                             )

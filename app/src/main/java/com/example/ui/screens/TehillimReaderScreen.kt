@@ -305,7 +305,7 @@ fun TehillimReaderScreen(
                     .fillMaxSize()
                     .endOfLessonPull(completionPullState)
                     .padding(horizontal = 20.dp),
-                contentPadding = PaddingValues(top = 40.dp, bottom = 118.dp)
+                contentPadding = PaddingValues(top = 40.dp, bottom = 220.dp)
             ) {
                 // Header card explaining the standard day of the month portion
                 // Retain the zero-height slot so existing saved paragraph indices stay valid.

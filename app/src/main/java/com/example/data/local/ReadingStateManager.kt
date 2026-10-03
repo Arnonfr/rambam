@@ -152,5 +152,8 @@ class ReadingStateManager(context: Context) {
     fun isCompleted(track: String, date: String): Boolean =
         prefs.getString("completed_$track", null) == date
 
+    fun completedDate(track: String): String? =
+        prefs.getString("completed_$track", null)?.takeIf { it.isNotBlank() }
+
     private fun key(base: String, track: String): String = "${base}_$track"
 }

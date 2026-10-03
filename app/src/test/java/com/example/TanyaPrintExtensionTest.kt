@@ -44,12 +44,27 @@ class TanyaPrintExtensionTest {
         assertFalse(VerifiedTanyaPrint.hasDailyWords(lines.first()))
     }
 
-    @Test fun `unverified final lesson is never silently truncated`() {
-        assertTrue(VerifiedTanyaPrint.fullPagesForReference(ref("28:6-9")).isEmpty())
+    @Test fun `invalid range is never silently truncated`() {
+        assertTrue(VerifiedTanyaPrint.fullPagesForReference(ref("28:6-10")).isEmpty())
+        assertFalse(VerifiedTanyaPrint.fullPagesForReference(ref("28:6-9")).isEmpty())
         assertFalse(VerifiedTanyaPrint.fullPagesForReference(ref("28:6")).isEmpty())
         val lastCovered = VerifiedTanyaPrint.fullPagesForReference(ref("28:1-5"))
         assertEquals("ואתהפכא", lastCovered.last().text)
         assertFalse(VerifiedTanyaPrint.hasDailyWords(lastCovered.last()))
+    }
+
+    @Test fun `all thirty remaining pages reach end of Kuntres Acharon without gaps`() {
+        val references = listOf("28:6-9", "29:1-27", "30:1-5", "31:1-9", "32:1-10").map(::ref) +
+            listOf(1 to 6, 2 to 6, 3 to 7, 4 to 58, 5 to 10, 6 to 15, 7 to 6, 8 to 8, 9 to 12)
+                .map { (chapter, end) -> "Tanya, Part V; Kuntres Acharon $chapter:1-$end" }
+        val lines = references.flatMap(VerifiedTanyaPrint::fullPagesForReference)
+        assertEquals((296..325).toSet(), lines.map { it.page }.filter { it >= 296 }.toSet())
+        assertTrue(lines.none { Regex("\\[\\d+:\\d+\\]").containsMatchIn(it.text) })
+        val final = VerifiedTanyaPrint.fullPagesForReference("Tanya, Part V; Kuntres Acharon 9:12")
+        assertEquals(325, final.first().page)
+        assertEquals("לעומת זה כו׳:", final.last().text)
+        assertTrue(final.takeWhile { !VerifiedTanyaPrint.hasDailyWords(it) }.size > 20)
+        assertFalse(VerifiedTanyaPrint.fullPagesForReference("Tanya, Part V; Kuntres Acharon 9:1-13").isNotEmpty())
     }
 
     @Test fun `small editorial insert and centered catchword remain separately styled`() {

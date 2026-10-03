@@ -176,7 +176,7 @@ fun MitzvahReaderScreen(
             LazyColumn(
                 state = listState,
                 modifier = Modifier.fillMaxSize().endOfLessonPull(completionPullState).padding(horizontal = 20.dp),
-                contentPadding = PaddingValues(top = 40.dp, bottom = 120.dp)
+                contentPadding = PaddingValues(top = 40.dp, bottom = 220.dp)
             ) {
                 // Retain the zero-height slot so existing saved paragraph indices stay valid.
                 item(key = "mitzvah_intro") { }

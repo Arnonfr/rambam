@@ -9,6 +9,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -26,15 +27,18 @@ import com.example.data.local.ContentReadingAnchor
 import com.example.data.local.ContentReadingAnchorManager
 import com.example.data.local.UserPreferences
 import com.example.data.prayers.PrayerSection
+import com.example.data.prayers.PrayerService
+import kotlinx.coroutines.launch
 import com.example.ui.components.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.withContext
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PrayerReaderScreen(
-    section: PrayerSection,
+    service: PrayerService,
     preferences: UserPreferences,
     onBack: () -> Unit,
     onNextPrayer: (() -> Unit)?,
@@ -48,6 +52,12 @@ fun PrayerReaderScreen(
 ) {
     BackHandler(onBack = onBack)
     val context = LocalContext.current
+    val blocks = remember(service) { service.sections.flatMap { part ->
+        part.paragraphs.mapIndexed { index, text -> Triple(part, index, text) }
+    } }
+    val section = service.sections.first()
+    val scope = rememberCoroutineScope()
+    var sectionPicker by remember { mutableStateOf(false) }
     val manager = remember { ContentReadingAnchorManager(context) }
     DisposableEffect(preferences.keepScreenOn) {
         val window = (context as? Activity)?.window
@@ -56,10 +66,22 @@ fun PrayerReaderScreen(
         onDispose { window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) }
     }
     // Versioned cleaned paragraphs must not reuse indices from the old raw import.
-    val contentId = "prayer_clean_${section.id}"
-    val studyDate = section.bookmarkKey
-    val entryAnchor = remember(contentId, studyDate) { manager.get(contentId, studyDate) }
+    val contentId = "prayer_service_${service.id}"
+    val studyDate = "prayer_service_v1"
+    val entryAnchor = remember(contentId, studyDate) {
+        manager.get(contentId, studyDate) ?: service.sections.mapNotNull { part ->
+            manager.get("prayer_clean_${part.id}", part.bookmarkKey)?.let { old ->
+                val start = blocks.indexOfFirst { it.first.id == part.id }
+                old.copy(contentId = contentId, assignmentDate = studyDate,
+                    blockIndex = start + old.blockIndex.coerceIn(0, part.paragraphs.lastIndex))
+            }
+        }.maxByOrNull { it.updatedAt }
+    }
     val listState = rememberLazyListState()
+    val anchorIndex = remember(entryAnchor, blocks) {
+        blocks.indexOfFirst { "${it.first.id}_${it.second}" == entryAnchor?.blockId }
+            .takeIf { it >= 0 } ?: entryAnchor?.blockIndex?.coerceIn(0, blocks.lastIndex)
+    }
     var restored by remember(contentId, studyDate) { mutableStateOf(false) }
     var typography by remember { mutableStateOf(false) }
     val foreground = if (preferences.readerTheme == "dark") Color.White else Color.Black
@@ -68,18 +90,22 @@ fun PrayerReaderScreen(
         "sepia" -> Color(0xFFF5EEDA)
         else -> Color.White
     }
-    val progress by remember(section) { derivedStateOf {
-        listState.firstVisibleItemIndex.toFloat() / section.paragraphs.size.coerceAtLeast(1)
+    val currentSection by remember(service) { derivedStateOf {
+        blocks.getOrNull(listState.firstVisibleItemIndex)?.first ?: section
+    } }
+    val progress by remember(service) { derivedStateOf {
+        listState.firstVisibleItemIndex.toFloat() / blocks.size.coerceAtLeast(1)
     } }
     LaunchedEffect(contentId, studyDate) {
-        listState.scrollToItem(entryAnchor?.blockIndex?.coerceIn(0, section.paragraphs.lastIndex) ?: 0,
+        listState.scrollToItem(anchorIndex ?: 0,
             entryAnchor?.textOffset?.coerceAtLeast(0) ?: 0)
         restored = true
     }
     fun save() {
         if (!restored) return
-        manager.save(ContentReadingAnchor(contentId, studyDate, section.id,
-            "${section.id}_${listState.firstVisibleItemIndex}", listState.firstVisibleItemIndex,
+        val block = blocks.getOrNull(listState.firstVisibleItemIndex) ?: return
+        manager.save(ContentReadingAnchor(contentId, studyDate, service.id,
+            "${block.first.id}_${block.second}", listState.firstVisibleItemIndex,
             textOffset = listState.firstVisibleItemScrollOffset))
     }
     LaunchedEffect(contentId, studyDate, restored) {
@@ -99,11 +125,14 @@ fun PrayerReaderScreen(
         Box(Modifier.fillMaxSize().background(background)) {
             LazyColumn(state = listState, contentPadding = PaddingValues(top = 40.dp, bottom = 128.dp),
                 modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
-                itemsIndexed(section.paragraphs, key = { index, _ -> "${section.id}_$index" }) { index, text ->
-                    StudyTextBlock(indexLetter = "", textWithNikud = text,
-                        textPlain = text.replace(Regex("[\\u0591-\\u05BD\\u05BF-\\u05C2\\u05C4-\\u05C5\\u05C7]"), ""),
+                itemsIndexed(blocks, key = { _, block -> "${block.first.id}_${block.second}" }) { index, block ->
+                    if (block.second == 0 && index > 0) Text(block.first.title,
+                        color = foreground, style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(top = 16.dp, bottom = 12.dp))
+                    StudyTextBlock(indexLetter = "", textWithNikud = block.third,
+                        textPlain = com.example.ui.util.HebrewTextNormalizer.stripMarks(block.third),
                         preferences = preferences, textColor = foreground,
-                        isReadingAnchor = entryAnchor?.blockIndex == index,
+                        isReadingAnchor = anchorIndex == index,
                         modifier = Modifier.padding(bottom = 18.dp))
                 }
                 item(key = "attribution") {
@@ -123,11 +152,33 @@ fun PrayerReaderScreen(
                     }
                 }
             }
-            CompactReaderHeader("תפילות", section.title, Color(0xFF73D4ED), progress, preferences.readerTheme,
+            CompactReaderHeader(service.title, currentSection.title, Color(0xFF73D4ED), progress, preferences.readerTheme,
                 Modifier.align(Alignment.TopCenter))
-            FloatingReaderBar("", section.title, progress, onBack, {}, { typography = true },
-                preferences.readerTheme, onNextPrayer, onPrevPrayer,
-                Modifier.align(Alignment.BottomCenter).navigationBarsPadding(), prayerNavigation = true)
+            val current = service.sections.indexOfFirst { it.id == currentSection.id }
+            fun jumpTo(index: Int) {
+                val part = service.sections.getOrNull(index) ?: return
+                scope.launch { listState.scrollToItem(blocks.indexOfFirst { it.first.id == part.id }) }
+            }
+            FloatingReaderBar("", currentSection.title, progress, onBack, {}, { typography = true },
+                preferences.readerTheme,
+                if (current < service.sections.lastIndex) ({ jumpTo(current + 1) }) else onNextPrayer,
+                if (current > 0) ({ jumpTo(current - 1) }) else onPrevPrayer,
+                Modifier.align(Alignment.BottomCenter).navigationBarsPadding(), prayerNavigation = true,
+                onOpenPrayerSections = { sectionPicker = true })
+        }
+        if (sectionPicker) ModalBottomSheet(onDismissRequest = { sectionPicker = false },
+            containerColor = background, contentColor = foreground) {
+            Text("${service.title} · מעבר למקטע", style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(20.dp))
+            LazyColumn(Modifier.fillMaxWidth().heightIn(max = 500.dp)) {
+            items(service.sections, key = { it.id }) { part ->
+                TextButton(onClick = {
+                    sectionPicker = false
+                    scope.launch { listState.scrollToItem(blocks.indexOfFirst { it.first.id == part.id }) }
+                }, modifier = Modifier.fillMaxWidth()) { Text(part.title, color = foreground) }
+            }
+            item { Spacer(Modifier.height(24.dp)) }
+            }
         }
         if (typography) ReaderTypographySheet(preferences = preferences,
             onDismiss = { typography = false }, onFontSizeChange = onFontSizeChange,

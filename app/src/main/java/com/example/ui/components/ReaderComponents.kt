@@ -246,7 +246,8 @@ fun FloatingReaderBar(
     onNextDay: (() -> Unit)? = null,
     onPrevDay: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
-    prayerNavigation: Boolean = false
+    prayerNavigation: Boolean = false,
+    onOpenPrayerSections: (() -> Unit)? = null
 ) {
     val dark = readerTheme == "dark"
     val foreground = if (dark) Color.White else Color.Black
@@ -274,7 +275,8 @@ fun FloatingReaderBar(
                 }
                 Surface(
                     modifier = Modifier.weight(1f).clip(RoundedCornerShape(16.dp))
-                        .clickable(enabled = !prayerNavigation, onClick = onOpenDatePicker)
+                        .clickable(enabled = !prayerNavigation || onOpenPrayerSections != null,
+                            onClick = if (prayerNavigation) ({ onOpenPrayerSections?.invoke(); Unit }) else onOpenDatePicker)
                         .testTag("reader_bottom_date_picker_button"),
                     color = if (dark) Color(0xFF2C3038) else Color(0xFFF3F4F5),
                     shape = RoundedCornerShape(16.dp)
@@ -290,7 +292,7 @@ fun FloatingReaderBar(
                         Text(hebrewDateText, fontSize = 12.sp, fontWeight = FontWeight.Bold,
                             color = foreground, maxLines = 1, modifier = Modifier.weight(1f),
                             textAlign = TextAlign.Center)
-                        if (!prayerNavigation) Icon(Icons.Default.ArrowDropDown, null,
+                        if (!prayerNavigation || onOpenPrayerSections != null) Icon(Icons.Default.ArrowDropDown, null,
                             tint = foreground, modifier = Modifier.size(15.dp))
                     }
                 }
@@ -450,7 +452,7 @@ fun ReaderTypographySheet(
                         val isSelected = preferences.fontFamily == option.id
                         val label = when (option) {
                             FontStyleOption.SANS -> "מודרני"
-                            FontStyleOption.SERIF -> "תורני"
+                            FontStyleOption.SERIF -> "דפוס תניא"
                             FontStyleOption.LIBERTINUS -> "סריף לטיני"
                             FontStyleOption.BONA_NOVA -> "בונה נובה"
                         }
