@@ -56,6 +56,7 @@ fun SettingsDialog(
     onCityChange: (String) -> Unit,
     onFontFamilyChange: (String) -> Unit = {},
     onToggleStudy: (String) -> Unit = {},
+    onTanyaBookViewChange: (Boolean) -> Unit = {},
     onOpenAttribution: () -> Unit
 ) {
     var expandedCityDropdown by remember { mutableStateOf(false) }
@@ -152,8 +153,29 @@ fun SettingsDialog(
                         }
                     }
 
+                    Row(
+                        Modifier.fillMaxWidth().background(Color(0xFFF0A0DD)).padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(Modifier.weight(1f)) {
+                            Text("תניא — צורת הדף", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, color = ink)
+                            Text("תצוגת הספר במקום טקסט רגיל", fontSize = 11.sp, color = ink.copy(alpha = 0.72f))
+                        }
+                        Switch(
+                            checked = preferences.tanyaBookView,
+                            onCheckedChange = onTanyaBookViewChange,
+                            modifier = Modifier.testTag("home_tanya_book_view"),
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = Color.White, checkedTrackColor = ink,
+                                uncheckedThumbColor = Color.White, uncheckedTrackColor = ink.copy(alpha = 0.35f),
+                                uncheckedBorderColor = Color.Transparent
+                            )
+                        )
+                    }
+
                     HorizontalDivider(color = ink, thickness = 1.dp)
                     Text("גופן הלימוד", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, color = ink)
+                    if (preferences.tanyaBookView) Text("בתניא בצורת הדף נשמר גופן הספר. הבחירה כאן חלה על יתר השיעורים.", fontSize = 11.sp, color = ink.copy(alpha = 0.72f))
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         FontStyleOption.entries.forEach { option ->
                             val selected = preferences.fontFamily == option.id

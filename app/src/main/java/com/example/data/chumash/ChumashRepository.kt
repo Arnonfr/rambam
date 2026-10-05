@@ -1,6 +1,7 @@
 package com.example.data.chumash
 
 import android.content.Context
+import androidx.core.text.HtmlCompat
 import com.example.domain.chumash.ChumashAliya
 import com.example.domain.chumash.ChumashParasha
 import com.example.domain.chumash.ChumashVerse
@@ -72,13 +73,13 @@ class ChumashRepository(private val context: Context) {
             for (j in 0 until versesArray.length()) {
                 val vObj = versesArray.getJSONObject(j)
                 val vNum = vObj.getInt("verseNumber")
-                val withTeamim = vObj.getString("textWithTeamim")
-                val plainNikud = vObj.optString("textPlainNikud", removeCantillation(withTeamim))
+                val withTeamim = cleanHtml(vObj.getString("textWithTeamim"))
+                val plainNikud = cleanHtml(vObj.optString("textPlainNikud", removeCantillation(withTeamim)))
                 val rashiList = mutableListOf<String>()
                 if (vObj.has("rashi")) {
                     val rArr = vObj.getJSONArray("rashi")
                     for (k in 0 until rArr.length()) {
-                        rashiList.add(rArr.getString(k))
+                        rashiList.add(cleanRashiHtml(rArr.getString(k)))
                     }
                 }
                 verses.add(
@@ -252,6 +253,7 @@ class ChumashRepository(private val context: Context) {
         val aliyotList = mutableListOf<ChumashAliya>()
 
         val pObj = JSONObject()
+        pObj.put("contentSchemaVersion", 2)
         pObj.put("parasha", parashaName)
         pObj.put("book", extractBookName(fullRef))
         pObj.put("fullRef", fullRef)
@@ -260,8 +262,8 @@ class ChumashRepository(private val context: Context) {
         val count = minOf(7, aliyotRefs.length())
         for (idx in 0 until count) {
             val ref = aliyotRefs.getString(idx)
-            val (heRef, verses) = fetchVersesFromSefaria(ref)
-            val rashiPerVerse = fetchRashiFromSefaria(ref)
+            val (heRef, verses, chapterLengths) = fetchVersesFromSefaria(ref)
+            val rashiPerVerse = fetchRashiFromSefaria(ref, chapterLengths)
 
             val aObj = JSONObject()
             aObj.put("aliyaIndex", idx + 1)
@@ -331,7 +333,7 @@ class ChumashRepository(private val context: Context) {
         return parasha
     }
 
-    private fun fetchVersesFromSefaria(ref: String): Pair<String, List<String>> {
+    private fun fetchVersesFromSefaria(ref: String): Triple<String, List<String>, List<Int>> {
         val formattedRef = ref.replace(" ", ".")
         val url = "https://www.sefaria.org/api/texts/$formattedRef?context=0"
         try {
@@ -341,16 +343,19 @@ class ChumashRepository(private val context: Context) {
                 .build()
             val res = httpClient.newCall(req).execute()
             if (res.isSuccessful) {
-                val body = res.body?.string() ?: return Pair(ref, emptyList())
+                val body = res.body?.string() ?: return Triple(ref, emptyList(), emptyList())
                 val json = JSONObject(body)
                 val heRef = json.optString("heRef", ref)
                 val heElement = json.opt("he")
                 val verses = mutableListOf<String>()
                 flattenHebrewArray(heElement, verses)
-                return Pair(heRef, verses)
+                val chapterLengths = if (heElement is JSONArray && heElement.opt(0) is JSONArray) {
+                    (0 until heElement.length()).map { heElement.getJSONArray(it).length() }
+                } else listOf(verses.size)
+                return Triple(heRef, verses, chapterLengths)
             }
         } catch (_: Exception) {}
-        return Pair(ref, emptyList())
+        return Triple(ref, emptyList(), emptyList())
     }
 
     private fun flattenHebrewArray(element: Any?, target: MutableList<String>) {
@@ -367,7 +372,7 @@ class ChumashRepository(private val context: Context) {
         }
     }
 
-    private fun fetchRashiFromSefaria(ref: String): List<List<String>> {
+    private fun fetchRashiFromSefaria(ref: String, chapterLengths: List<Int>): List<List<String>> {
         val formattedRef = ref.replace(" ", "_").replace(":", ".")
         val rashiRef = "Rashi_on_$formattedRef"
         val url = "https://www.sefaria.org/api/texts/$rashiRef?context=0"
@@ -380,24 +385,7 @@ class ChumashRepository(private val context: Context) {
             if (res.isSuccessful) {
                 val body = res.body?.string() ?: return emptyList()
                 val json = JSONObject(body)
-                val heElement = json.opt("he")
-                val rashiPerVerse = mutableListOf<List<String>>()
-                if (heElement is JSONArray) {
-                    for (i in 0 until heElement.length()) {
-                        val verseRashi = mutableListOf<String>()
-                        val vObj = heElement.get(i)
-                        if (vObj is JSONArray) {
-                            for (j in 0 until vObj.length()) {
-                                val rText = vObj.optString(j, "")
-                                if (rText.isNotBlank()) verseRashi.add(rText)
-                            }
-                        } else if (vObj is String && vObj.isNotBlank()) {
-                            verseRashi.add(vObj)
-                        }
-                        rashiPerVerse.add(verseRashi)
-                    }
-                }
-                return rashiPerVerse
+                return parseRashiResponse(json, chapterLengths)
             }
         } catch (_: Exception) {}
         return emptyList()
@@ -408,6 +396,8 @@ class ChumashRepository(private val context: Context) {
             val file = File(context.cacheDir, "chumash/parasha_${parashaName}.json")
             if (file.exists()) {
                 val json = JSONObject(file.readText())
+                // Older downloads may contain missing or chapter-shifted Rashi.
+                if (json.optInt("contentSchemaVersion") < 2) return null
                 val p = parseParashaJson(json)
                 memoryCache[parashaName] = p
                 return p
@@ -424,11 +414,47 @@ class ChumashRepository(private val context: Context) {
             "במדבר", "נשא", "בהעלותך", "שלח", "שלח לך", "קרח", "חקת", "בלק", "פינחס", "מטות", "מסעי",
             "דברים", "ואתחנן", "עקב", "ראה", "שופטים", "כי תצא", "כי תבוא", "נצבים", "וילך", "האזינו", "וזאת הברכה"
         )
-        private val HTML_TAG_PATTERN = Pattern.compile("<[^>]+>")
         private val CANTILLATION_PATTERN = Pattern.compile("[\u0591-\u05AF]")
 
         fun cleanHtml(text: String): String {
-            return HTML_TAG_PATTERN.matcher(text).replaceAll("").replace("&nbsp;", " ").trim()
+            val source = text.replace("&thinsp;", " ").replace("&thinsp", " ")
+                .replace("&ensp;", " ").replace("&emsp;", " ")
+            return HtmlCompat.fromHtml(source, HtmlCompat.FROM_HTML_MODE_LEGACY)
+                .toString().replace('\u00A0', ' ').trim()
+        }
+
+        fun cleanRashiHtml(text: String): String {
+            // Keep the opening words bold, while decoding entities and other markup.
+            val protected = text.replace("<b>", "\uE000").replace("</b>", "\uE001")
+            return cleanHtml(protected).replace("\uE000", "<b>").replace("\uE001", "</b>")
+        }
+
+        fun parseRashiResponse(json: JSONObject, chapterLengths: List<Int> = emptyList()): List<List<String>> {
+            val hebrew = json.optJSONArray("he") ?: return emptyList()
+            val spanning = json.optJSONArray("sections")?.optInt(0) !=
+                json.optJSONArray("toSections")?.optInt(0)
+            val verses = mutableListOf<JSONArray>()
+            if (spanning) {
+                for (chapter in 0 until hebrew.length()) {
+                    val chapterVerses = hebrew.getJSONArray(chapter)
+                    for (verse in 0 until chapterVerses.length()) {
+                        verses.add(chapterVerses.getJSONArray(verse))
+                    }
+                    repeat(((chapterLengths.getOrNull(chapter) ?: chapterVerses.length()) - chapterVerses.length()).coerceAtLeast(0)) {
+                        verses.add(JSONArray())
+                    }
+                }
+            } else {
+                for (verse in 0 until hebrew.length()) verses.add(hebrew.getJSONArray(verse))
+                repeat(((chapterLengths.firstOrNull() ?: hebrew.length()) - hebrew.length()).coerceAtLeast(0)) {
+                    verses.add(JSONArray())
+                }
+            }
+            // Empty comment arrays are meaningful: never shift following comments up a verse.
+            return verses.map { comments ->
+                (0 until comments.length()).map { cleanRashiHtml(comments.getString(it)) }
+                    .filter { it.isNotBlank() }
+            }
         }
 
         fun removeCantillation(text: String): String {

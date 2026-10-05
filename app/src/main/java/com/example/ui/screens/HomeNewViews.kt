@@ -1,5 +1,6 @@
 package com.example.ui.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -38,6 +39,7 @@ import androidx.compose.foundation.border
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -430,6 +432,10 @@ fun FloatingDarkNavBar(
     onSelectTab: (HomeTab) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+    val constructionToast = remember(context) {
+        Toast.makeText(context, "בבנייה", Toast.LENGTH_SHORT)
+    }
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
@@ -453,7 +459,7 @@ fun FloatingDarkNavBar(
                 modifier = Modifier.weight(1f).fillMaxHeight().padding(4.dp)
                     .clip(RoundedCornerShape(28.dp))
                     .background(if (selectedTab == HomeTab.PODCASTS) Color.White else Color.Transparent)
-                    .clickable { onSelectTab(HomeTab.PODCASTS) }) {
+                    .clickable { constructionToast.show() }) {
                 Text("פודקאסטים", fontSize = 13.sp,
                     color = if (selectedTab == HomeTab.PODCASTS) Color.Black else Color(0xFF777777))
             }
@@ -466,7 +472,7 @@ fun FloatingDarkNavBar(
                     .padding(4.dp)
                     .clip(RoundedCornerShape(28.dp))
                     .background(if (selectedTab == HomeTab.PRAYERS) Color.White else Color.Transparent)
-                    .clickable { onSelectTab(HomeTab.PRAYERS) },
+                    .clickable { constructionToast.show() },
                 horizontalArrangement = Arrangement.Center
             ) {
                 Icon(

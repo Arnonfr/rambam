@@ -4,8 +4,6 @@
         android:width="108dp"
         android:height="108dp"
         android:gravity="center">
-        <inset android:inset="24%">
-            <bitmap android:src="@drawable/app_icon_flat" android:gravity="fill" />
-        </inset>
+        <inset android:inset="18%" android:drawable="@drawable/app_icon_square" />
     </item>
 </layer-list>

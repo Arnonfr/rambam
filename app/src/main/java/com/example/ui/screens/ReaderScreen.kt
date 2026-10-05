@@ -39,6 +39,8 @@ import com.example.data.local.HalachaEntity
 import com.example.data.local.ReadingPositionEntity
 import com.example.data.local.UserPreferences
 import com.example.domain.schedule.DailyLessonResult
+import com.example.domain.RambamDiagrams
+import com.example.ui.components.RambamDiagramBlock
 import com.example.ui.ReaderChapterData
 import com.example.ui.components.FloatingReaderBar
 import com.example.ui.components.CompactReaderHeader
@@ -540,15 +542,19 @@ private fun HalachaBlock(
     isReadingAnchor: Boolean = false,
     modifier: Modifier = Modifier
 ) {
-    StudyTextBlock(
-        indexLetter = halacha.letter,
-        textWithNikud = halacha.textWithNikud,
-        textPlain = halacha.textPlain,
-        preferences = preferences,
-        fontFamily = fontFamily,
-        textColor = MaterialTheme.colorScheme.onBackground,
-        isReadingAnchor = isReadingAnchor,
-        modifier = modifier,
-        testTag = "halacha_item_${halacha.halachaNumber}"
-    )
+    Column(modifier) {
+        StudyTextBlock(
+            indexLetter = halacha.letter,
+            textWithNikud = halacha.textWithNikud,
+            textPlain = halacha.textPlain,
+            preferences = preferences,
+            fontFamily = fontFamily,
+            textColor = MaterialTheme.colorScheme.onBackground,
+            isReadingAnchor = isReadingAnchor,
+            modifier = Modifier,
+            testTag = "halacha_item_${halacha.halachaNumber}"
+        )
+        RambamDiagrams.forHalacha(halacha.sectionId, halacha.chapterNumber, halacha.halachaNumber)
+            .forEach { RambamDiagramBlock(it) }
+    }
 }

@@ -358,6 +358,7 @@ class MainActivity : ComponentActivity() {
                                 onCityChange = { viewModel.setCity(it) },
                                 onFontFamilyChange = { viewModel.setFontFamily(it) },
                                 onToggleStudy = { viewModel.toggleStudyVisibility(it) },
+                                onTanyaBookViewChange = { viewModel.setTanyaBookView(it) },
                                 onOpenAttribution = { viewModel.setShowAttribution(true) }
                             )
                         }

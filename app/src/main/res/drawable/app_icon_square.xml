@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Upright square book. Solid fills match the home lesson cards exactly. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#FFFCF6" android:pathData="M0,0H108V108H0Z" />
+    <path android:fillColor="#FFFCF6" android:strokeColor="#111111" android:strokeWidth="4"
+        android:strokeLineJoin="round"
+        android:pathData="M22,28H18Q14,28 14,32V86Q14,90 18,90H47Q54,94 61,90H90Q94,90 94,86V32Q94,28 90,28H86Z" />
+    <path android:fillColor="#FFFCF6" android:strokeColor="#111111" android:strokeWidth="4"
+        android:strokeLineJoin="round"
+        android:pathData="M54,25Q51,18 44,18H26Q22,18 22,22V82Q22,86 26,86H44Q51,86 54,92Z" />
+    <path android:fillColor="#FFFCF6" android:strokeColor="#111111" android:strokeWidth="4"
+        android:strokeLineJoin="round"
+        android:pathData="M54,25Q57,18 64,18H82Q86,18 86,22V82Q86,86 82,86H64Q57,86 54,92Z" />
+    <path android:fillColor="#FF873F" android:pathData="M31,27H45Q47,27 47,29V49Q47,51 45,51H31Q29,51 29,49V29Q29,27 31,27Z" />
+    <path android:fillColor="#F4F66A" android:pathData="M63,27H77Q79,27 79,29V49Q79,51 77,51H63Q61,51 61,49V29Q61,27 63,27Z" />
+    <path android:fillColor="#F0A0DD" android:pathData="M31,55H45Q47,55 47,57V77Q47,79 45,79H31Q29,79 29,77V57Q29,55 31,55Z" />
+    <path android:fillColor="#9FDEEF" android:pathData="M63,55H77Q79,55 79,57V77Q79,79 77,79H63Q61,79 61,77V57Q61,55 63,55Z" />
+</vector>

@@ -296,7 +296,7 @@ fun TanyaReaderScreen(
                     key = { idx, sec -> "tanya_sec_${sec.sectionIndex}_$idx" }
                 ) { _, section ->
                     StudyTextBlock(
-                        indexLetter = section.sectionHebrew,
+                        indexLetter = "",
                         textWithNikud = section.textWithNikud,
                         textPlain = section.textPlain,
                         preferences = preferences,
