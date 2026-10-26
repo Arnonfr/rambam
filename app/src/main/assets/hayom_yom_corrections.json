@@ -1,0 +1,94 @@
+{
+  "version": 1,
+  "entries": {
+    "cheshvan-8": {
+      "sourceUrl": "https://he.chabad.org/dailystudy/hayomyom.asp?tdate=10/19/2026",
+      "verifiedOn": "2026-10-21",
+      "replacements": [
+        [
+          "את הציווי הוא.",
+          "את הציווי ההוא."
+        ],
+        [
+          "בהרגש ההחכם",
+          "בהרגש החכם"
+        ],
+        [
+          "אשר ההוא יכול",
+          "אשר הוא יכול"
+        ],
+        [
+          "עם ההאיש הפשוט",
+          "עם האיש הפשוט"
+        ]
+      ]
+    },
+    "tishrei-14": {
+      "sourceUrl": "https://he.chabad.org/dailystudy/hayomyom.asp?tdate=9/25/2026",
+      "verifiedOn": "2026-10-21",
+      "replacements": [
+        [
+          "מכוסות בההדסים",
+          "מכוסות בהדסים"
+        ]
+      ]
+    },
+    "cheshvan-1": {
+      "sourceUrl": "https://he.chabad.org/dailystudy/hayomyom.asp?tdate=10/12/2026",
+      "verifiedOn": "2026-10-21",
+      "replacements": [
+        [
+          "למקום ההוא, שם הוטלה",
+          "למקום ההוא אשר שם הוטלה"
+        ]
+      ]
+    },
+    "adar1-29": {
+      "sourceUrl": "https://he.chabad.org/dailystudy/hayomyom.asp?tdate=3/9/2024",
+      "verifiedOn": "2026-10-21",
+      "replacements": [
+        [
+          "היו תוצאת לא טובים",
+          "היו תוצאות לא טובים"
+        ]
+      ]
+    },
+    "adar-29": {
+      "sourceUrl": "https://he.chabad.org/dailystudy/hayomyom.asp?tdate=3/9/2024",
+      "verifiedOn": "2026-10-21",
+      "replacements": [
+        [
+          "היו תוצאת לא טובים",
+          "היו תוצאות לא טובים"
+        ]
+      ]
+    },
+    "cheshvan-13": {
+      "sourceUrl": "https://he.chabad.org/dailystudy/hayomyom.asp?tdate=10/24/2026",
+      "verifiedOn": "2026-10-25",
+      "note": "התרגום במקור הוויקי נקטע אחרי המילה הממציא. הושלם תרגום הסיום לפי המקור המלא באידיש ומהדורת קה״ת באנגלית; הטקסט באידיש לא שונה.",
+      "additionalSourceUrl": "https://www.chabad.org/therebbe/article_cdo/aid/5973/jewish/Hayom-Yom-Cheshvan-13.htm",
+      "replacements": [
+        [
+          "לשון הרע הורג את כל השלושה: את הממציא",
+          "לשון הרע הורג את כל השלושה: את הממציא, את המספר ואת השומע. אלא שזה בלבושים הרוחניים, שזה קשה יותר מרציחה בגשמיות."
+        ]
+      ]
+    },
+    "shevat-10": {
+      "sourceUrl": "https://www.chabad.org/therebbe/article_cdo/aid/6060/jewish/Hayom-Yom-Shevat-10.htm",
+      "verifiedOn": "2026-10-25",
+      "note": "בדיקת התרגום מול קה״ת: ניכטערע פירושו בלי אוכל, ולא כפויה. הושלמה גם המילה אמר שנשמטה בתרגום והייתה במקור.",
+      "replacements": [
+        [
+          "וסיים: את לא צריכה להיות כפויה.",
+          "וסיים: אינך צריכה להישאר בלי אוכל."
+        ],
+        [
+          "מאמר זה אבי אדמו\"ר לאחד על יחידות",
+          "מאמר זה אמר אבי אדמו\"ר לאחד על יחידות"
+        ]
+      ]
+    }
+  }
+}

@@ -5,8 +5,12 @@ data class ChumashVerse(
     val verseHebrew: String,
     val textWithTeamim: String,
     val textPlainNikud: String,
-    val rashi: List<String> = emptyList()
-)
+    val rashi: List<String> = emptyList(),
+    val chapterNumber: Int = 0,
+    val bookName: String = ""
+) {
+    val positionId: String get() = "verse_${bookName}_${chapterNumber}_${verseNumber}"
+}
 
 data class ChumashAliya(
     val aliyaIndex: Int, // 1..7 (ראשון, שני, שלישי, רביעי, חמישי, ששי, שביעי)

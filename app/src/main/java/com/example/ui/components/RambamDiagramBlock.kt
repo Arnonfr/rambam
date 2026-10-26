@@ -47,7 +47,8 @@ fun RambamDiagramBlock(diagram: RambamDiagram) {
                 contentScale = ContentScale.Fit
             )
         } else {
-            Canvas(Modifier.fillMaxWidth().aspectRatio(360f / 260f).background(Color(0xFFFFFCF6))
+            val drawingHeight = if (diagram.kind == Kind.HEICHAL || diagram.kind == Kind.COURTYARD) 440f else 260f
+            Canvas(Modifier.fillMaxWidth().aspectRatio(360f / drawingHeight).background(Color(0xFFFFFCF6))
                 .semantics { contentDescription = diagram.title + ". " + diagram.note }) {
                 val factor = size.width / 360f
                 scale(factor, factor, pivot = Offset.Zero) { drawDiagram(diagram.kind) }
@@ -57,6 +58,10 @@ fun RambamDiagramBlock(diagram: RambamDiagram) {
         Text(diagram.note, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text("מקור ומיקום בהלכה ↗", fontSize = 11.sp, color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(top = 6.dp).clickable { uriHandler.openUri(diagram.sourceUrl) })
+        diagram.visualReferenceUrl?.let { reference ->
+            Text("ציור כתב־היד להשוואה ↗", fontSize = 11.sp, color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(top = 4.dp).clickable { uriHandler.openUri(reference) })
+        }
     }
 }
 
@@ -166,29 +171,73 @@ private fun DrawScope.drawDiagram(kind: Kind) {
             label("פתח: כ׳ אמה · גובה: מ׳ אמה", 180f, 247f)
         }
         Kind.HEICHAL -> {
-            // Schematic inner spaces; west left, east right. No invented side-chamber geometry.
-            box(30f, 67f, 216f, 125f)
-            box(246f, 28f, 78f, 205f)
-            line(97f, 67f, 97f, 192f, blue); line(100f, 67f, 100f, 192f, blue)
-            label("קודש", 66f, 111f); label("הקודשים", 66f, 132f)
-            label("כ׳ אמה", 66f, 159f)
-            label("הקודש", 173f, 118f); label("מ׳ אמה", 173f, 155f)
-            label("אולם", 285f, 126f); label("י״א אמה", 285f, 155f, 12f)
-            label("מערב", 61f, 250f); label("מזרח", 296f, 250f)
-            label("אמה בין הפרוכות", 115f, 50f, 11f)
+            // Huntington 452 fol. 9v: west above, north right, nested rectangular
+            // sanctuary (not the T-shaped modern floor plan). Red lines echo its ink.
+            val red = Color(0xFF9E514F)
+            fun outline(x: Float, y: Float, w: Float, h: Float) {
+                drawRect(red, Offset(x, y), Size(w, h), style = Stroke(1.4f))
+            }
+            outline(48f, 39f, 264f, 359f)
+            outline(78f, 56f, 204f, 301f)
+            outline(96f, 71f, 168f, 271f)
+            outline(111f, 83f, 138f, 244f)
+            outline(122f, 93f, 116f, 220f)
+            // Twenty cubits + one-cubit amah teraksin + forty cubits.
+            line(122f, 165f, 238f, 165f, red, 1.4f)
+            line(122f, 170f, 238f, 170f, red, 1.4f)
+            // Openings are real breaks in the plan, not an opaque room block.
+            line(167f, 313f, 193f, 313f, Color(0xFFFFFCF6), 4f)
+            line(166f, 342f, 194f, 342f, Color(0xFFFFFCF6), 4f)
+            line(161f, 357f, 199f, 357f, Color(0xFFFFFCF6), 4f)
+            line(159f, 398f, 201f, 398f, Color(0xFFFFFCF6), 4f)
+            label("מערב", 180f, 22f, 15f)
+            label("קודש הקודשים", 180f, 127f, 13f)
+            label("כ׳ אמה", 180f, 148f, 12f)
+            label("הקודש", 180f, 235f, 16f)
+            label("מ׳ אמה", 180f, 259f, 12f)
+            label("אולם", 180f, 380f, 16f)
+            label("מזרח · פתח האולם", 180f, 427f, 13f)
+            label("דרום", 23f, 211f, 12f); label("צפון", 337f, 211f, 12f)
+            label("תאים", 88f, 208f, 10f); label("תאים", 273f, 208f, 10f)
         }
         Kind.COURTYARD -> {
-            box(24f, 60f, 312f, 160f, Color(0xFFF8F3E9))
-            box(45f, 111f, 129f, 65f); label("היכל ואולם", 110f, 145f, 12f)
-            box(206f, 108f, 48f, 48f); label("מזבח", 230f, 136f, 11f)
-            box(218f, 156f, 24f, 43f); label("כבש", 269f, 181f, 11f)
-            line(286f, 61f, 286f, 219f); line(311f, 61f, 311f, 219f)
-            label("ישראל", 326f, 236f, 10f); label("כוהנים", 296f, 236f, 10f)
-            listOf("עץ", "גולה", "גזית").forEachIndexed { i, t -> box(156f+i*49f, 23f, 47f, 29f); label(t, 179f+i*49f, 43f, 11f) }
-            label("לשכות הצפון", 220f, 15f, 10f)
-            listOf("מלח", "פרווה", "מדיחין").forEachIndexed { i, t -> box(156f+i*49f, 225f, 47f, 24f); label(t, 179f+i*49f, 242f, 10f) }
-            label("פינחס", 321f, 92f, 9f); label("חביתין", 321f, 197f, 9f)
-            label("כל העזרה: קפ״ז × קל״ה אמה", 109f, 88f, 11f)
+            // The visual reference is Huntington 452 fol. 12r. Preserve its
+            // vertical west/east axis, sanctuary rings and south-side ramp.
+            val red = Color(0xFF9E514F)
+            fun outline(x: Float, y: Float, w: Float, h: Float) {
+                drawRect(red, Offset(x, y), Size(w, h), style = Stroke(1.4f))
+            }
+            label("מערב", 180f, 21f, 15f)
+            outline(58f, 34f, 244f, 364f)
+            outline(111f, 56f, 138f, 168f)
+            outline(127f, 67f, 106f, 140f)
+            outline(139f, 78f, 82f, 116f)
+            line(139f, 114f, 221f, 114f, red, 1.4f)
+            line(166f, 194f, 194f, 194f, Color(0xFFFFFCF6), 4f)
+            label("קודש הקודשים", 180f, 101f, 10f)
+            label("קודש", 180f, 157f, 13f)
+            label("אולם", 180f, 219f, 13f)
+            // North right, south left in this manuscript orientation.
+            outline(145f, 263f, 63f, 62f)
+            outline(105f, 268f, 40f, 52f)
+            label("מזבח", 177f, 299f, 13f); label("כבש", 124f, 299f, 11f)
+            outline(95f, 239f, 26f, 24f); label("כיור", 108f, 255f, 9f)
+            line(58f, 342f, 302f, 342f, red, 1.4f)
+            line(58f, 367f, 302f, 367f, red, 1.4f)
+            label("עזרת כוהנים", 180f, 359f, 12f)
+            label("עזרת ישראל", 180f, 389f, 12f)
+            line(159f, 398f, 201f, 398f, Color(0xFFFFFCF6), 4f)
+            label("מזרח · שער ניקנור", 180f, 422f, 13f)
+            label("דרום", 27f, 182f, 12f); label("צפון", 332f, 182f, 12f)
+            listOf("מלח", "פרווה", "מדיחין").forEachIndexed { i, name ->
+                outline(3f, 235f + i * 30f, 53f, 30f)
+                label(name, 29f, 254f + i * 30f, 10f)
+            }
+            listOf("עץ", "גולה", "גזית").forEachIndexed { i, name ->
+                outline(304f, 235f + i * 30f, 53f, 30f)
+                label(name, 330f, 254f + i * 30f, 10f)
+            }
+            label("קפ״ז × קל״ה אמה", 181f, 48f, 10f)
         }
         Kind.SHOHAM -> {
             val right = listOf("ראובן", "לוי", "יששכר", "נפתלי", "גד", "יהוסף")

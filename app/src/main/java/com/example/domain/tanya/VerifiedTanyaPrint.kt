@@ -4,10 +4,13 @@ data class TanyaSourceLine(val page: Int, val text: String, val section: Int,
     val justified: Boolean = true, val greyFromWord: Int? = null, val greyBeforeWord: Int? = null,
     val largeOpeningWords: Int = 0, val rightIndentFraction: Float = 0f,
     val centered: Boolean = false, val fontScale: Float = 1f,
-    val wordFontScales: Map<Int, Float> = emptyMap()) {
+    val wordFontScales: Map<Int, Float> = emptyMap(),
+    val activeWordIndices: Set<Int>? = null,
+    val columns: List<List<TanyaSourceLine>> = emptyList(),
+    val catchword: Boolean? = null) {
     // The verified source represents the next page's catchword as an isolated,
     // non-justified word. Paragraph endings remain centered independently.
-    val isCatchword: Boolean get() = !justified && text.trim().none { it.isWhitespace() }
+    val isCatchword: Boolean get() = catchword ?: (!justified && text.trim().none { it.isWhitespace() })
 }
 
 /** Line endings checked visually against the clean Otzar770 edition, pages 270–271.
@@ -57,6 +60,8 @@ object VerifiedTanyaPrint {
 
     /** Complete source pages, with only this assignment's words in the active colour. */
     fun fullPagesForReference(ref: String): List<TanyaSourceLine> {
+        val cycleStart = TanyaCycleStart.fullPagesForReference(ref)
+        if (cycleStart.isNotEmpty()) return cycleStart
         val extended = TanyaPrintExtension.fullPagesForReference(ref)
         if (extended.isNotEmpty()) {
             // Page 275 also contains the end of yesterday's epistle, already verified earlier.
@@ -77,7 +82,8 @@ object VerifiedTanyaPrint {
     }
 
     fun hasDailyWords(line: TanyaSourceLine): Boolean =
-        (line.greyFromWord ?: line.text.split(' ').size) > (line.greyBeforeWord ?: 0)
+        line.activeWordIndices?.isNotEmpty()
+            ?: ((line.greyFromWord ?: line.text.split(' ').size) > (line.greyBeforeWord ?: 0))
 
     fun stableId(line: TanyaSourceLine): String = "print_${line.page}_${line.text.hashCode()}"
 
@@ -251,6 +257,7 @@ object VerifiedTanyaPrint {
             TanyaSourceLine(275, "תיבות בלא מתכוין שא״צ התרה כלל ובוחן לבות", 9),
             TanyaSourceLine(275, "וכליות אלהים צדיק. הטיבה ה׳ לטובים ולישרים בלבותם:", 9, justified = false)
         )
-        else -> TanyaPrintExtension.excerpt(ref)
+        else -> TanyaCycleStart.fullPagesForReference(ref).filter { hasDailyWords(it) }
+            .ifEmpty { TanyaPrintExtension.excerpt(ref) }
     }
 }

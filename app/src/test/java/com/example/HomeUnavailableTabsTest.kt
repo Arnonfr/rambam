@@ -19,22 +19,17 @@ import org.robolectric.shadows.ShadowToast
 class HomeUnavailableTabsTest {
     @get:Rule val composeRule = createComposeRule()
 
-    @Test
-    fun unfinishedTabsShowToastWithoutNavigatingAndStudyStillWorks() {
+    @Test fun unavailableTabsStayBlockedInTesterBuilds() {
         val selections = mutableListOf<HomeTab>()
-        composeRule.setContent {
-            FloatingDarkNavBar(HomeTab.STUDY, onSelectTab = { selections.add(it) })
-        }
-
-        for (label in listOf("תפילות", "פודקאסטים")) {
+        composeRule.setContent { FloatingDarkNavBar(HomeTab.STUDY, onSelectTab = { selections.add(it) }) }
+        listOf("תפילות", "פודקאסטים").forEach { label ->
             composeRule.onNodeWithText(label).performClick()
             composeRule.runOnIdle {
-                assertEquals("בבנייה", ShadowToast.getTextOfLatestToast())
+                assertEquals("בבניה", ShadowToast.getTextOfLatestToast())
                 assertTrue(selections.isEmpty())
             }
         }
-
-        composeRule.onNodeWithText("לימוד").performClick()
+        composeRule.onNodeWithText("שיעורים").performClick()
         composeRule.runOnIdle { assertEquals(listOf(HomeTab.STUDY), selections) }
     }
 }

@@ -1,0 +1,218 @@
+[
+  {
+    "time": "10-23 14:52:47.668",
+    "upload_http": 204
+  },
+  {
+    "time": "10-23 14:53:08.479",
+    "upload_http": 204
+  },
+  {
+    "time": "10-23 14:53:45.401",
+    "event": "audio_available"
+  },
+  {
+    "time": "10-23 14:53:45.417",
+    "event": "audio_rambam_one_available"
+  },
+  {
+    "time": "10-23 14:53:46.506",
+    "upload_http": 204
+  },
+  {
+    "time": "10-23 14:53:59.039",
+    "event": "audio_panel_open"
+  },
+  {
+    "time": "10-23 14:53:59.649",
+    "upload_http": 204
+  },
+  {
+    "time": "10-23 14:54:13.768",
+    "event": "audio_play_requested"
+  },
+  {
+    "time": "10-23 14:54:13.784",
+    "event": "audio_rambam_one_requested"
+  },
+  {
+    "time": "10-23 14:54:13.794",
+    "event": "audio_voice_download",
+    "duration_ms": 0.0
+  },
+  {
+    "time": "10-23 14:54:15.019",
+    "upload_http": 204
+  },
+  {
+    "time": "10-23 14:54:35.551",
+    "event": "audio_voice_download",
+    "duration_ms": 21799.0
+  },
+  {
+    "time": "10-23 14:54:36.159",
+    "upload_http": 204
+  },
+  {
+    "time": "10-23 14:56:43.738",
+    "upload_http": 204
+  },
+  {
+    "time": "10-23 15:02:03.692",
+    "upload_http": 204
+  },
+  {
+    "time": "10-23 15:03:43.060",
+    "event": "audio_panel_open"
+  },
+  {
+    "time": "10-23 15:03:43.687",
+    "upload_http": 204
+  },
+  {
+    "time": "10-23 15:04:01.081",
+    "event": "audio_play_requested"
+  },
+  {
+    "time": "10-23 15:04:01.102",
+    "event": "audio_rambam_one_requested"
+  },
+  {
+    "time": "10-23 15:04:02.503",
+    "upload_http": 204
+  },
+  {
+    "time": "10-23 15:04:05.775",
+    "event": "audio_play_started",
+    "startup_ms": 4431.0
+  },
+  {
+    "time": "10-23 15:04:05.837",
+    "event": "audio_rambam_one_started",
+    "startup_ms": 4431.0
+  },
+  {
+    "time": "10-23 15:04:06.937",
+    "upload_http": 204
+  },
+  {
+    "time": "10-23 15:04:36.901",
+    "event": "audio_engaged"
+  },
+  {
+    "time": "10-23 15:04:36.940",
+    "event": "audio_rambam_one_engaged"
+  },
+  {
+    "time": "10-23 15:04:36.971",
+    "event": "audio_listen_time",
+    "listened_ms": 30565.0,
+    "value": 0.5094166666666666
+  },
+  {
+    "time": "10-23 15:04:36.986",
+    "event": "audio_rambam_one_minutes",
+    "listened_ms": 30565.0,
+    "value": 0.5094166666666666
+  },
+  {
+    "time": "10-23 15:04:37.003",
+    "event": "audio_listening_day",
+    "listened_ms": 30565.0,
+    "value": 0.5094166666666666
+  },
+  {
+    "time": "10-23 15:04:37.016",
+    "event": "audio_rambam_one_listening_day",
+    "listened_ms": 30565.0,
+    "value": 0.5094166666666666
+  },
+  {
+    "time": "10-23 15:04:38.109",
+    "upload_http": 204
+  },
+  {
+    "time": "10-23 15:04:55.031",
+    "upload_http": 204
+  },
+  {
+    "time": "10-23 15:05:06.158",
+    "event": "audio_listen_time",
+    "listened_ms": 30131.0,
+    "value": 0.5021833333333333
+  },
+  {
+    "time": "10-23 15:05:06.170",
+    "event": "audio_rambam_one_minutes",
+    "listened_ms": 30131.0,
+    "value": 0.5021833333333333
+  },
+  {
+    "time": "10-23 15:05:07.260",
+    "upload_http": 204
+  },
+  {
+    "time": "10-23 15:05:36.410",
+    "event": "audio_listen_time",
+    "listened_ms": 30102.0,
+    "value": 0.5017
+  },
+  {
+    "time": "10-23 15:05:36.449",
+    "event": "audio_rambam_one_minutes",
+    "listened_ms": 30102.0,
+    "value": 0.5017
+  },
+  {
+    "time": "10-23 15:05:37.556",
+    "upload_http": 204
+  },
+  {
+    "time": "10-23 15:06:06.438",
+    "event": "audio_listen_time",
+    "listened_ms": 30159.0,
+    "value": 0.50265
+  },
+  {
+    "time": "10-23 15:06:06.473",
+    "event": "audio_rambam_one_minutes",
+    "listened_ms": 30159.0,
+    "value": 0.50265
+  },
+  {
+    "time": "10-23 15:06:08.236",
+    "upload_http": 204
+  },
+  {
+    "time": "10-23 15:06:36.482",
+    "event": "audio_listen_time",
+    "listened_ms": 30056.0,
+    "value": 0.5009333333333333
+  },
+  {
+    "time": "10-23 15:06:36.504",
+    "event": "audio_rambam_one_minutes",
+    "listened_ms": 30056.0,
+    "value": 0.5009333333333333
+  },
+  {
+    "time": "10-23 15:06:37.592",
+    "upload_http": 204
+  },
+  {
+    "time": "10-23 15:06:45.773",
+    "event": "audio_listen_time",
+    "listened_ms": 9114.0,
+    "value": 0.1519
+  },
+  {
+    "time": "10-23 15:06:45.824",
+    "event": "audio_rambam_one_minutes",
+    "listened_ms": 9114.0,
+    "value": 0.1519
+  },
+  {
+    "time": "10-23 15:06:46.915",
+    "upload_http": 204
+  }
+]

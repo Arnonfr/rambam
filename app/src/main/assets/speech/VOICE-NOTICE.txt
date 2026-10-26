@@ -1,0 +1,9 @@
+Hebrew voice: Michael, 22050 Hz.
+Model: https://huggingface.co/Phonikud/phonikud-tts-checkpoints/blob/main/michael.onnx
+Pinned repository revision: ff64ba389a3833c49a85c58fc51a7060a6984b87
+Model terms: CC BY-NC 4.0 with academic research / educational use restriction; see MICHAEL-MODEL-LICENSE.txt.
+Prepared phonetic data: generated using Phonikud 0.4.1 and Phonikud ONNX 1.0, by the Phonikud contributors (CC BY 4.0 for code; PHONIKUD-LICENSE.txt).
+Modifications: preserve source vowels, prepare a local word index, apply explicit pronunciation corrections and source-text normalization.
+Rambam source: Torat Emet, CC BY-NC-SA 2.5; https://creativecommons.org/licenses/by-nc-sa/2.5/
+Inference runtime: ONNX Runtime, Microsoft, MIT.
+No Android system TTS voice is used.

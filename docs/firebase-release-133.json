@@ -1,0 +1,14 @@
+{
+  "package_name": "com.aistudio.dailyrambam.kzjvw.debug",
+  "version_code": 133,
+  "version_name": "2.0-debug",
+  "certificate_sha256": "9d55f453932695f788b9266628b1a038fec466edd9038132626dcd16df5fb443",
+  "sha256": "5ecd65c5b6939f097527d00c2e353594d5148fbe8abffdda9b080c4567fb28dc",
+  "apk": "/Users/hyh/Documents/Codex/לימוד-יומי/קוד/app/build/outputs/apk/debug/app-debug.apk",
+  "date": "2026-10-16",
+  "firebase_app_id": "1:703198161750:android:1e1d23970312aa68bbc4f7",
+  "upload_result": "success",
+  "tester_url": "https://appdistribution.firebase.google.com/testerapps/1:703198161750:android:1e1d23970312aa68bbc4f7/releases/4ei1aafmohlug?utm_source=firebase-tools",
+  "release_notes": "שופרה ההאזנה לתניא: מצב ריק עם איור קומפקטי, כפתורים ממורכזים ונגן מימין לשמאל.\nנוסף דפדוף בשיעורים הזמינים גם כשאין הקלטה לפרק הנוכחי, כולל קובצי שמע של הרב ברוך וילהלם והקלטות מהארכיון של הרב נדב כהן.\nשיעורי וידאו של הרב מיכאל טייב והרב ברוך וילהלם נפתחים באתר המקור, מחוץ לאפליקציה. השמע הישיר תומך בהאזנה ברקע ובמסך כבוי.\nלא שולבו נגן YouTube מוטמע, רכיבי פרסום או מנגנוני עקיפה.\n",
+  "focused_tests_passed": 8
+}

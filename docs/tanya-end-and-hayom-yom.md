@@ -37,3 +37,6 @@ Sefer HaMitzvot nikud remains pending. The existing Warsaw 1883 digital text
 is unpointed. A Nakdimon 0.2.1 evaluation produced substantive vocalization
 errors and was not added to the release assets. No claim of proofread nikud is
 made, and the underlying text was not changed.
+
+Update (October 2026): a Dicta Nakdan vocalization with systematic Rambam-idiom
+corrections now exists outside the release assets; see `sefer-hamitzvot-nikud.md`.

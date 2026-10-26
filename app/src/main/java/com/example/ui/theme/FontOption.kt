@@ -16,7 +16,7 @@ val LibertinusSerifFontFamily = FontFamily(
 )
 
 val FrankRuhlFontFamily = FontFamily(Font(R.font.frank_ruhl_libre))
-val TanyaPrintFontFamily = FontFamily(Font(R.font.romm_vilna_regular))
+val TanyaPrintFontFamily = FontFamily(Font(R.font.derech_vilna_regular))
 
 enum class FontStyleOption(
     val id: String,
@@ -24,10 +24,10 @@ enum class FontStyleOption(
     val subtitle: String,
     val fontFamily: FontFamily
 ) {
-    SANS("sans", "מודרני", "Noto Sans עברית", NotoSansHebrewFontFamily),
-    SERIF("serif", "דפוס תניא", "Romm Vilna", TanyaPrintFontFamily),
-    LIBERTINUS("libertinus", "Libertinus", "Libertinus Serif", LibertinusSerifFontFamily),
-    BONA_NOVA("bonanova", "Bona Nova", "Bona Nova (Google)", BonaNovaFontFamily);
+    SANS("sans", "נוטו", "נוטו סנס עברית", NotoSansHebrewFontFamily),
+    SERIF("serif", "וילנא", "רום וילנא — מותאם לניקוד", TanyaPrintFontFamily),
+    LIBERTINUS("libertinus", "ליברטינוס", "ליברטינוס סריף", LibertinusSerifFontFamily),
+    BONA_NOVA("bonanova", "בונה נובה", "בונה נובה", BonaNovaFontFamily);
 
     companion object {
         fun fromId(id: String): FontStyleOption = when (id) {

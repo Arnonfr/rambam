@@ -1,0 +1,53 @@
+{
+  "handoffDate": "2026-10-23",
+  "audioReleaseVersion": 138,
+  "currentSourceVersion": 139,
+  "sourceVersion139Distributed": false,
+  "referenceFiles": [
+    {
+      "file": "reference/michael-approved.wav",
+      "bytes": 981036,
+      "sha256": "e34873846e4d6056a2e6312f30e2a38934db25722930d38dce097ea372d9f032"
+    },
+    {
+      "file": "reference/michael-app-138.wav",
+      "bytes": 910380,
+      "sha256": "1d0c01220e264d1bd4ff683514e9c97207a803856f8f9153d42890fcaf731734"
+    },
+    {
+      "file": "reference/text-pointed.txt",
+      "bytes": 784,
+      "sha256": "940600974ebf9fe4ece173ed5bff3f8be12c9920f3c0161e17b839062769f048"
+    },
+    {
+      "file": "reference/phonemes.txt",
+      "bytes": 463,
+      "sha256": "a3df9d4fac6becc7eaa4691168b6180cb8598e1f98ca0a2d3a86b9f49cdcc7fb"
+    },
+    {
+      "file": "reference/predicted-pronunciation.txt",
+      "bytes": 811,
+      "sha256": "1dbba7fdff956eb6957d02569bab86d573f4665166e9bb80efe9f3d401f5c0e4"
+    },
+    {
+      "file": "reference/enhanced-pronunciation.txt",
+      "bytes": 821,
+      "sha256": "066ec0cff0894ad7299dbae943709a2aca7f6bdaed79a575c58fc06b58ffa6ef"
+    },
+    {
+      "file": "firebase-release-138.json",
+      "bytes": 2395,
+      "sha256": "13030379c04c29e344612f59aa13d2c2c9926b8b1507feb4f14ec661736940c1"
+    },
+    {
+      "file": "reference/rambam-player-138.png",
+      "bytes": 11937,
+      "sha256": "3e616560e39ddeb5743a5b5fd5eb524c78b705ca474913d37334446061c2e69d"
+    },
+    {
+      "file": "reference/rambam-player-placement-138.png",
+      "bytes": 22678,
+      "sha256": "95f3bd80d2fb1fd23546d78630f4df18060c3eac5341cf3e0da360cedbf4ff0c"
+    }
+  ]
+}

@@ -8,12 +8,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
 private val DarkColorScheme = darkColorScheme(
-    primary = GoldWarm,
+    primary = Color(0xFFE7AE7D),
     onPrimary = DeepNavy,
-    primaryContainer = Color(0xFF232A38),
+    primaryContainer = Color(0xFF503621),
     onPrimaryContainer = GoldWarm,
-    secondary = Color(0xFF90CAF9),
-    onSecondary = Color(0xFF003258),
+    secondaryContainer = Color(0xFF4B3B2C),
+    onSecondaryContainer = Color(0xFFF1DCC6),
+    tertiary = Color(0xFFD7B798),
+    tertiaryContainer = Color(0xFF4C3826),
+    onTertiaryContainer = Color(0xFFF1DCC6),
+    surfaceContainer = Color(0xFF28221D),
+    surfaceContainerHigh = Color(0xFF352C24),
+    surfaceContainerHighest = Color(0xFF41352B),
+    secondary = Color(0xFFD4B79A),
+    onSecondary = Color(0xFF382718),
     background = DarkReaderBackground,
     onBackground = DarkReaderText,
     surface = DarkReaderSurface,
@@ -24,10 +32,18 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = RoyalNavy,
+    primary = Color(0xFF99552D),
     onPrimary = Color.White,
-    primaryContainer = Color(0xFFE8EEF9),
-    onPrimaryContainer = RoyalNavy,
+    primaryContainer = Color(0xFFF3DCC5),
+    onPrimaryContainer = Color(0xFF482A18),
+    secondaryContainer = Color(0xFFF0E1CF),
+    onSecondaryContainer = Color(0xFF543C27),
+    tertiary = Color(0xFF946443),
+    tertiaryContainer = Color(0xFFF0DDC4),
+    onTertiaryContainer = Color(0xFF422C1C),
+    surfaceContainer = Color(0xFFF6EDE2),
+    surfaceContainerHigh = Color(0xFFEEE1D2),
+    surfaceContainerHighest = Color(0xFFE7D7C5),
     secondary = GoldAccent,
     onSecondary = Color.White,
     background = ParchmentLight,
@@ -44,6 +60,14 @@ private val SepiaColorScheme = lightColorScheme(
     onPrimary = Color.White,
     primaryContainer = Color(0xFFE6D7C3),
     onPrimaryContainer = Color(0xFF3E2723),
+    secondaryContainer = Color(0xFFF0E1CF),
+    onSecondaryContainer = Color(0xFF543C27),
+    tertiary = Color(0xFF946443),
+    tertiaryContainer = Color(0xFFF0DDC4),
+    onTertiaryContainer = Color(0xFF422C1C),
+    surfaceContainer = Color(0xFFF6EDE2),
+    surfaceContainerHigh = Color(0xFFEEE1D2),
+    surfaceContainerHighest = Color(0xFFE7D7C5),
     secondary = GoldAccent,
     onSecondary = Color.White,
     background = SepiaBackground,
@@ -62,7 +86,7 @@ fun DailyRambamTheme(
     content: @Composable () -> Unit
 ) {
     val colorScheme = when (readerTheme) {
-        "dark" -> DarkColorScheme
+        "dark", "oled" -> DarkColorScheme
         "sepia" -> SepiaColorScheme
         "light" -> LightColorScheme
         else -> if (systemDark) DarkColorScheme else LightColorScheme

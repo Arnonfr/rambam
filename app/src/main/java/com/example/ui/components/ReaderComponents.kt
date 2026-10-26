@@ -4,6 +4,17 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.progressBarRangeInfo
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -22,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -97,7 +109,7 @@ class EndOfLessonPullState internal constructor(
             isConfirmed = true
             performHaptic()
             onCompleted()
-            delay(350)
+            delay(720)
             onExitAfterCompletion()
             delay(300)
         }
@@ -139,39 +151,37 @@ fun EndOfLessonPullIndicator(
     accentColor: Color,
     modifier: Modifier = Modifier
 ) {
-    val visible = state.pullDistancePx > 1f || state.isConfirmed
-    val checkScale by animateFloatAsState(
-        targetValue = if (state.isConfirmed) 1f else 0.55f,
-        animationSpec = spring(dampingRatio = 0.55f, stiffness = 420f),
-        label = "lessonCompleteCheckScale"
-    )
-    AnimatedVisibility(visible = visible, modifier = modifier) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(58.dp)) {
-                CircularProgressIndicator(
-                    progress = { if (state.isConfirmed) 1f else state.progress },
-                    modifier = Modifier.fillMaxSize(),
-                    color = accentColor,
-                    trackColor = Color.Black.copy(alpha = 0.10f),
-                    strokeWidth = 4.dp
-                )
-                if (state.isConfirmed || state.progress >= 0.78f) {
-                    Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = "השיעור הושלם",
-                        tint = Color.Black,
-                        modifier = Modifier.size(30.dp).scale(checkScale)
-                    )
+    if (state.pullDistancePx <= 1f && !state.isConfirmed) return
+    val progress = state.progress
+    val description = when {
+        state.isConfirmed -> "השיעור הושלם"
+        progress >= 1f -> "שחררו לסיום"
+        else -> "משכו לסיום"
+    }
+    // Fixed geometry: no animated size, clipping, surface outline or elevation.
+    Box(modifier.fillMaxWidth().height(72.dp).testTag("lesson_completion_feedback"),
+        contentAlignment = Alignment.Center) {
+        Canvas(Modifier.size(48.dp).semantics(mergeDescendants = true) {
+            contentDescription = description
+            liveRegion = LiveRegionMode.Polite
+            progressBarRangeInfo = ProgressBarRangeInfo(progress, 0f..1f)
+        }) {
+            val stroke = Stroke(width = 2.5.dp.toPx(), cap = StrokeCap.Round,
+                join = androidx.compose.ui.graphics.StrokeJoin.Round)
+            val inset = 4.dp.toPx()
+            val diameter = size.width - inset * 2
+            if (progress >= .999f) {
+                drawCircle(accentColor, radius = diameter / 2f, style = stroke)
+                val check = androidx.compose.ui.graphics.Path().apply {
+                    moveTo(size.width * .31f, size.height * .51f)
+                    lineTo(size.width * .44f, size.height * .64f)
+                    lineTo(size.width * .70f, size.height * .37f)
                 }
-            }
-            if (!state.isConfirmed) {
-                Text(
-                    text = "משכו לסיום",
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color.Black.copy(alpha = 0.48f),
-                    modifier = Modifier.padding(top = 4.dp)
-                )
+                drawPath(check, accentColor, style = stroke)
+            } else if (progress > .01f) {
+                drawArc(accentColor, -90f, 360f * progress, false,
+                    topLeft = Offset(inset, inset),
+                    size = androidx.compose.ui.geometry.Size(diameter, diameter), style = stroke)
             }
         }
     }
@@ -184,14 +194,15 @@ fun CompactReaderHeader(
     accentColor: Color,
     scrollProgress: Float,
     readerTheme: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    trailingAction: (@Composable () -> Unit)? = null
 ) {
     val surface = when (readerTheme) {
-        "dark" -> Color(0xFF18191D)
+        "dark", "oled" -> Color(0xFF18191D)
         "sepia" -> Color(0xFFF5EEDA)
         else -> Color(0xFFFFFDF8)
     }
-    val foreground = if (readerTheme == "dark") Color.White else Color.Black
+    val foreground = if (readerTheme in setOf("dark", "oled")) Color.White else Color.Black
     Surface(
         color = surface.copy(alpha = 0.98f),
         modifier = modifier.fillMaxWidth(),
@@ -201,15 +212,22 @@ fun CompactReaderHeader(
         // MainActivity's Scaffold already reserves the system status-bar inset.
         Column {
             Row(
-                modifier = Modifier.fillMaxWidth().height(32.dp).padding(horizontal = 12.dp),
+                modifier = Modifier.fillMaxWidth().height(52.dp).padding(horizontal = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Box(
-                    modifier = Modifier.size(20.dp).clip(RoundedCornerShape(3.dp)).background(accentColor),
+                    modifier = Modifier.size(32.dp).clip(RoundedCornerShape(6.dp)).background(accentColor),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Default.MenuBook, contentDescription = null, tint = Color.Black, modifier = Modifier.size(14.dp))
+                    StudyLineIcon(when {
+                        title.contains("רמב") -> "one"
+                        title.contains("חומש") -> "chumash"
+                        title.contains("תהילים") -> "tehillim"
+                        title.contains("היום") -> "hayom_yom"
+                        title.contains("מצוות") -> "mitzvot"
+                        else -> "tanya"
+                    }, Modifier.size(24.dp))
                 }
                 Text(title, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold, color = foreground)
                 Text("•", fontSize = 12.sp, color = foreground.copy(alpha = 0.42f))
@@ -223,6 +241,8 @@ fun CompactReaderHeader(
                     lineHeight = 13.sp,
                     modifier = Modifier.weight(1f)
                 )
+                trailingAction?.invoke()
+                Spacer(Modifier.width(36.dp))
             }
             LinearProgressIndicator(
                 progress = { scrollProgress },
@@ -247,9 +267,10 @@ fun FloatingReaderBar(
     onPrevDay: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     prayerNavigation: Boolean = false,
-    onOpenPrayerSections: (() -> Unit)? = null
+    onOpenPrayerSections: (() -> Unit)? = null,
+    studyDate: String = ""
 ) {
-    val dark = readerTheme == "dark"
+    val dark = readerTheme in setOf("dark", "oled")
     val foreground = if (dark) Color.White else Color.Black
     val surface = if (dark) Color(0xFF1E222A) else Color.White
     val outline = foreground.copy(alpha = .13f)
@@ -289,7 +310,9 @@ fun FloatingReaderBar(
                                 tint = foreground, modifier = Modifier.size(15.dp))
                             Spacer(Modifier.width(6.dp))
                         }
-                        Text(hebrewDateText, fontSize = 12.sp, fontWeight = FontWeight.Bold,
+                        Text(if (prayerNavigation) hebrewDateText else
+                            com.example.ui.util.HebrewDateHelper.formatReaderDate(hebrewDateText, studyDate),
+                            fontSize = 12.sp, fontWeight = FontWeight.Bold,
                             color = foreground, maxLines = 1, modifier = Modifier.weight(1f),
                             textAlign = TextAlign.Center)
                         if (!prayerNavigation || onOpenPrayerSections != null) Icon(Icons.Default.ArrowDropDown, null,
@@ -307,7 +330,7 @@ fun FloatingReaderBar(
                     modifier = Modifier.size(44.dp).clip(CircleShape)
                         .clickable(onClick = onTypographyClick)
                         .testTag("reader_typography_button"),
-                    shape = CircleShape, color = Color(0xFF73D4ED)
+                    shape = CircleShape, color = MaterialTheme.colorScheme.primaryContainer
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(Icons.Default.FormatSize, "התאמת טקסט",
@@ -318,6 +341,8 @@ fun FloatingReaderBar(
         }
     }
 }
+
+val LocalLetterSpacingChange = androidx.compose.runtime.staticCompositionLocalOf<(Float) -> Unit> { {} }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -337,8 +362,8 @@ fun ReaderTypographySheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        containerColor = Color(0xFFF8F9FA),
-        contentColor = Color(0xFF0F172A),
+        containerColor = Color(0xFFFAF6EF),
+        contentColor = Color(0xFF3F2D20),
         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
         dragHandle = {
             Box(
@@ -347,7 +372,7 @@ fun ReaderTypographySheet(
                     .width(36.dp)
                     .height(4.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFFCBD5E1))
+                    .background(Color(0xFFD6C2AA))
             )
         }
     ) {
@@ -365,7 +390,7 @@ fun ReaderTypographySheet(
                     text = "הגדרות תצוגה",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF0F172A),
+                    color = Color(0xFF3F2D20),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 16.dp),
@@ -379,7 +404,7 @@ fun ReaderTypographySheet(
                     text = "צבע רקע",
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF64748B),
+                    color = Color(0xFF806B58),
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
 
@@ -387,7 +412,7 @@ fun ReaderTypographySheet(
                     shape = RoundedCornerShape(20.dp),
                     color = Color.White,
                     shadowElevation = 1.dp,
-                    border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
+                    border = BorderStroke(1.dp, Color(0xFFE6D8C7)),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 18.dp)
@@ -403,7 +428,7 @@ fun ReaderTypographySheet(
                             Triple("light", Color(0xFFFFFFFF), "בהיר"),
                             Triple("sepia", Color(0xFFF7EEDD), "ספיה"),
                             Triple("dark", Color(0xFF475569), "אפור"),
-                            Triple("oled", Color(0xFF0F172A), "כהה")
+                            Triple("oled", Color(0xFF3F2D20), "כהה")
                         ).forEach { (themeId, color, label) ->
                             val isSelected = preferences.readerTheme == themeId
                             Column(
@@ -416,15 +441,16 @@ fun ReaderTypographySheet(
                                 ThemeCircleSwatch(
                                     color = color,
                                     isSelected = isSelected,
-                                    borderRing = Color(0xFF1E293B),
-                                    innerBorder = if (themeId == "light") Color(0xFFE2E8F0) else Color.Transparent,
+                                    borderRing = Color(0xFF99552D),
+                                    innerBorder = if (themeId == "light") Color(0xFFE6D8C7) else Color.Transparent,
                                     onClick = { onThemeChange(themeId) }
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
                                     text = label,
                                     fontSize = 11.sp,
-                                    color = if (isSelected) Color(0xFF0F172A) else Color(0xFF64748B),
+                                    textAlign = TextAlign.Center,
+                                    color = if (isSelected) Color(0xFF3F2D20) else Color(0xFF806B58),
                                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                                 )
                             }
@@ -438,7 +464,7 @@ fun ReaderTypographySheet(
                     text = "סוג גופן",
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF64748B),
+                    color = Color(0xFF806B58),
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
 
@@ -450,19 +476,14 @@ fun ReaderTypographySheet(
                 ) {
                     FontStyleOption.entries.forEach { option ->
                         val isSelected = preferences.fontFamily == option.id
-                        val label = when (option) {
-                            FontStyleOption.SANS -> "מודרני"
-                            FontStyleOption.SERIF -> "דפוס תניא"
-                            FontStyleOption.LIBERTINUS -> "סריף לטיני"
-                            FontStyleOption.BONA_NOVA -> "בונה נובה"
-                        }
+                        val label = option.title
                         Surface(
                             shape = RoundedCornerShape(16.dp),
-                            color = if (isSelected) Color(0xFFF1F5F9) else Color.White,
+                            color = if (isSelected) Color(0xFFF5E8D7) else Color.White,
                             shadowElevation = if (isSelected) 1.dp else 0.dp,
                             border = BorderStroke(
                                 width = if (isSelected) 2.dp else 1.dp,
-                                color = if (isSelected) Color(0xFF0F172A) else Color(0xFFE2E8F0)
+                                color = if (isSelected) Color(0xFF3F2D20) else Color(0xFFE6D8C7)
                             ),
                             modifier = Modifier
                                 .weight(1f)
@@ -478,15 +499,17 @@ fun ReaderTypographySheet(
                                     fontFamily = option.fontFamily,
                                     fontWeight = FontWeight.SemiBold,
                                     fontSize = 18.sp,
-                                    color = Color(0xFF0F172A)
+                                    color = Color(0xFF3F2D20)
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
                                     text = label,
                                     fontSize = 11.sp,
+                                    textAlign = TextAlign.Center,
                                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                    color = if (isSelected) Color(0xFF0F172A) else Color(0xFF64748B),
-                                    maxLines = 1
+                                    color = if (isSelected) Color(0xFF3F2D20) else Color(0xFF806B58),
+                                    maxLines = 2,
+                                    minLines = 2
                                 )
                             }
                         }
@@ -498,14 +521,14 @@ fun ReaderTypographySheet(
                     text = "גודל ומרווח",
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF64748B),
+                    color = Color(0xFF806B58),
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
 
                 Surface(
                     shape = RoundedCornerShape(20.dp),
                     color = Color.White,
-                    border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
+                    border = BorderStroke(1.dp, Color(0xFFE6D8C7)),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 18.dp)
@@ -520,9 +543,9 @@ fun ReaderTypographySheet(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.FormatSize, contentDescription = null, tint = Color(0xFF64748B), modifier = Modifier.size(18.dp))
+                                Icon(Icons.Default.FormatSize, contentDescription = null, tint = Color(0xFF806B58), modifier = Modifier.size(18.dp))
                                 Spacer(modifier = Modifier.width(10.dp))
-                                Text("גודל טקסט", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color(0xFF0F172A))
+                                Text("גודל טקסט", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color(0xFF3F2D20))
                             }
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 FilledTonalIconButton(
@@ -546,7 +569,7 @@ fun ReaderTypographySheet(
                             }
                         }
 
-                        HorizontalDivider(color = Color(0xFFF1F5F9))
+                        HorizontalDivider(color = Color(0xFFF5E8D7))
 
                         // Line Spacing Row
                         Row(
@@ -557,9 +580,9 @@ fun ReaderTypographySheet(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.FormatLineSpacing, contentDescription = null, tint = Color(0xFF64748B), modifier = Modifier.size(18.dp))
+                                Icon(Icons.Default.FormatLineSpacing, contentDescription = null, tint = Color(0xFF806B58), modifier = Modifier.size(18.dp))
                                 Spacer(modifier = Modifier.width(10.dp))
-                                Text("מרווח שורות", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color(0xFF0F172A))
+                                Text("מרווח שורות", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color(0xFF3F2D20))
                             }
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 FilledTonalIconButton(
@@ -585,20 +608,28 @@ fun ReaderTypographySheet(
                     }
                 }
 
+                if (!fixedPrintLayout) {
+                    Text("ריווח תווים", fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                    Slider(value = preferences.letterSpacingEm,
+                        onValueChange = LocalLetterSpacingChange.current,
+                        valueRange = 0f..0.12f, steps = 11,
+                        modifier = Modifier.testTag("reader_letter_spacing"))
+                }
+
                 // 4. הגדרות נוספות (Additional Options)
                 }
                 Text(
                     text = "הגדרות לימוד",
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF64748B),
+                    color = Color(0xFF806B58),
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
 
                 Surface(
                     shape = RoundedCornerShape(20.dp),
                     color = Color.White,
-                    border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
+                    border = BorderStroke(1.dp, Color(0xFFE6D8C7)),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
@@ -611,8 +642,8 @@ fun ReaderTypographySheet(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
-                                Text("השאר מסך דולק", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color(0xFF0F172A))
-                                Text("מניעת כיבוי אוטומטי של המסך בזמן הלימוד", fontSize = 11.sp, color = Color(0xFF64748B))
+                                Text("השאר מסך דולק", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color(0xFF3F2D20))
+                                Text("מניעת כיבוי אוטומטי של המסך בזמן הלימוד", fontSize = 11.sp, color = Color(0xFF806B58))
                             }
                             Switch(
                                 checked = preferences.keepScreenOn,
@@ -621,7 +652,7 @@ fun ReaderTypographySheet(
                             )
                         }
 
-                        HorizontalDivider(color = Color(0xFFF1F5F9))
+                        HorizontalDivider(color = Color(0xFFF5E8D7))
 
                         // Nikud Switch Row
                         if (!fixedPrintLayout) {
@@ -633,8 +664,8 @@ fun ReaderTypographySheet(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
-                                Text("הצג ניקוד וטעמים", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color(0xFF0F172A))
-                                Text("הצגת סימני הניקוד וטעמי המקרא בטקסט", fontSize = 11.sp, color = Color(0xFF64748B))
+                                Text("הצג ניקוד וטעמים", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color(0xFF3F2D20))
+                                Text("הצגת סימני הניקוד וטעמי המקרא בטקסט", fontSize = 11.sp, color = Color(0xFF806B58))
                             }
                             Switch(
                                 checked = preferences.showNikud,
@@ -653,10 +684,10 @@ fun ReaderTypographySheet(
 @Composable
 fun readerSwitchColors() = SwitchDefaults.colors(
     checkedThumbColor = Color.White,
-    checkedTrackColor = Color(0xFF20262C),
+    checkedTrackColor = Color(0xFF99552D),
     checkedBorderColor = Color.Transparent,
     uncheckedThumbColor = Color.White,
-    uncheckedTrackColor = Color(0xFF9BA4AC),
+    uncheckedTrackColor = Color(0xFFBCAA96),
     uncheckedBorderColor = Color.Transparent
 )
 
@@ -703,7 +734,7 @@ private fun VerticalControlPill(
         shape = RoundedCornerShape(20.dp),
         color = Color.White,
         shadowElevation = 1.dp,
-        border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
+        border = BorderStroke(1.dp, Color(0xFFE6D8C7)),
         modifier = Modifier
             .width(46.dp)
             .height(96.dp)
@@ -717,19 +748,19 @@ private fun VerticalControlPill(
                 onClick = onIncrement,
                 modifier = Modifier.size(28.dp)
             ) {
-                Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(14.dp), tint = Color(0xFF0F172A))
+                Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(14.dp), tint = Color(0xFF3F2D20))
             }
             Text(
                 text = valueText,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF0F172A)
+                color = Color(0xFF3F2D20)
             )
             IconButton(
                 onClick = onDecrement,
                 modifier = Modifier.size(28.dp)
             ) {
-                Icon(Icons.Default.Remove, contentDescription = null, modifier = Modifier.size(14.dp), tint = Color(0xFF0F172A))
+                Icon(Icons.Default.Remove, contentDescription = null, modifier = Modifier.size(14.dp), tint = Color(0xFF3F2D20))
             }
         }
     }

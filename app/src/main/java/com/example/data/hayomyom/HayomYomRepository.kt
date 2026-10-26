@@ -6,6 +6,7 @@ import android.icu.util.HebrewCalendar
 import android.icu.util.TimeZone
 import com.example.domain.tanya.DailyTanyaLesson
 import com.example.domain.tanya.TanyaSection
+import com.example.domain.tanya.OriginalHayomYomStudies
 import com.example.ui.util.HebrewTextNormalizer
 import org.json.JSONObject
 import java.time.LocalDate
@@ -16,7 +17,9 @@ data class HayomYomLesson(
     val dateLabel: String,
     val paragraphs: List<String>,
     val sourceUrl: String,
-    val revisionId: Long
+    val revisionId: Long,
+    val originalStudies: OriginalHayomYomStudies? = null,
+    val additionalOriginalStudies: List<OriginalHayomYomStudies> = emptyList()
 ) {
     // Adapter for the shared paragraph reader; no Tanya print-layout controls.
     fun asReaderLesson(completed: Boolean = false) = DailyTanyaLesson(
@@ -25,7 +28,8 @@ data class HayomYomLesson(
         sections = paragraphs.mapIndexed { index, text -> TanyaSection(
             sectionIndex = index + 1, sectionHebrew = "",
             textWithNikud = text, textPlain = HebrewTextNormalizer.stripMarks(text)) },
-        isCompleted = completed
+        isCompleted = completed, originalStudies = originalStudies,
+        additionalOriginalStudies = additionalOriginalStudies
     )
 }
 
@@ -57,6 +61,11 @@ object HayomYomCalendar {
 }
 
 class HayomYomRepository(context: Context) {
+    private val originalStudyEntries by lazy {
+        context.assets.open("hayom_yom_studies.json").bufferedReader().use {
+            JSONObject(it.readText()).getJSONObject("entries")
+        }
+    }
     private val entries by lazy {
         context.assets.open("hayom_yom.json").bufferedReader().use {
             JSONObject(it.readText()).getJSONObject("entries")
@@ -64,10 +73,17 @@ class HayomYomRepository(context: Context) {
     }
 
     fun lessonFor(date: LocalDate): HayomYomLesson? {
-        val entry = entries.optJSONObject(HayomYomCalendar.key(date)) ?: return null
+        val key = HayomYomCalendar.key(date)
+        val entry = entries.optJSONObject(key) ?: return null
+        fun originalFor(originalKey: String) = originalStudyEntries.optJSONObject(originalKey)?.let {
+            OriginalHayomYomStudies(it.getString("date"), it.getString("chumash"),
+                it.getString("tehillim"), it.getString("tanya"), it.optString("note"), it.getString("sourceUrl"))
+        }
+        val original = originalFor(if (key.startsWith("adar-")) key.replace("adar-", "adar1-") else key)
+        val additional = if (key.startsWith("adar-")) listOfNotNull(originalFor(key.replace("adar-", "adar2-"))) else emptyList()
         val paragraphs = entry.getJSONArray("paragraphs")
         return HayomYomLesson(date, entry.getString("dateLabel"),
             (0 until paragraphs.length()).map { paragraphs.getString(it) },
-            entry.getString("sourceUrl"), entry.getLong("revisionId"))
+            entry.getString("sourceUrl"), entry.getLong("revisionId"), original, additional)
     }
 }

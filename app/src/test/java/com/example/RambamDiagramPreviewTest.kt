@@ -37,7 +37,8 @@ class RambamDiagramPreviewTest {
         val destination = System.getenv("DIAGRAM_PREVIEW_DIR") ?: return
         System.setProperty("roborazzi.test.record", "true")
         val groups = listOf(
-            "temple" to listOf("altar_height", "altar_foundation", "lintels", "heichal", "courtyard", "ephod"),
+            "temple" to listOf("altar_height", "altar_foundation", "lintels", "ephod"),
+            "sanctuaries" to listOf("heichal", "courtyard"),
             "other" to listOf("tefillin_mold", "head_order", "hand_order", "shoham", "round_beam", "land_boundary"),
             "paragraphs" to listOf("open_1", "open_2", "closed_1", "closed_2", "closed_3")
         )

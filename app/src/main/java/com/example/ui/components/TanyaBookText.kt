@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.sp
 import com.example.R
 import kotlin.math.roundToInt
 
-private val TanyaPrintFont = FontFamily(Font(R.font.romm_vilna_regular))
+private val TanyaPrintFont = com.example.ui.theme.TanyaPrintFontFamily
 
 /** Live, selectable type: measure once at the same page width, then scale the layout.
  * This preserves line endings across screen sizes/zoom. It is NOT a verified

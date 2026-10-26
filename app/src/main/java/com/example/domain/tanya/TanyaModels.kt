@@ -15,5 +15,16 @@ data class DailyTanyaLesson(
     val bookTitle: String,
     val chapterTitle: String,
     val sections: List<TanyaSection>,
-    val isCompleted: Boolean = false
+    val isCompleted: Boolean = false,
+    val originalStudies: OriginalHayomYomStudies? = null,
+    val additionalOriginalStudies: List<OriginalHayomYomStudies> = emptyList()
+)
+
+data class OriginalHayomYomStudies(
+    val dateText: String,
+    val chumash: String,
+    val tehillim: String,
+    val tanya: String,
+    val note: String = "",
+    val sourceUrl: String
 )

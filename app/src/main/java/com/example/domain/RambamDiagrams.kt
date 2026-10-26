@@ -9,7 +9,8 @@ data class RambamDiagram(
     val title: String,
     val sourceUrl: String,
     val kind: Kind,
-    val note: String = "תרשים עזר לפי ההלכה; אינו צילום כתב־יד ואינו בקנה מידה."
+    val note: String = "תרשים עזר לפי ההלכה; אינו צילום כתב־יד ואינו בקנה מידה.",
+    val visualReferenceUrl: String? = null
 ) {
     enum class Kind {
         TEFILLIN_MOLD, HEAD_ORDER, HAND_ORDER,
@@ -39,9 +40,11 @@ object RambamDiagrams {
             "צילום הציור מפירוש המשנה, מנחות ג׳ ז׳ — לא מכתב־יד של משנה תורה. מקור: Wikimedia Commons, נחלת הכלל."),
         RambamDiagram("lintels", "beit_habechirah", 4, 8, "חמש המלתריות מעל פתח האולם", base + "8104.htm", RambamDiagram.Kind.LINTELS),
         RambamDiagram("heichal", "beit_habechirah", 4, 9, "חלוקת ההיכל והאולם", base + "8104.htm", RambamDiagram.Kind.HEICHAL,
-            "תרשים עזר לחלוקת החללים המרכזיים בלבד; אינו שחזור מלא של היציעים והמסיבה."),
+            "שרטוט חדש בהשראת כתב־יד Huntington 452, דף 9ב. אינו צילום המקור ואינו בקנה מידה.",
+            "https://www.oxfordchabad.org/templates/articlecco_cdo/aid/725670/jewish/Exhibition-of-Chanukah-Manuscripts.htm"),
         RambamDiagram("courtyard", "beit_habechirah", 5, 17, "העזרה ולשכותיה", base + "8105.htm", RambamDiagram.Kind.COURTYARD,
-            "תרשים התמצאות סכמטי לפי פרק ה׳; מיקומי לשכות בתוך כל קבוצת לשכות אינם קביעת מידות."),
+            "שרטוט התמצאות חדש בהשראת כתב־יד Huntington 452, דף 12א. אינו צילום המקור; הלשכות אינן בקנה מידה.",
+            "https://www.oxfordchabad.org/templates/articlecco_cdo/aid/725670/jewish/Exhibition-of-Chanukah-Manuscripts.htm"),
         RambamDiagram("shoham", "klei_hamikdash", 9, 9, "שמות השבטים באבני השוהם", base + "8209.htm", RambamDiagram.Kind.SHOHAM,
             "סידור השמות לפי ציור הרמב״ם שבנוסח הדפוסים. יהוסף, זבולן ובנימן: כ״ה אותיות בכל אבן."),
         RambamDiagram("ephod", "klei_hamikdash", 9, 9, "צורת האיפוד", base + "8209.htm", RambamDiagram.Kind.EPHOD),

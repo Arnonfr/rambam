@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Romm Vilna, the Tanya page typeface. Glance cannot set custom fonts, so DailyStudyWidget
+     embeds this TextView through AndroidRemoteViews. Below API 26 see layout/ (system font). -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_vilna_text"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:ellipsize="end"
+    android:fontFamily="@font/romm_vilna_regular"
+    android:includeFontPadding="false"
+    android:lineSpacingMultiplier="1.08"
+    android:textDirection="rtl"
+    android:gravity="center"
+    android:textStyle="bold" />

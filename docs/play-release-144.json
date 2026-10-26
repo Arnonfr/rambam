@@ -1,0 +1,37 @@
+{
+  "package_name": "com.aistudio.dailyrambam.kzjvw",
+  "version_code": 144,
+  "version_name": "2.0",
+  "upload_certificate_sha256": "05:24:AA:BB:F9:10:AC:23:97:54:4F:41:9E:C2:3A:D6:A0:57:14:95:2E:D1:35:9F:5E:C8:F5:1F:91:50:31:5A",
+  "sha256": "2c45d07c070e8d6660ed79d1896e88971aabc5affb562803f66dda1c68557b29",
+  "track": "alpha",
+  "upload_result": "success",
+  "track_status": "completed",
+  "release_notes": "נוספה האזנה לרמב״ם בהקלטות ובקול העברי Michael, עם נגן אחיד, האזנה ברקע ושמירת ההתקדמות.\nשופרו התאמת הקלטות התניא, כפתורי הנגן וחיווי האזנה פעילה.\nנוספה בחירת שיטת הרב סינגאווי לזמני היום ומסך העדפות ייעודי עם כניסה ישירה ממגירת הזמנים.\nהכותרת מרווחת יותר וחצי התאריך קטנים. מיקום הקריאה נשמר גם באמצע קטעי טקסט ארוכים.\nמשיכת סיום שיעור מציגה וי בעיגול שמתמלא לפי המשיכה.",
+  "review_submission_requested": true,
+  "tester_availability_verified": false,
+  "date": "2026-10-24",
+  "validation": {
+    "debug_tests_passed": 17,
+    "release_lint_errors": 0,
+    "signed_bundle_verified": true
+  },
+  "track_after_upload": {
+    "releases": [
+      {
+        "name": "2.0 (144)",
+        "release_notes": [
+          {
+            "language": "en-US",
+            "text": "נוספה האזנה לרמב״ם בהקלטות ובקול העברי Michael, עם נגן אחיד, האזנה ברקע ושמירת ההתקדמות.\nשופרו התאמת הקלטות התניא, כפתורי הנגן וחיווי האזנה פעילה.\nנוספה בחירת שיטת הרב סינגאווי לזמני היום ומסך העדפות ייעודי עם כניסה ישירה ממגירת הזמנים.\nהכותרת מרווחת יותר וחצי התאריך קטנים. מיקום הקריאה נשמר גם באמצע קטעי טקסט ארוכים.\nמשיכת סיום שיעור מציגה וי בעיגול שמתמלא לפי המשיכה.\n"
+          }
+        ],
+        "status": "completed",
+        "version_codes": [
+          "144"
+        ]
+      }
+    ],
+    "track": "alpha"
+  }
+}

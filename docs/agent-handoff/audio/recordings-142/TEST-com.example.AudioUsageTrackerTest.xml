@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.AudioUsageTrackerTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-24T17:50:54.267Z" hostname="MacBook-Air-sl-mspht.local" time="0.041">
+  <properties/>
+  <testcase name="new source closes only the old interval and preserves source attribution" classname="com.example.AudioUsageTrackerTest" time="0.024"/>
+  <testcase name="disabled periods send and retain nothing including a consent boundary" classname="com.example.AudioUsageTrackerTest" time="0.001"/>
+  <testcase name="chapter skip and arbitrary position or speed changes do not inflate time" classname="com.example.AudioUsageTrackerTest" time="0.001"/>
+  <testcase name="preparation buffering and pauses do not count and resume is one start" classname="com.example.AudioUsageTrackerTest" time="0.003"/>
+  <testcase name="analytics failures cannot interrupt playback" classname="com.example.AudioUsageTrackerTest" time="0.003"/>
+  <testcase name="failure before playback is not listening" classname="com.example.AudioUsageTrackerTest" time="0.0"/>
+  <testcase name="thresholds fire once and duration events are deltas" classname="com.example.AudioUsageTrackerTest" time="0.001"/>
+  <testcase name="queue end is once and does not imply engaged when seeking to the end" classname="com.example.AudioUsageTrackerTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -2,6 +2,12 @@
 
 package com.example.ui.screens
 
+import com.example.data.local.CompletionText
+import com.example.data.local.SavedStudyCompletion
+import com.example.domain.content.CompletionReaderRow
+import com.example.ui.components.ManualStudyCompletionControls
+import com.example.ui.components.rememberManualStudyCompletionState
+
 import android.app.Activity
 import android.view.WindowManager
 import androidx.activity.compose.BackHandler
@@ -44,6 +50,7 @@ import com.example.ui.components.EndOfLessonPullIndicator
 import com.example.ui.components.ReaderTypographySheet
 import com.example.ui.components.StudyTextBlock
 import com.example.ui.components.endOfLessonPull
+import com.example.ui.components.rememberReaderViewportState
 import com.example.ui.components.rememberEndOfLessonPullState
 import com.example.ui.theme.*
 import com.example.ui.util.HebrewNumberFormatter
@@ -70,7 +77,7 @@ sealed interface ChumashUiRow {
         val aliyaIndexInSelection: Int,
         val totalAliyotInSelection: Int
     ) : ChumashUiRow {
-        override val key: String = "verse_${aliya.aliyaIndex}_${verse.verseNumber}"
+        override val key: String = "${aliya.aliyaIndex}_${verse.positionId}"
     }
 
     data class AliyaTransition(
@@ -88,12 +95,14 @@ sealed interface ChumashUiRow {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChumashReaderScreen(
+    onSaveCompletion: (SavedStudyCompletion) -> Unit = {},
     chumashLesson: DailyChumashLesson?,
     selectedAliyaIndex: Int,
     preferences: UserPreferences,
     isLoading: Boolean,
     onSelectAliya: (Int) -> Unit,
     onToggleShowTeamim: () -> Unit,
+    onNikudToggle: (Boolean) -> Unit = {},
     onChangeFontSize: (Float) -> Unit,
     onToggleAliyaCompletion: (String, Int) -> Unit,
     onBack: () -> Unit,
@@ -180,7 +189,15 @@ fun ChumashReaderScreen(
         rows
     }
 
-    val listState = rememberLazyListState()
+    val fallbackIndex = flatRows.indexOfFirst { row ->
+            row is ChumashUiRow.VerseRow && resumePosition != null &&
+                row.aliya.aliyaIndex == resumePosition.chapterNumber &&
+                (row.verse.positionId == resumePosition.halachaId ||
+                    (resumePosition.halachaId.matches(Regex("verse_\\d+")) &&
+                        row.indexInAliya == resumePosition.halachaIndex))
+            }
+    val listState = rememberReaderViewportState("chumash_$selectedAliyaIndex", chumashLesson?.date.toString(),
+        flatRows.map { it.key }, fallbackIndex.coerceAtLeast(0))
     val completionPullState = rememberEndOfLessonPullState(
         key = chumashLesson?.date?.toString() to selectedAliyaIndex,
         canScrollForward = { listState.canScrollForward },
@@ -194,23 +211,14 @@ fun ChumashReaderScreen(
         onExitAfterCompletion = onBack
     )
 
-    // Scroll to saved position on first load
-    var hasScrolledToSavedPosition by remember(chumashLesson?.date, selectedAliyaIndex) { mutableStateOf(false) }
-    LaunchedEffect(flatRows, resumePosition) {
-        if (!hasScrolledToSavedPosition && flatRows.isNotEmpty()) {
-            val targetIdx = flatRows.indexOfFirst { row ->
-            row is ChumashUiRow.VerseRow && resumePosition != null &&
-                row.aliya.aliyaIndex == resumePosition.chapterNumber &&
-                row.verse.verseNumber == (resumePosition.halachaIndex + 1)
-            }
-            if (targetIdx >= 0) {
-                listState.scrollToItem(targetIdx)
-            } else {
-                listState.scrollToItem(0)
-            }
-            hasScrolledToSavedPosition = true
-        }
-    }
+    val manualCompletion = rememberManualStudyCompletionState(chumashLesson?.date to selectedAliyaIndex)
+    val completionRows = remember(flatRows) { flatRows.mapIndexedNotNull { index, row ->
+        (row as? ChumashUiRow.VerseRow)?.let { CompletionReaderRow(index, CompletionText(
+            it.key, "${it.verse.bookName} ${it.verse.chapterNumber}:${it.verse.verseNumber}",
+            it.verse.textWithTeamim, it.verse.textPlainNikud, it.verse.rashi)) }
+    } }
+
+    val hasScrolledToSavedPosition = flatRows.isNotEmpty()
 
     fun getActiveVerseInfo(visibleIndex: Int): Pair<ChumashUiRow.VerseRow?, ChumashUiRow.AliyaHeader?> {
         val direct = flatRows.getOrNull(visibleIndex)
@@ -233,16 +241,11 @@ fun ChumashReaderScreen(
     val currentVerseText = remember(flatRows) {
         derivedStateOf {
             val (activeVerse, activeHeader) = getActiveVerseInfo(listState.firstVisibleItemIndex)
-            if (activeVerse != null) {
-                val currentLetter = HebrewNumberFormatter.toHebrewNumeral(activeVerse.indexInAliya + 1)
-                val totalLetter = HebrewNumberFormatter.toHebrewNumeral(activeVerse.totalInAliya)
-                if (activeVerse.totalAliyotInSelection > 1) {
-                    "עליה ${activeVerse.aliya.aliyaName} · פסוק $currentLetter מתוך $totalLetter"
-                } else {
-                    "פסוק $currentLetter מתוך $totalLetter"
-                }
-            } else if (activeHeader != null) {
-                "עליה ${activeHeader.aliya.aliyaName} · פסוק א׳"
+            val verse = activeVerse?.verse ?: activeHeader?.aliya?.verses?.firstOrNull()
+            val aliya = activeVerse?.aliya ?: activeHeader?.aliya
+            if (verse != null && aliya != null) {
+                val chapter = HebrewNumberFormatter.toHebrewNumeral(verse.chapterNumber, withGershayim = true)
+                "${aliya.aliyaName} · $chapter:${verse.verseHebrew}"
             } else {
                 "טוען..."
             }
@@ -296,7 +299,7 @@ fun ChumashReaderScreen(
 
     val activeFontFamily = FontStyleOption.fromId(preferences.fontFamily).fontFamily
     val backgroundColor = when (preferences.readerTheme) {
-        "dark" -> Color(0xFF121214)
+        "dark", "oled" -> Color(0xFF121214)
         "sepia" -> Color(0xFFF5EEDA)
         else -> MaterialTheme.colorScheme.background
     }
@@ -314,7 +317,7 @@ fun ChumashReaderScreen(
                     .fillMaxSize()
                     .endOfLessonPull(completionPullState)
                     .padding(horizontal = 20.dp),
-                contentPadding = PaddingValues(top = 40.dp, bottom = 220.dp)
+                contentPadding = PaddingValues(top = 64.dp, bottom = 220.dp)
             ) {
                 items(
                     items = flatRows,
@@ -370,24 +373,34 @@ fun ChumashReaderScreen(
                         }
 
                         is ChumashUiRow.VerseRow -> {
+                            val previous = row.aliya.verses.getOrNull(row.indexInAliya - 1)
+                            if (row.verse.chapterNumber > 0 && (previous == null ||
+                                previous.chapterNumber != row.verse.chapterNumber || previous.bookName != row.verse.bookName)) {
+                                Text(
+                                    text = "${row.verse.bookName} · פרק ${HebrewNumberFormatter.toHebrewNumeral(row.verse.chapterNumber)}",
+                                    modifier = Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 16.dp),
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
                             val cleanTextWithNikud = if (preferences.chumashShowTeamim) {
                                 row.verse.textWithTeamim
                             } else {
-                                row.verse.textWithTeamim.replace(Regex("[\\u0591-\\u05AF]"), "")
+                                com.example.ui.util.HebrewTextNormalizer.withoutBiblicalAnnotations(row.verse.textWithTeamim)
                             }
                             StudyTextBlock(
-                                indexLetter = HebrewNumberFormatter.toHebrewNumeral(row.indexInAliya + 1) + "׳",
+                                indexLetter = row.verse.verseHebrew,
                                 textWithNikud = cleanTextWithNikud,
                                 textPlain = row.verse.textPlainNikud,
                                 preferences = preferences,
                                 rashi = row.verse.rashi,
                                 fontFamily = activeFontFamily,
                                 textColor = MaterialTheme.colorScheme.onBackground,
-                                fontSizeSp = preferences.chumashFontSizeSp,
-                                isReadingAnchor = row.aliya.aliyaIndex == resumePosition?.chapterNumber &&
-                                    row.verse.verseNumber == resumePosition?.halachaIndex?.plus(1),
+                                fontSizeSp = preferences.fontSizeSp,
+                                isReadingAnchor = false,
                                 modifier = Modifier.padding(bottom = 20.dp),
-                                testTag = "verse_item_${row.verse.verseNumber}"
+                                testTag = "verse_item_${row.verse.chapterNumber}_${row.verse.verseNumber}"
                             )
                         }
 
@@ -472,6 +485,10 @@ fun ChumashReaderScreen(
                 modifier = Modifier.align(Alignment.TopCenter)
             )
 
+            ManualStudyCompletionControls(manualCompletion, listState, completionRows,
+                track = "chumash", studyDate = chumashLesson?.date.orEmpty(), dateLabel = hebrewDateText,
+                title = "חומש · ${chumashLesson?.parashaName.orEmpty()}", onSave = onSaveCompletion)
+
             EndOfLessonPullIndicator(
                 state = completionPullState,
                 accentColor = Color(0xFFEDFF24),
@@ -491,6 +508,7 @@ fun ChumashReaderScreen(
                 FloatingReaderBar(
                     currentHalachaText = "",
                     hebrewDateText = displayDate,
+                    studyDate = chumashLesson?.date.orEmpty(),
                     scrollProgress = scrollProgress,
                     onBack = onBack,
                     onOpenDatePicker = onOpenDatePicker,
@@ -504,14 +522,20 @@ fun ChumashReaderScreen(
             if (showTypographySheet) {
                 ReaderTypographySheet(
                     preferences = preferences,
-                    fontSizeSp = preferences.chumashFontSizeSp,
+                    fontSizeSp = preferences.fontSizeSp,
                     onDismiss = { showTypographySheet = false },
                     onFontSizeChange = onChangeFontSize,
                     onLineSpacingChange = onLineSpacingChange,
                     onFontFamilyChange = onFontFamilyChange,
-                    onNikudToggle = { onToggleShowTeamim() }, // We reuse Nikud for Teamim
+                    onNikudToggle = onNikudToggle,
                     onThemeChange = onThemeChange,
-                    onKeepScreenOnChange = onKeepScreenOnChange
+                    onKeepScreenOnChange = onKeepScreenOnChange,
+                    extraControls = {
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                            Text("טעמים בחומש", modifier = Modifier.weight(1f))
+                            Switch(checked = preferences.chumashShowTeamim, onCheckedChange = { onToggleShowTeamim() })
+                        }
+                    }
                 )
             }
         }

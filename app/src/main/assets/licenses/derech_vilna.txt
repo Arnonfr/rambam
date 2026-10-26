@@ -1,0 +1,4 @@
+Derech Vilna is an adapted version of Romm Vilna by Ross Ilan Elovitz.
+Adaptation: enable existing Hebrew GPOS/GSUB language features by default.
+Glyph outlines are unchanged. Renamed in accordance with the reserved font name.
+Distributed under SIL OFL 1.1; see romm_vilna.txt for the full license.

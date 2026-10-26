@@ -1,41 +1,18 @@
 package com.example.ui.theme
 
 import androidx.compose.material3.Typography
-import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.example.R
 
-@OptIn(ExperimentalTextApi::class)
+// Static faces keep the actual stroke weight consistent on every supported Android version.
 val NotoSansHebrewFontFamily = FontFamily(
-    Font(
-        resId = R.font.noto_sans_hebrew,
-        weight = FontWeight.Normal,
-        variationSettings = FontVariation.Settings(
-            FontVariation.weight(500),
-            FontVariation.width(100f)
-        )
-    ),
-    Font(
-        resId = R.font.noto_sans_hebrew,
-        weight = FontWeight.Medium,
-        variationSettings = FontVariation.Settings(
-            FontVariation.weight(600),
-            FontVariation.width(100f)
-        )
-    ),
-    Font(
-        resId = R.font.noto_sans_hebrew,
-        weight = FontWeight.SemiBold,
-        variationSettings = FontVariation.Settings(
-            FontVariation.weight(700),
-            FontVariation.width(100f)
-        )
-    )
+    Font(R.font.noto_sans_hebrew, FontWeight.Normal),
+    Font(R.font.noto_sans_hebrew_medium, FontWeight.Medium),
+    Font(R.font.noto_sans_hebrew_semibold, FontWeight.SemiBold)
 )
 
 val Typography = Typography(

@@ -2,6 +2,12 @@
 
 package com.example.ui.screens
 
+import com.example.data.local.CompletionText
+import com.example.data.local.SavedStudyCompletion
+import com.example.domain.content.CompletionReaderRow
+import com.example.ui.components.ManualStudyCompletionControls
+import com.example.ui.components.rememberManualStudyCompletionState
+
 import android.app.Activity
 import android.view.WindowManager
 import androidx.activity.compose.BackHandler
@@ -44,6 +50,7 @@ private data class MitzvahReaderBlock(
 
 @Composable
 fun MitzvahReaderScreen(
+    onSaveCompletion: (SavedStudyCompletion) -> Unit = {},
     assignment: DailyMitzvahAssignment,
     entries: List<MitzvahLessonEntry>,
     preferences: UserPreferences,
@@ -102,16 +109,11 @@ fun MitzvahReaderScreen(
         }
     }
 
-    val listState = rememberLazyListState()
+    val listState = rememberReaderViewportState("mitzvot", assignment.studyDate.toString(),
+        listOf("mitzvah_intro") + blocks.map { it.id },
+        resumeAnchor?.blockIndex?.let { (it + 1).coerceIn(0, blocks.size) } ?: 0)
     var showTypographySheet by remember { mutableStateOf(false) }
-    var restored by remember(assignment.studyDate) { mutableStateOf(false) }
-    LaunchedEffect(blocks, resumeAnchor) {
-        if (!restored && blocks.isNotEmpty()) {
-            val target = resumeAnchor?.blockIndex?.coerceIn(0, blocks.lastIndex)
-            listState.scrollToItem(if (target == null) 0 else target + 1)
-            restored = true
-        }
-    }
+    val restored = blocks.isNotEmpty()
 
     fun readableBlockIndex(visibleItemIndex: Int): Int? {
         if (blocks.isEmpty()) return null
@@ -143,6 +145,12 @@ fun MitzvahReaderScreen(
         onDispose { saveVisibleBlock() }
     }
 
+    val manualCompletion = rememberManualStudyCompletionState(assignment.studyDate)
+    val completionRows = remember(blocks) { blocks.mapIndexedNotNull { index, block ->
+        if (block.isHeading) null else CompletionReaderRow(index + 1, CompletionText(block.id, block.title,
+            block.text, HebrewTextNormalizer.stripMarks(block.text)))
+    } }
+
     val completionPullState = rememberEndOfLessonPullState(
         key = assignment.studyDate,
         canScrollForward = { listState.canScrollForward },
@@ -162,11 +170,11 @@ fun MitzvahReaderScreen(
         }
     }
     val background = when (preferences.readerTheme) {
-        "dark" -> Color(0xFF121214)
+        "dark", "oled" -> Color(0xFF121214)
         "sepia" -> Color(0xFFF5EEDA)
         else -> Color(0xFFFFFDF8)
     }
-    val foreground = if (preferences.readerTheme == "dark") Color(0xFFE8E8EC) else Color(0xFF17120F)
+    val foreground = if (preferences.readerTheme in setOf("dark", "oled")) Color(0xFFE8E8EC) else Color(0xFF17120F)
     val accent = Color(0xFF72D7E8)
     val activeFont = FontStyleOption.fromId(preferences.fontFamily).fontFamily
 
@@ -176,7 +184,7 @@ fun MitzvahReaderScreen(
             LazyColumn(
                 state = listState,
                 modifier = Modifier.fillMaxSize().endOfLessonPull(completionPullState).padding(horizontal = 20.dp),
-                contentPadding = PaddingValues(top = 40.dp, bottom = 220.dp)
+                contentPadding = PaddingValues(top = 64.dp, bottom = 220.dp)
             ) {
                 // Retain the zero-height slot so existing saved paragraph indices stay valid.
                 item(key = "mitzvah_intro") { }
@@ -198,7 +206,7 @@ fun MitzvahReaderScreen(
                             preferences = preferences,
                             fontFamily = activeFont,
                             textColor = foreground,
-                            isReadingAnchor = index == resumeAnchor?.blockIndex,
+                            isReadingAnchor = false,
                             modifier = Modifier.padding(bottom = 18.dp),
                             testTag = "mitzvah_block_$index"
                         )
@@ -214,6 +222,10 @@ fun MitzvahReaderScreen(
                 readerTheme = preferences.readerTheme,
                 modifier = Modifier.align(Alignment.TopCenter)
             )
+            ManualStudyCompletionControls(manualCompletion, listState, completionRows,
+                track = "mitzvot", studyDate = assignment.studyDate.toString(), dateLabel = hebrewDateText,
+                title = "ספר המצוות", onSave = onSaveCompletion)
+
             EndOfLessonPullIndicator(
                 state = completionPullState,
                 accentColor = accent,
@@ -222,6 +234,7 @@ fun MitzvahReaderScreen(
             FloatingReaderBar(
                 currentHalachaText = currentLocation,
                 hebrewDateText = hebrewDateText,
+                    studyDate = assignment.studyDate.toString(),
                 scrollProgress = scrollProgress,
                 onBack = onBack,
                 onOpenDatePicker = onOpenDatePicker,

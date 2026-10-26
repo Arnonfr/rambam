@@ -2,6 +2,10 @@ package com.example.ui.components
 
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.ui.unit.dp
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -25,6 +29,16 @@ private val PrintTypeface = com.example.ui.theme.TanyaPrintFontFamily
 /** One source line is always exactly one rendered line, at every screen/font scale. */
 @Composable
 fun TanyaPrintedLine(line: TanyaSourceLine, textColor: Color) {
+    if (line.columns.isNotEmpty()) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            line.columns.forEach { column ->
+                Column(Modifier.weight(1f)) {
+                    column.forEach { TanyaPrintedLine(it, textColor) }
+                }
+            }
+        }
+        return
+    }
     BoxWithConstraints(Modifier.fillMaxWidth()) {
         val density = LocalDensity.current
         val sizeSp = maxWidth.value / 300f * 17f * line.fontScale
@@ -34,7 +48,8 @@ fun TanyaPrintedLine(line: TanyaSourceLine, textColor: Color) {
                     val wordScale = line.wordFontScales[index] ?: if (index < line.largeOpeningWords) 1.45f else 1f
                     Text(word, fontFamily = PrintTypeface, fontSize = (sizeSp * wordScale).sp,
                         lineHeight = (sizeSp * 1.25f).sp,
-                        color = if (line.greyFromWord?.let { index >= it } == true ||
+                        color = if (line.activeWordIndices?.let { index !in it } == true ||
+                            line.greyFromWord?.let { index >= it } == true ||
                             line.greyBeforeWord?.let { index < it } == true) textColor.copy(alpha = 0.4f) else textColor,
                         maxLines = 1, softWrap = false)
                 }

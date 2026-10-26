@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.ReaderFeedbackTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-10-24T17:51:19.046Z" hostname="MacBook-Air-sl-mspht.local" time="0.277">
+  <properties/>
+  <testcase name="materialConfirmationIsVisibleAfterRelease" classname="com.example.ReaderFeedbackTest" time="0.106"/>
+  <testcase name="playingRemainsVisibleWithHiddenControlsAndStopsOnPause" classname="com.example.ReaderFeedbackTest" time="0.05"/>
+  <testcase name="lightFeedback" classname="com.example.ReaderFeedbackTest" time="0.063"/>
+  <testcase name="darkFeedback" classname="com.example.ReaderFeedbackTest" time="0.055"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

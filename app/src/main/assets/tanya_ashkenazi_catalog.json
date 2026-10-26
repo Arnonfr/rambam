@@ -1,0 +1,772 @@
+{
+  "feed": "https://www.chabad.org/tools/rss/itunes/seriesrss_cdo/scope/5287961/variant/30977",
+  "source": "https://he.chabad.org/library/article_cdo/aid/5287961",
+  "verified": "2026-10-15",
+  "part": "Tanya, Part I; Likkutei Amarim",
+  "lessons": [
+    {
+      "id": "chabad-org-media-11719586",
+      "title": "פתיח: להתחיל לעבוד את ה' באמת",
+      "subtitle": "שיעור מס' 1",
+      "order": 1,
+      "chapters": [],
+      "website": "https://haravshneor.co.il/%d7%94%d7%a6%d7%a2%d7%a7%d7%94-%d7%a9%d7%9c-%d7%94%d7%a2%d7%95%d7%91%d7%93-%d7%94-2/"
+    },
+    {
+      "id": "chabad-org-media-11737476",
+      "title": "מבוא: בינוני זה הכי מצוין",
+      "subtitle": "שיעור מס' 2",
+      "order": 2,
+      "chapters": [],
+      "website": "https://haravshneor.co.il/%d7%91%d7%99%d7%a0%d7%95%d7%a0%d7%99-%d7%96%d7%94-%d7%94%d7%9b%d7%99-%d7%9e%d7%a6%d7%95%d7%99%d7%9f/"
+    },
+    {
+      "id": "chabad-org-media-11737478",
+      "title": "מבוא: יוצאים לדרך ארוכה וקצרה",
+      "subtitle": "שיעור מס' 3",
+      "order": 3,
+      "chapters": [],
+      "website": "https://haravshneor.co.il/%d7%99%d7%95%d7%a6%d7%90%d7%99%d7%9d-%d7%9c%d7%93%d7%a8%d7%9a-%d7%90%d7%a8%d7%95%d7%9b%d7%94-%d7%95%d7%a7%d7%a6%d7%a8%d7%94/"
+    },
+    {
+      "id": "chabad-org-media-11737480",
+      "title": "הקדמה: הדרכה בספר או פגישה אישית עם מדריך?",
+      "subtitle": "שיעור מס' 4",
+      "order": 4,
+      "chapters": [],
+      "website": "https://haravshneor.co.il/%d7%94%d7%93%d7%a8%d7%9b%d7%94-%d7%91%d7%a1%d7%a4%d7%a8-%d7%90%d7%95-%d7%a4%d7%92%d7%99%d7%a9%d7%94-%d7%90%d7%99%d7%a9%d7%99%d7%aa-%d7%a2%d7%9d-%d7%9e%d7%93%d7%a8%d7%99%d7%9a/"
+    },
+    {
+      "id": "chabad-org-media-11737482",
+      "title": "פרק א (1): להרים את הציפיות",
+      "subtitle": "שיעור מס' 5",
+      "order": 5,
+      "chapters": [
+        1
+      ],
+      "website": "https://haravshneor.co.il/%d7%9c%d7%94%d7%a8%d7%99%d7%9d-%d7%90%d7%aa-%d7%94%d7%a6%d7%99%d7%a4%d7%99%d7%95%d7%aa/"
+    },
+    {
+      "id": "chabad-org-media-11737484",
+      "title": "פרק א (2): נא להכיר, הנפש הבהמית",
+      "subtitle": "שיעור מס' 6",
+      "order": 6,
+      "chapters": [
+        1
+      ],
+      "website": "https://haravshneor.co.il/%d7%a0%d7%90-%d7%9c%d7%94%d7%9b%d7%99%d7%a8-%d7%94%d7%a0%d7%a4%d7%a9-%d7%94%d7%91%d7%94%d7%9e%d7%99%d7%aa/"
+    },
+    {
+      "id": "chabad-org-media-11737486",
+      "title": "פרק ב (1): פלא הנשמה היהודית",
+      "subtitle": "שיעור מס' 7",
+      "order": 7,
+      "chapters": [
+        2
+      ],
+      "website": "https://haravshneor.co.il/%d7%a4%d7%9c%d7%90-%d7%94%d7%a0%d7%a9%d7%9e%d7%94-%d7%94%d7%99%d7%94%d7%95%d7%93%d7%99%d7%aa/"
+    },
+    {
+      "id": "chabad-org-media-11737488",
+      "title": "פרק ב (2): התעלות בדור ירוד וגס",
+      "subtitle": "שיעור מס' 8",
+      "order": 8,
+      "chapters": [
+        2
+      ],
+      "website": "https://haravshneor.co.il/%d7%94%d7%aa%d7%a2%d7%9c%d7%95%d7%aa-%d7%91%d7%93%d7%95%d7%a8-%d7%99%d7%a8%d7%95%d7%93-%d7%95%d7%92%d7%a1/"
+    },
+    {
+      "id": "chabad-org-media-11737490",
+      "title": "שיעור שלישי בפרק ב: מה הפירוש להידבק בצדיק ולמה צריכים את זה?",
+      "subtitle": "שיעור מס' 9",
+      "order": 9,
+      "chapters": [
+        2
+      ],
+      "website": "https://haravshneor.co.il/%d7%9b%d7%97-%d7%94%d7%93%d7%91%d7%a7%d7%95%d7%aa-%d7%91%d7%a6%d7%93%d7%99%d7%a7-%d7%95%d7%a8%d7%91%d7%99/"
+    },
+    {
+      "id": "chabad-org-media-11737492",
+      "title": "פרק שלישי, שיעור ראשון: תודעה, רגשות ומה שביניהם",
+      "subtitle": "שיעור מס' 10",
+      "order": 10,
+      "chapters": [
+        3
+      ],
+      "website": "https://haravshneor.co.il/%d7%aa%d7%95%d7%93%d7%a2%d7%94-%d7%95%d7%a8%d7%92%d7%a9%d7%95%d7%aa-%d7%95%d7%94%d7%a7%d7%a9%d7%a8-%d7%91%d7%99%d7%a0%d7%99%d7%94%d7%9d/"
+    },
+    {
+      "id": "chabad-org-media-11787640",
+      "title": "פרק שלישי, שיעור שני: התבוננות בשידור חי",
+      "subtitle": "שיעור 11",
+      "order": 11,
+      "chapters": [
+        3
+      ],
+      "website": "https://haravshneor.co.il/%d7%94%d7%aa%d7%91%d7%95%d7%a0%d7%a0%d7%95%d7%aa-%d7%91%d7%a9%d7%99%d7%93%d7%95%d7%a8-%d7%97%d7%99/"
+    },
+    {
+      "id": "chabad-org-media-11787642",
+      "title": "פרק רביעי, שיעור ראשון: בין הרגש לחיי ההלכה",
+      "subtitle": "שיעור מספר 12",
+      "order": 12,
+      "chapters": [
+        4
+      ],
+      "website": "https://haravshneor.co.il/%d7%91%d7%99%d7%9f-%d7%94%d7%a8%d7%92%d7%a9-%d7%9c%d7%97%d7%99%d7%99-%d7%94%d7%94%d7%9c%d7%9b%d7%94/"
+    },
+    {
+      "id": "chabad-org-media-11787644",
+      "title": "פרק רביעי, שיעור שני: הלבוש עושה את האדם",
+      "subtitle": "שיעור 13",
+      "order": 13,
+      "chapters": [
+        4
+      ],
+      "website": "https://haravshneor.co.il/%d7%94%d7%9c%d7%91%d7%95%d7%a9-%d7%a2%d7%95%d7%a9%d7%94-%d7%90%d7%aa-%d7%94%d7%90%d7%93%d7%9d/"
+    },
+    {
+      "id": "chabad-org-media-11787646",
+      "title": "פרק רביעי שיעור שלישי: הפוטנציאל של בוקר יבש ומרוקן",
+      "subtitle": "שיעור 14",
+      "order": 14,
+      "chapters": [
+        4
+      ],
+      "website": "https://haravshneor.co.il/%d7%94%d7%a4%d7%95%d7%98%d7%a0%d7%a6%d7%99%d7%90%d7%9c-%d7%a9%d7%9c-%d7%91%d7%95%d7%a7%d7%a8-%d7%99%d7%91%d7%a9-%d7%95%d7%9e%d7%a8%d7%95%d7%a7%d7%9f/"
+    },
+    {
+      "id": "chabad-org-media-11787648",
+      "title": "פרק רביעי, שיעור רביעי: למה לא מספיק להיות דתי בלב?",
+      "subtitle": "שיעור 15",
+      "order": 15,
+      "chapters": [
+        4
+      ],
+      "website": "https://haravshneor.co.il/%d7%93%d7%aa%d7%99-%d7%91%d7%9c%d7%91-%d7%9c%d7%90-%d7%9e%d7%a1%d7%a4%d7%99%d7%a7/"
+    },
+    {
+      "id": "chabad-org-media-11787650",
+      "title": "פרק חמישי, שיעור ראשון: יציאת מצרים הפרטית שלך",
+      "subtitle": "שיעור 16",
+      "order": 16,
+      "chapters": [
+        5
+      ],
+      "website": "https://haravshneor.co.il/%d7%a9%d7%9b%d7%9c-%d7%97%d7%93%d7%a9-%d7%9c%d7%90%d7%93%d7%9d-%d7%97%d7%93%d7%a9/"
+    },
+    {
+      "id": "chabad-org-media-12176983",
+      "title": "פרק חמישי שיעור שני: חינוך זה להאהיב ולחבר",
+      "subtitle": "שיעור 17",
+      "order": 17,
+      "chapters": [
+        5
+      ],
+      "website": "https://haravshneor.co.il/%d7%97%d7%99%d7%a0%d7%95%d7%9a-%d7%96%d7%94-%d7%9c%d7%94%d7%90%d7%94%d7%99%d7%91-%d7%95%d7%9c%d7%97%d7%91%d7%a8/"
+    },
+    {
+      "id": "chabad-org-media-12176985",
+      "title": "פרק שישי: בהמית מהלב, אלוקית מהמוח",
+      "subtitle": "שיעור מס' 18",
+      "order": 18,
+      "chapters": [
+        6
+      ],
+      "website": "https://haravshneor.co.il/%d7%91%d7%94%d7%9e%d7%99%d7%aa-%d7%9e%d7%94%d7%9c%d7%91-%d7%90%d7%9c%d7%95%d7%a7%d7%99%d7%aa-%d7%9e%d7%94%d7%9e%d7%95%d7%97/"
+    },
+    {
+      "id": "chabad-org-media-12176987",
+      "title": "פרק שביעי: האפור של היהדות והחיים",
+      "subtitle": "שיעור מס' 19",
+      "order": 19,
+      "chapters": [
+        7
+      ],
+      "website": "https://haravshneor.co.il/%d7%94%d7%90%d7%a4%d7%95%d7%a8-%d7%a9%d7%9c-%d7%94%d7%99%d7%94%d7%93%d7%95%d7%aa-%d7%95%d7%94%d7%97%d7%99%d7%99%d7%9d/"
+    },
+    {
+      "id": "chabad-org-media-12176989",
+      "title": "פרק שביעי, שיעור שני: נפילות כואבות ותשובה מאהבה",
+      "subtitle": "שיעור מס' 20",
+      "order": 20,
+      "chapters": [
+        7
+      ],
+      "website": "https://haravshneor.co.il/%d7%a0%d7%a4%d7%99%d7%9c%d7%95%d7%aa-%d7%9b%d7%95%d7%90%d7%91%d7%95%d7%aa-%d7%95%d7%aa%d7%a9%d7%95%d7%91%d7%94-%d7%9e%d7%90%d7%94%d7%91%d7%94/"
+    },
+    {
+      "id": "chabad-org-media-12176991",
+      "title": "פרק שמיני, שיעור ראשון: עבירה זו בעיה רצינית!",
+      "subtitle": "שיעור מס' 21",
+      "order": 21,
+      "chapters": [
+        8
+      ],
+      "website": "https://haravshneor.co.il/%d7%a2%d7%91%d7%99%d7%a8%d7%94-%d7%96%d7%95-%d7%91%d7%a2%d7%99%d7%94-%d7%a8%d7%a6%d7%99%d7%a0%d7%99%d7%aa/"
+    },
+    {
+      "id": "chabad-org-media-12176993",
+      "title": "פרק שמיני, שיעור שני: סוד הגהנום ואמנות הענישה",
+      "subtitle": "שיעור מס' 22",
+      "order": 22,
+      "chapters": [
+        8
+      ],
+      "website": "https://haravshneor.co.il/%d7%a1%d7%95%d7%93-%d7%94%d7%92%d7%94%d7%a0%d7%95%d7%9d-%d7%95%d7%90%d7%9e%d7%a0%d7%95%d7%aa-%d7%94%d7%a2%d7%a0%d7%99%d7%a9%d7%94/"
+    },
+    {
+      "id": "chabad-org-media-12176995",
+      "title": "פרק תשיעי, שיעור ראשון: עייפים אבל נחושים",
+      "subtitle": "שיעור מס' 23",
+      "order": 23,
+      "chapters": [
+        9
+      ],
+      "website": "https://haravshneor.co.il/%d7%a2%d7%99%d7%99%d7%a4%d7%99%d7%9d-%d7%90%d7%91%d7%9c-%d7%a0%d7%97%d7%95%d7%a9%d7%99%d7%9d/"
+    },
+    {
+      "id": "chabad-org-media-12176997",
+      "title": "פרק תשיעי, שיעור שני: היצר הוא רק תחפושת",
+      "subtitle": "שיעור מס' 24",
+      "order": 24,
+      "chapters": [
+        9
+      ],
+      "website": "https://haravshneor.co.il/%d7%94%d7%99%d7%a6%d7%a8-%d7%94%d7%95%d7%90-%d7%a8%d7%a7-%d7%aa%d7%97%d7%a4%d7%95%d7%a9%d7%aa/"
+    },
+    {
+      "id": "chabad-org-media-12176999",
+      "title": "פרק עשירי: מהותו של הצדיק",
+      "subtitle": "שיעור מס' 25",
+      "order": 25,
+      "chapters": [
+        10
+      ],
+      "website": "https://haravshneor.co.il/%d7%9e%d7%94%d7%95%d7%aa%d7%95-%d7%a9%d7%9c-%d7%94%d7%a6%d7%93%d7%99%d7%a7/"
+    },
+    {
+      "id": "chabad-org-media-12177003",
+      "title": "פרק אחד-עשר: הכי קל להיות רשע",
+      "subtitle": "שיעור מס' 27",
+      "order": 27,
+      "chapters": [
+        11
+      ],
+      "website": "https://haravshneor.co.il/%d7%94%d7%9b%d7%99-%d7%a7%d7%9c-%d7%9c%d7%94%d7%99%d7%95%d7%aa-%d7%a8%d7%a9%d7%a2/"
+    },
+    {
+      "id": "chabad-org-media-12177005",
+      "title": "פרק שנים-עשר, שיעור ראשון: תפילה - המטען של הנשמה",
+      "subtitle": "שיעור מס' 28",
+      "order": 28,
+      "chapters": [
+        12
+      ],
+      "website": "https://haravshneor.co.il/%d7%aa%d7%a4%d7%99%d7%9c%d7%94-%d7%94%d7%9e%d7%98%d7%a2%d7%9f-%d7%a9%d7%9c-%d7%94%d7%a0%d7%a9%d7%9e%d7%94/"
+    },
+    {
+      "id": "chabad-org-media-12177008",
+      "title": "פרק שנים-עשר, שיעור שני: כלי משנה חיים ושמו 'חוק המחשבה השניה'",
+      "subtitle": "שיעור מס' 29",
+      "order": 29,
+      "chapters": [
+        12
+      ],
+      "website": "https://haravshneor.co.il/%d7%9b%d7%9c%d7%99-%d7%9e%d7%a9%d7%a0%d7%94-%d7%97%d7%99%d7%99%d7%9d-%d7%97%d7%95%d7%a7-%d7%94%d7%9e%d7%97%d7%a9%d7%91%d7%94-%d7%94%d7%a9%d7%a0%d7%99%d7%94/"
+    },
+    {
+      "id": "chabad-org-media-12177010",
+      "title": "הפגיעה, והמחילה המפתיעה",
+      "subtitle": "שיעור תניא מס' 30: פרק יב, 2",
+      "order": 30,
+      "chapters": [
+        12
+      ],
+      "website": "https://haravshneor.co.il/%d7%94%d7%a4%d7%92%d7%99%d7%a2%d7%94-%d7%95%d7%94%d7%9e%d7%97%d7%99%d7%9c%d7%94-%d7%94%d7%9e%d7%a4%d7%aa%d7%99%d7%a2%d7%94/"
+    },
+    {
+      "id": "chabad-org-media-12177012",
+      "title": "מי מנצח, הטוב או הרע?",
+      "subtitle": "שיעור תניא מס' 31 - פרק יג, שיעור ראשון",
+      "order": 31,
+      "chapters": [
+        13
+      ],
+      "website": "https://haravshneor.co.il/%d7%9e%d7%99-%d7%9e%d7%a0%d7%a6%d7%97-%d7%94%d7%98%d7%95%d7%91-%d7%90%d7%95-%d7%94%d7%a8%d7%a2/"
+    },
+    {
+      "id": "chabad-org-media-12177014",
+      "title": "לפרוץ אל הרגש",
+      "subtitle": "שיעור תניא מס' 32: פרק יג, שיעור שני",
+      "order": 32,
+      "chapters": [
+        13
+      ],
+      "website": "https://haravshneor.co.il/%d7%9c%d7%a4%d7%a8%d7%95%d7%a5-%d7%90%d7%9c-%d7%94%d7%a8%d7%92%d7%a9/"
+    },
+    {
+      "id": "chabad-org-media-12177016",
+      "title": "הרוח שמשטה בנו",
+      "subtitle": "שיעור תניא פרק 33; פרק יד",
+      "order": 33,
+      "chapters": [
+        14
+      ],
+      "website": "https://haravshneor.co.il/%d7%94%d7%a8%d7%95%d7%97-%d7%a9%d7%9e%d7%a9%d7%98%d7%94-%d7%91%d7%a0%d7%95/"
+    },
+    {
+      "id": "chabad-org-media-12177018",
+      "title": "לצאת מהפרסומת אל המציאות",
+      "subtitle": "שיעור תניא 34: פרק יד 2",
+      "order": 34,
+      "chapters": [
+        14
+      ],
+      "website": "https://haravshneor.co.il/%d7%9c%d7%a6%d7%90%d7%aa-%d7%9e%d7%94%d7%a4%d7%a8%d7%a1%d7%95%d7%9e%d7%aa-%d7%90%d7%9c-%d7%94%d7%9e%d7%a6%d7%99%d7%90%d7%95%d7%aa/"
+    },
+    {
+      "id": "chabad-org-media-12177020",
+      "title": "עיבור בנשמת צדיק",
+      "subtitle": "שיעור תניא 35: פרק יד 3",
+      "order": 35,
+      "chapters": [
+        14
+      ],
+      "website": "https://haravshneor.co.il/%d7%a2%d7%99%d7%91%d7%95%d7%a8-%d7%91%d7%a0%d7%a9%d7%9e%d7%aa-%d7%a6%d7%93%d7%99%d7%a7/"
+    },
+    {
+      "id": "chabad-org-media-12177022",
+      "title": "חוסר שלמות מושלם",
+      "subtitle": "שיעור תניא 36: פרק טו",
+      "order": 36,
+      "chapters": [
+        15
+      ],
+      "website": "https://haravshneor.co.il/%d7%97%d7%95%d7%a1%d7%a8-%d7%a9%d7%9c%d7%9e%d7%95%d7%aa-%d7%9e%d7%95%d7%a9%d7%9c%d7%9d/"
+    },
+    {
+      "id": "chabad-org-media-12177024",
+      "title": "המנוע הדוחף של העשיה",
+      "subtitle": "שיעור תניא 37: פרק טז1",
+      "order": 37,
+      "chapters": [
+        16
+      ],
+      "website": "https://haravshneor.co.il/%d7%94%d7%9e%d7%a0%d7%95%d7%a2-%d7%94%d7%93%d7%95%d7%97%d7%a3-%d7%a9%d7%9c-%d7%94%d7%a2%d7%a9%d7%99%d7%94/"
+    },
+    {
+      "id": "chabad-org-media-12177027",
+      "title": "לבחור באהבה וחיוניות",
+      "subtitle": "שיעור תניא 38: פרק טז2-פרק יז1",
+      "order": 38,
+      "chapters": [
+        16,
+        17
+      ],
+      "website": "https://haravshneor.co.il/%d7%9c%d7%91%d7%97%d7%95%d7%a8-%d7%91%d7%90%d7%94%d7%91%d7%94-%d7%95%d7%97%d7%99%d7%95%d7%a0%d7%99%d7%95%d7%aa/"
+    },
+    {
+      "id": "chabad-org-media-12177029",
+      "title": "כוחה של חרטה וכנות",
+      "subtitle": "שיעור תניא 39 - פרק יז2",
+      "order": 39,
+      "chapters": [
+        17
+      ],
+      "website": "https://haravshneor.co.il/%d7%9b%d7%95%d7%97%d7%94-%d7%a9%d7%9c-%d7%97%d7%a8%d7%98%d7%94-%d7%95%d7%9b%d7%a0%d7%95%d7%aa/"
+    },
+    {
+      "id": "chabad-org-media-12177031",
+      "title": "האמונה מחכה להפעלה",
+      "subtitle": "שיעור תניא 40: פרק יח",
+      "order": 40,
+      "chapters": [
+        18
+      ],
+      "website": "https://haravshneor.co.il/%d7%94%d7%90%d7%9e%d7%95%d7%a0%d7%94-%d7%9e%d7%97%d7%9b%d7%94-%d7%9c%d7%94%d7%a4%d7%a2%d7%9c%d7%94/"
+    },
+    {
+      "id": "chabad-org-media-12177034",
+      "title": "פלא מסירת הנפש והרצון",
+      "subtitle": "שיעור תניא 41: פרק יט1",
+      "order": 41,
+      "chapters": [
+        19
+      ],
+      "website": "https://haravshneor.co.il/%d7%a4%d7%9c%d7%90-%d7%9e%d7%a1%d7%99%d7%a8%d7%aa-%d7%94%d7%a0%d7%a4%d7%a9-%d7%95%d7%94%d7%a8%d7%a6%d7%95%d7%9f/"
+    },
+    {
+      "id": "chabad-org-media-12971878",
+      "title": "יצר הרע עם שטריימל",
+      "subtitle": "שיעור תניא 42: פרק יט2",
+      "order": 42,
+      "chapters": [
+        19
+      ],
+      "website": "https://haravshneor.co.il/%d7%99%d7%a6%d7%a8-%d7%94%d7%a8%d7%a2-%d7%a2%d7%9d-%d7%a9%d7%98%d7%a8%d7%99%d7%99%d7%9e%d7%9c/"
+    },
+    {
+      "id": "chabad-org-media-12177038",
+      "title": "אין עוד מלבדו זו המציאות",
+      "subtitle": "שיעור תניא 43: פרק כ1",
+      "order": 43,
+      "chapters": [
+        20
+      ],
+      "website": "https://haravshneor.co.il/%d7%90%d7%99%d7%9f-%d7%a2%d7%95%d7%93-%d7%9e%d7%9c%d7%91%d7%93%d7%95-%d7%96%d7%95-%d7%94%d7%9e%d7%a6%d7%99%d7%90%d7%95%d7%aa/"
+    },
+    {
+      "id": "chabad-org-media-12177040",
+      "title": "תיאטרון הבובות של החיים",
+      "subtitle": "שיעור תניא 44, פרקים כ-כא",
+      "order": 44,
+      "chapters": [
+        20,
+        21
+      ],
+      "website": "https://haravshneor.co.il/%d7%aa%d7%99%d7%90%d7%98%d7%a8%d7%95%d7%9f-%d7%91%d7%95%d7%91%d7%95%d7%aa-%d7%a9%d7%9c-%d7%94%d7%97%d7%99%d7%99%d7%9d/"
+    },
+    {
+      "id": "chabad-org-media-12177043",
+      "title": "קיצור תולדות ההסתרה",
+      "subtitle": "שיעור תניא 45 - פרק כב1",
+      "order": 45,
+      "chapters": [
+        22
+      ],
+      "website": "https://haravshneor.co.il/%d7%a7%d7%99%d7%a6%d7%95%d7%a8-%d7%aa%d7%95%d7%9c%d7%93%d7%95%d7%aa-%d7%94%d7%94%d7%a1%d7%aa%d7%a8%d7%94/"
+    },
+    {
+      "id": "chabad-org-media-12177045",
+      "title": "בהצלחה ובענווה",
+      "subtitle": "שיעור תניא 46 - פרק כב 2",
+      "order": 46,
+      "chapters": [
+        22
+      ],
+      "website": "https://haravshneor.co.il/%d7%91%d7%94%d7%a6%d7%9c%d7%97%d7%94-%d7%95%d7%91%d7%a2%d7%a0%d7%95%d7%95%d7%94/"
+    },
+    {
+      "id": "chabad-org-media-12177047",
+      "title": "גשמיות ורוחניות צועדים יחד",
+      "subtitle": " שיעור תניא 47 - פרק כג1",
+      "order": 47,
+      "chapters": [
+        23
+      ],
+      "website": "https://haravshneor.co.il/%d7%92%d7%a9%d7%9e%d7%99%d7%95%d7%aa-%d7%95%d7%a8%d7%95%d7%97%d7%a0%d7%99%d7%95%d7%aa-%d7%a6%d7%95%d7%a2%d7%93%d7%99%d7%9d-%d7%99%d7%97%d7%93/"
+    },
+    {
+      "id": "chabad-org-media-12177049",
+      "title": "יחידות עם האין סוף",
+      "subtitle": "שיעור תניא 48 - פרק כג2",
+      "order": 48,
+      "chapters": [
+        23
+      ],
+      "website": "https://haravshneor.co.il/%d7%99%d7%97%d7%99%d7%93%d7%95%d7%aa-%d7%a2%d7%9d-%d7%94%d7%90%d7%99%d7%9f-%d7%a1%d7%95%d7%a3/"
+    },
+    {
+      "id": "chabad-org-media-12177051",
+      "title": "לא להיפרד לרגע!",
+      "subtitle": " שיעור תניא 49 - פרק כד",
+      "order": 49,
+      "chapters": [
+        24
+      ],
+      "website": "https://haravshneor.co.il/%d7%9c%d7%90-%d7%9c%d7%94%d7%99%d7%a4%d7%a8%d7%93-%d7%9c%d7%a8%d7%92%d7%a2/"
+    },
+    {
+      "id": "chabad-org-media-12177054",
+      "title": "כוחות חדשים למלחמה הישנה",
+      "subtitle": "שיעור תניא 50: פרק כה",
+      "order": 50,
+      "chapters": [
+        25
+      ],
+      "website": "https://haravshneor.co.il/%d7%9b%d7%95%d7%97%d7%95%d7%aa-%d7%97%d7%93%d7%a9%d7%99%d7%9d-%d7%9c%d7%9e%d7%9c%d7%97%d7%9e%d7%94-%d7%94%d7%99%d7%a9%d7%a0%d7%94/"
+    },
+    {
+      "id": "chabad-org-media-12971906",
+      "title": "השמחה מולידה את ההצלחה",
+      "subtitle": "שיעור 51 - פרק כו של ספר התניא (1)",
+      "order": 51,
+      "chapters": [
+        26
+      ],
+      "website": "https://haravshneor.co.il/%d7%94%d7%a9%d7%9e%d7%97%d7%94-%d7%a9%d7%9e%d7%95%d7%9c%d7%99%d7%93%d7%94-%d7%90%d7%aa-%d7%94%d7%94%d7%a6%d7%9c%d7%97%d7%94/"
+    },
+    {
+      "id": "chabad-org-media-12971908",
+      "title": "שמחה בייסורים - כיצד?",
+      "subtitle": "שיעור 52 - פרק כו בספר התניא (2)",
+      "order": 52,
+      "chapters": [
+        26
+      ],
+      "website": "https://haravshneor.co.il/%d7%a9%d7%9e%d7%97%d7%94-%d7%91%d7%99%d7%a1%d7%95%d7%a8%d7%99%d7%9d-%d7%9b%d7%99%d7%a6%d7%93/"
+    },
+    {
+      "id": "chabad-org-media-12971910",
+      "title": "הכל על רגשות אשם",
+      "subtitle": "שיעור 53 - פרק כו, 3",
+      "order": 53,
+      "chapters": [
+        26
+      ],
+      "website": "https://haravshneor.co.il/%d7%94%d7%9b%d7%9c-%d7%a2%d7%9c-%d7%a8%d7%92%d7%a9%d7%95%d7%aa-%d7%90%d7%a9%d7%9d/"
+    },
+    {
+      "id": "chabad-org-media-12971912",
+      "title": "כשהגהינום הופך לגן עדן",
+      "subtitle": "שיעור תניא 54 - פרק כז, 1",
+      "order": 54,
+      "chapters": [
+        27
+      ],
+      "website": "https://haravshneor.co.il/%d7%9b%d7%a9%d7%94%d7%92%d7%94%d7%99%d7%a0%d7%95%d7%9d-%d7%94%d7%95%d7%a4%d7%9a-%d7%9c%d7%92%d7%9f-%d7%a2%d7%93%d7%9f/"
+    },
+    {
+      "id": "chabad-org-media-12971914",
+      "title": "נהנתנות וחיים טובים - כן או לא?",
+      "subtitle": "שיעור תניא 55 - פרק כז2",
+      "order": 55,
+      "chapters": [
+        27
+      ],
+      "website": "https://haravshneor.co.il/%d7%a0%d7%94%d7%a0%d7%aa%d7%a0%d7%95%d7%aa-%d7%95%d7%97%d7%99%d7%99%d7%9d-%d7%98%d7%95%d7%91%d7%99%d7%9d-%d7%9b%d7%9f-%d7%90%d7%95-%d7%9c%d7%90/"
+    },
+    {
+      "id": "chabad-org-media-12971916",
+      "title": "המחשבות הזרות בתפילה והפתרון להן",
+      "subtitle": "שיעור תניא 56 - פרק כח",
+      "order": 56,
+      "chapters": [
+        28
+      ],
+      "website": "https://haravshneor.co.il/%d7%94%d7%9e%d7%97%d7%a9%d7%91%d7%95%d7%aa-%d7%94%d7%96%d7%a8%d7%95%d7%aa-%d7%91%d7%aa%d7%a4%d7%99%d7%9c%d7%94-%d7%95%d7%94%d7%a4%d7%aa%d7%a8%d7%95%d7%9f-%d7%9c%d7%94%d7%9f/"
+    },
+    {
+      "id": "chabad-org-media-12971920",
+      "title": "תסמונת הלב האטום",
+      "subtitle": "שיעור תניא 57 - פרק כט1",
+      "order": 57,
+      "chapters": [
+        29
+      ],
+      "website": "https://haravshneor.co.il/%d7%aa%d7%a1%d7%9e%d7%95%d7%a0%d7%aa-%d7%94%d7%9c%d7%91-%d7%94%d7%90%d7%98%d7%95%d7%9d/"
+    },
+    {
+      "id": "chabad-org-media-12971922",
+      "title": "ספקות באמונה - זה לא מפחיד",
+      "subtitle": "שיעור תניא 58 - פרק כט2",
+      "order": 58,
+      "chapters": [
+        29
+      ],
+      "website": "https://haravshneor.co.il/%d7%a1%d7%a4%d7%a7%d7%95%d7%aa-%d7%91%d7%90%d7%9e%d7%95%d7%a0%d7%94-%d7%96%d7%94-%d7%9c%d7%90-%d7%9e%d7%a4%d7%97%d7%99%d7%93/"
+    },
+    {
+      "id": "chabad-org-media-12971924",
+      "title": "השפלה פומבית",
+      "subtitle": " שיעור בתניא 59 - פרק ל",
+      "order": 59,
+      "chapters": [
+        30
+      ],
+      "website": "https://haravshneor.co.il/%d7%94%d7%a9%d7%a4%d7%9c%d7%94-%d7%a4%d7%95%d7%9e%d7%91%d7%99%d7%aa/"
+    },
+    {
+      "id": "chabad-org-media-12971926",
+      "title": "מותר להיות בעצבות",
+      "subtitle": "שיעור תניא 60 - פרק ל\"א 1",
+      "order": 60,
+      "chapters": [
+        31
+      ],
+      "website": "https://haravshneor.co.il/%d7%9e%d7%95%d7%aa%d7%a8-%d7%9c%d7%94%d7%99%d7%95%d7%aa-%d7%91%d7%a2%d7%a6%d7%91%d7%95%d7%aa/"
+    },
+    {
+      "id": "chabad-org-media-12971928",
+      "title": "זה היום היחיד בחייך",
+      "subtitle": "שיעור בתניא 61 - פרק ל\"א 2",
+      "order": 61,
+      "chapters": [
+        31
+      ],
+      "website": "https://haravshneor.co.il/%d7%96%d7%94-%d7%94%d7%99%d7%95%d7%9d-%d7%94%d7%99%d7%97%d7%99%d7%93-%d7%91%d7%97%d7%99%d7%99%d7%9a/"
+    },
+    {
+      "id": "chabad-org-media-12971930",
+      "title": "אפשר לאהוב כמוך?!",
+      "subtitle": "שיעור תניא 62 - פרק ל\"ב 1",
+      "order": 62,
+      "chapters": [
+        32
+      ],
+      "website": "https://haravshneor.co.il/%d7%90%d7%a4%d7%a9%d7%a8-%d7%9c%d7%90%d7%94%d7%95%d7%91-%d7%9b%d7%9e%d7%95%d7%9a/"
+    },
+    {
+      "id": "chabad-org-media-12971932",
+      "title": "איך אנחנו עם אחד?",
+      "subtitle": "שיעור בתניא 63 - פרק ל\"ב 2",
+      "order": 63,
+      "chapters": [
+        32
+      ],
+      "website": "https://haravshneor.co.il/%d7%90%d7%99%d7%9a-%d7%90%d7%a0%d7%97%d7%a0%d7%95-%d7%a2%d7%9d-%d7%90%d7%97%d7%93/"
+    },
+    {
+      "id": "chabad-org-media-12971934",
+      "title": "איך להתייחס לנער חוטא?",
+      "subtitle": "שיעור בתניא 64 - פרק ל\"ב 3",
+      "order": 64,
+      "chapters": [
+        32
+      ],
+      "website": "https://haravshneor.co.il/%d7%90%d7%99%d7%9a-%d7%9c%d7%94%d7%aa%d7%99%d7%99%d7%97%d7%a1-%d7%9c%d7%a0%d7%a2%d7%a8-%d7%97%d7%95%d7%98%d7%90/"
+    },
+    {
+      "id": "chabad-org-media-12971936",
+      "title": "אין אפיקורסים, יש שלא למדו",
+      "subtitle": "שיעור תניא 65 - פרק ל\"ב 4",
+      "order": 65,
+      "chapters": [
+        32
+      ],
+      "website": "https://haravshneor.co.il/%d7%90%d7%99%d7%9f-%d7%90%d7%a4%d7%99%d7%a7%d7%95%d7%a8%d7%a1%d7%99%d7%9d-%d7%99%d7%a9-%d7%a9%d7%9c%d7%90-%d7%9c%d7%9e%d7%93%d7%95/"
+    },
+    {
+      "id": "chabad-org-media-12971940",
+      "title": "תמצית החיים בשיעור אחד",
+      "subtitle": "שיעור בתניא 67 • פרק לג2",
+      "order": 67,
+      "chapters": [
+        33
+      ],
+      "website": "https://haravshneor.co.il/%d7%aa%d7%9e%d7%a6%d7%99%d7%aa-%d7%94%d7%97%d7%99%d7%99%d7%9d-%d7%91%d7%a9%d7%99%d7%a2%d7%95%d7%a8-%d7%90%d7%97%d7%93/"
+    },
+    {
+      "id": "chabad-org-media-12971942",
+      "title": "חיים בארמון המלך",
+      "subtitle": "שיעור בתניא 68 • פרק ל\"ד",
+      "order": 68,
+      "chapters": [
+        34
+      ],
+      "website": "https://haravshneor.co.il/%d7%97%d7%99%d7%99%d7%9d-%d7%91%d7%90%d7%a8%d7%9e%d7%95%d7%9f-%d7%94%d7%9e%d7%9c%d7%9a/"
+    },
+    {
+      "id": "chabad-org-media-12971944",
+      "title": "המעשה הוא העיקר",
+      "subtitle": "שיעור תניא 69 • פרק ל\"ה1",
+      "order": 69,
+      "chapters": [
+        35
+      ],
+      "website": "https://haravshneor.co.il/%d7%a7%d7%95%d7%9e%d7%96%d7%99%d7%a5-%d7%9c%d7%97%d7%95%d7%a4%d7%a9-%d7%94%d7%92%d7%93%d7%95%d7%9c/"
+    },
+    {
+      "id": "chabad-org-media-12971946",
+      "title": "כדורגל כמשל לחיים",
+      "subtitle": "שיעור בתניא 70 • פרק ל\"ה2",
+      "order": 70,
+      "chapters": [
+        35
+      ],
+      "website": "https://haravshneor.co.il/%d7%9b%d7%93%d7%95%d7%a8%d7%92%d7%9c-%d7%9b%d7%9e%d7%a9%d7%9c-%d7%9c%d7%97%d7%99%d7%99%d7%9d/"
+    },
+    {
+      "id": "chabad-org-media-12971948",
+      "title": "הגוף הוא לא האויב",
+      "subtitle": "שיעור בתניא 71 • פרק ל\"ה 3",
+      "order": 71,
+      "chapters": [
+        35
+      ],
+      "website": "https://haravshneor.co.il/%d7%94%d7%92%d7%95%d7%a3-%d7%94%d7%95%d7%90-%d7%9c%d7%90-%d7%94%d7%90%d7%95%d7%99%d7%91/"
+    },
+    {
+      "id": "chabad-org-media-12971950",
+      "title": "למה החיים?",
+      "subtitle": "שיעור בתניא 72 • פרק ל\"ו 1",
+      "order": 72,
+      "chapters": [
+        36
+      ],
+      "website": "https://haravshneor.co.il/%d7%9c%d7%9e%d7%94-%d7%94%d7%97%d7%99%d7%99%d7%9d/"
+    },
+    {
+      "id": "chabad-org-media-12971952",
+      "title": "משיח - זה רציני?!",
+      "subtitle": "שיעור תניא 73 • פרק ל\"ו 2",
+      "order": 73,
+      "chapters": [
+        36
+      ],
+      "website": "https://haravshneor.co.il/%d7%9e%d7%a9%d7%99%d7%97-%d7%96%d7%94-%d7%a8%d7%a6%d7%99%d7%a0%d7%99/"
+    },
+    {
+      "id": "chabad-org-media-12971955",
+      "title": "תכנית מקיפה לשינוי בעולם",
+      "subtitle": "שיעור תניא 74 • פרק לז 1",
+      "order": 74,
+      "chapters": [
+        37
+      ],
+      "website": "https://haravshneor.co.il/%d7%aa%d7%9b%d7%a0%d7%99%d7%aa-%d7%9e%d7%a7%d7%99%d7%a4%d7%94-%d7%9c%d7%a9%d7%99%d7%a0%d7%95%d7%99-%d7%91%d7%a2%d7%95%d7%9c%d7%9d/"
+    },
+    {
+      "id": "chabad-org-media-12971959",
+      "title": "מקום שלך בעולם",
+      "subtitle": "שיעור תניא 76 • פרק ל\"ז 3",
+      "order": 76,
+      "chapters": [
+        37
+      ],
+      "website": "https://haravshneor.co.il/%d7%9e%d7%a7%d7%95%d7%9d-%d7%a9%d7%9c%d7%9a-%d7%91%d7%a2%d7%95%d7%9c%d7%9d/"
+    },
+    {
+      "id": "chabad-org-media-12971961",
+      "title": "כל החיים הם כסף",
+      "subtitle": "שיעור תניא 77 • פרק ל\"ז 4",
+      "order": 77,
+      "chapters": [
+        37
+      ],
+      "website": "https://haravshneor.co.il/%d7%9b%d7%9c-%d7%94%d7%97%d7%99%d7%99%d7%9d-%d7%94%d7%9d-%d7%9b%d7%a1%d7%a3/"
+    },
+    {
+      "id": "chabad-org-media-12971963",
+      "title": "האש, העצים וההתלהבות",
+      "subtitle": "שיעור תניא 78 • פרק ל\"ח 1",
+      "order": 78,
+      "chapters": [
+        38
+      ],
+      "website": "https://haravshneor.co.il/%d7%94%d7%90%d7%a9-%d7%94%d7%a2%d7%a6%d7%99%d7%9d-%d7%95%d7%94%d7%94%d7%aa%d7%9c%d7%94%d7%91%d7%95%d7%aa/"
+    },
+    {
+      "id": "chabad-org-media-12971965",
+      "title": "ברוך שעשני יהודי",
+      "subtitle": "שיעור תניא 79 • פרק ל\"ח 2",
+      "order": 79,
+      "chapters": [
+        38
+      ],
+      "website": "https://haravshneor.co.il/%d7%91%d7%a8%d7%95%d7%9a-%d7%a9%d7%a2%d7%a9%d7%a0%d7%99-%d7%99%d7%94%d7%95%d7%93%d7%99/"
+    },
+    {
+      "id": "chabad-org-media-12971972",
+      "title": "מה עושים בגן עדן?",
+      "subtitle": "שיעור תניא 81 פרק לט2",
+      "order": 81,
+      "chapters": [
+        39
+      ],
+      "website": "https://haravshneor.co.il/%d7%9e%d7%94-%d7%a2%d7%95%d7%a9%d7%99%d7%9d-%d7%91%d7%92%d7%9f-%d7%a2%d7%93%d7%9f/"
+    }
+  ]
+}

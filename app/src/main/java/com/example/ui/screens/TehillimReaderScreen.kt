@@ -2,6 +2,12 @@
 
 package com.example.ui.screens
 
+import com.example.data.local.CompletionText
+import com.example.data.local.SavedStudyCompletion
+import com.example.domain.content.CompletionReaderRow
+import com.example.ui.components.ManualStudyCompletionControls
+import com.example.ui.components.rememberManualStudyCompletionState
+
 import android.app.Activity
 import android.view.WindowManager
 import androidx.activity.compose.BackHandler
@@ -43,6 +49,7 @@ import com.example.ui.components.EndOfLessonPullIndicator
 import com.example.ui.components.ReaderTypographySheet
 import com.example.ui.components.StudyTextBlock
 import com.example.ui.components.endOfLessonPull
+import com.example.ui.components.rememberReaderViewportState
 import com.example.ui.components.rememberEndOfLessonPullState
 import com.example.ui.theme.*
 import kotlinx.coroutines.delay
@@ -74,6 +81,8 @@ sealed interface TehillimUiRow {
 
 @Composable
 fun TehillimReaderScreen(
+    onSaveCompletion: (SavedStudyCompletion) -> Unit = {},
+    onOpenPersonalPsalms: (() -> Unit)? = null,
     lesson: DailyTehillimLesson?,
     isLoading: Boolean,
     onBack: () -> Unit,
@@ -97,7 +106,6 @@ fun TehillimReaderScreen(
 
     var activeTab by remember { mutableStateOf(TehillimTab.DAILY) }
     var showTypographySheet by remember { mutableStateOf(false) }
-    val listState = rememberLazyListState()
     val resumePosition = remember(lesson?.dayOfMonth) { savedPosition }
 
     // Keep screen on during study
@@ -122,7 +130,7 @@ fun TehillimReaderScreen(
                     .fillMaxSize()
                     .background(
                         when (preferences.readerTheme) {
-                            "dark" -> Color(0xFF121214)
+                            "dark", "oled" -> Color(0xFF121214)
                             "sepia" -> Color(0xFFF4ECD8)
                             else -> MaterialTheme.colorScheme.background
                         }
@@ -131,7 +139,7 @@ fun TehillimReaderScreen(
             ) {
                 CircularProgressIndicator(
                     color = when (preferences.readerTheme) {
-                        "dark" -> GoldAccent
+                        "dark", "oled" -> GoldAccent
                         "sepia" -> Color(0xFF8C6D4F)
                         else -> MaterialTheme.colorScheme.primary
                     }
@@ -167,6 +175,13 @@ fun TehillimReaderScreen(
         }
         rows
     }
+    val introCount = 1 + if (activeTab == TehillimTab.ELUL && lesson.elulDaysDescription != null) 1 else 0
+    val fallbackIndex = flatRows.indexOfFirst { row -> row is TehillimUiRow.VerseRow &&
+        row.chapter.chapterNumber == resumePosition?.chapterNumber &&
+        row.verse.verseNumber == ((resumePosition?.halachaIndex ?: -1) + 1) }
+    val listState = rememberReaderViewportState("tehillim_${activeTab.name}", lesson.date.toString(),
+        listOf("tehillim_intro_card") + (if (introCount > 1) listOf("tehillim_elul_desc") else emptyList()) + flatRows.map { it.key },
+        if (activeTab == TehillimTab.DAILY && fallbackIndex >= 0) fallbackIndex + introCount else 0)
     val completionPullState = rememberEndOfLessonPullState(
         key = lesson.date to activeTab,
         canScrollForward = { listState.canScrollForward },
@@ -175,7 +190,8 @@ fun TehillimReaderScreen(
     )
 
     // Identify current active chapter and verse from scroll index
-    fun getActiveVerseInfo(visibleIndex: Int): Pair<TehillimUiRow.VerseRow?, TehillimUiRow.ChapterHeader?> {
+    fun getActiveVerseInfo(visibleListIndex: Int): Pair<TehillimUiRow.VerseRow?, TehillimUiRow.ChapterHeader?> {
+        val visibleIndex = (visibleListIndex - introCount).coerceAtLeast(0)
         val direct = flatRows.getOrNull(visibleIndex)
         if (direct is TehillimUiRow.VerseRow) return Pair(direct, null)
         if (direct is TehillimUiRow.ChapterHeader) return Pair(null, direct)
@@ -217,28 +233,15 @@ fun TehillimReaderScreen(
         }
     }
 
-    // Scroll to saved position on first load
-    var hasScrolledToSavedPosition by remember(lesson.date, activeTab) { mutableStateOf(false) }
-    LaunchedEffect(flatRows, resumePosition, activeTab) {
-        if (!hasScrolledToSavedPosition && flatRows.isNotEmpty()) {
-            if (activeTab == TehillimTab.ELUL) {
-                listState.scrollToItem(0)
-                hasScrolledToSavedPosition = true
-                return@LaunchedEffect
-            }
-            val targetIdx = flatRows.indexOfFirst { row ->
-                row is TehillimUiRow.VerseRow &&
-                    row.chapter.chapterNumber == resumePosition?.chapterNumber &&
-                    row.verse.verseNumber == ((resumePosition?.halachaIndex ?: -1) + 1)
-            }
-            if (targetIdx >= 0) {
-                listState.scrollToItem(targetIdx)
-            } else {
-                listState.scrollToItem(0)
-            }
-            hasScrolledToSavedPosition = true
-        }
-    }
+    val manualCompletion = rememberManualStudyCompletionState(lesson.date to activeTab)
+    val completionRows = remember(flatRows, activeTab) { flatRows.mapIndexedNotNull { index, row ->
+        (row as? TehillimUiRow.VerseRow)?.let { CompletionReaderRow(index + 1 +
+            (if (activeTab == TehillimTab.ELUL && lesson.elulDaysDescription != null) 1 else 0), CompletionText(
+            it.key, "${it.chapter.chapterHebrew} · פסוק ${it.verse.verseHebrew}",
+            it.verse.textWithTeamim, it.verse.textPlainNikud)) }
+    } }
+
+    val hasScrolledToSavedPosition = flatRows.isNotEmpty()
 
     LaunchedEffect(listState, flatRows, hasScrolledToSavedPosition, activeTab) {
         if (!hasScrolledToSavedPosition || activeTab != TehillimTab.DAILY) return@LaunchedEffect
@@ -275,19 +278,19 @@ fun TehillimReaderScreen(
 
     // Background color based on chosen theme preference
     val backgroundColor = when (preferences.readerTheme) {
-        "dark" -> Color(0xFF121214)
+        "dark", "oled" -> Color(0xFF121214)
         "sepia" -> Color(0xFFF5EEDA)
         else -> MaterialTheme.colorScheme.background
     }
 
     val textColor = when (preferences.readerTheme) {
-        "dark" -> Color(0xFFE2E2E6)
+        "dark", "oled" -> Color(0xFFE2E2E6)
         "sepia" -> Color(0xFF3C3020)
         else -> MaterialTheme.colorScheme.onBackground
     }
 
     val themeSurfaceColor = when (preferences.readerTheme) {
-        "dark" -> Color(0xFF1E222A)
+        "dark", "oled" -> Color(0xFF1E222A)
         "sepia" -> Color(0xFF4A3828)
         else -> DeepNavy
     }
@@ -305,7 +308,7 @@ fun TehillimReaderScreen(
                     .fillMaxSize()
                     .endOfLessonPull(completionPullState)
                     .padding(horizontal = 20.dp),
-                contentPadding = PaddingValues(top = 40.dp, bottom = 220.dp)
+                contentPadding = PaddingValues(top = 64.dp, bottom = 220.dp)
             ) {
                 // Header card explaining the standard day of the month portion
                 // Retain the zero-height slot so existing saved paragraph indices stay valid.
@@ -317,14 +320,14 @@ fun TehillimReaderScreen(
                         Surface(
                             shape = RoundedCornerShape(12.dp),
                             color = when (preferences.readerTheme) {
-                                "dark" -> Color(0xFF23252E)
+                                "dark", "oled" -> Color(0xFF23252E)
                                 "sepia" -> Color(0xFFEADFCA)
                                 else -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
                             },
                             border = BorderStroke(
                                 1.dp,
                                 when (preferences.readerTheme) {
-                                    "dark" -> Color(0xFF333742)
+                                    "dark", "oled" -> Color(0xFF333742)
                                     "sepia" -> Color(0xFFD6C8B0)
                                     else -> MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
                                 }
@@ -348,7 +351,7 @@ fun TehillimReaderScreen(
                                     text = lesson.elulDaysDescription,
                                     fontSize = 13.sp,
                                     color = when (preferences.readerTheme) {
-                                        "dark" -> Color(0xFFE2E2E6)
+                                        "dark", "oled" -> Color(0xFFE2E2E6)
                                         "sepia" -> Color(0xFF534230)
                                         else -> MaterialTheme.colorScheme.onPrimaryContainer
                                     },
@@ -379,7 +382,7 @@ fun TehillimReaderScreen(
                                     fontSize = 24.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = when (preferences.readerTheme) {
-                                        "dark" -> GoldAccent
+                                        "dark", "oled" -> GoldAccent
                                         "sepia" -> Color(0xFF8C6D4F)
                                         else -> PurplePrimary
                                     },
@@ -409,10 +412,8 @@ fun TehillimReaderScreen(
                                 preferences = preferences,
                                 fontFamily = activeFontFamily,
                                 textColor = textColor,
-                                fontSizeSp = preferences.chumashFontSizeSp,
-                                isReadingAnchor = activeTab == TehillimTab.DAILY &&
-                                    row.chapter.chapterNumber == resumePosition?.chapterNumber &&
-                                    row.verse.verseNumber == (resumePosition?.halachaIndex?.plus(1)),
+                                fontSizeSp = preferences.fontSizeSp,
+                                isReadingAnchor = false,
                                 modifier = Modifier.padding(bottom = 18.dp),
                                 testTag = "tehillim_verse_${row.chapter.chapterNumber}_${row.verse.verseNumber}"
                             )
@@ -424,15 +425,20 @@ fun TehillimReaderScreen(
             CompactReaderHeader(
                 title = "תהילים",
                 location = currentVerseText.value,
-                accentColor = Color(0xFFB9C96B),
+                accentColor = Color(0xFF9FDEEF),
                 scrollProgress = scrollProgress,
                 readerTheme = preferences.readerTheme,
                 modifier = Modifier.align(Alignment.TopCenter)
             )
 
+            ManualStudyCompletionControls(manualCompletion, listState, completionRows,
+                track = "tehillim", studyDate = lesson.date, dateLabel = hebrewDateText,
+                title = if (activeTab == TehillimTab.ELUL) "תהילים · תוספת אלול" else "תהילים",
+                onSave = onSaveCompletion)
+
             EndOfLessonPullIndicator(
                 state = completionPullState,
-                accentColor = Color(0xFFB9C96B),
+                accentColor = Color(0xFF9FDEEF),
                 modifier = Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(bottom = 92.dp)
             )
 
@@ -444,6 +450,22 @@ fun TehillimReaderScreen(
                     .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                onOpenPersonalPsalms?.let { open ->
+                    OutlinedButton(onClick = open,
+                        modifier = Modifier.padding(bottom = 4.dp).heightIn(min = 40.dp).testTag("tehillim_personal_psalms"),
+                        shape = RoundedCornerShape(20.dp), border = BorderStroke(1.dp, textColor.copy(alpha = .2f)),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = when (preferences.readerTheme) {
+                                "dark", "oled" -> Color(0xFF1E222A)
+                                "sepia" -> backgroundColor
+                                else -> Color.White
+                            }, contentColor = textColor),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)) {
+                        Icon(Icons.Default.MenuBook, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text("הפרקים שלי", fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                    }
+                }
                 // Compact Segment Switcher for "יומי" / "ג״פ אלול"
                 if (lesson.elulChapters.isNotEmpty()) {
                     Surface(
@@ -503,6 +525,7 @@ fun TehillimReaderScreen(
                 FloatingReaderBar(
                     currentHalachaText = "",
                     hebrewDateText = displayDate,
+                    studyDate = lesson.date,
                     scrollProgress = scrollProgress,
                     onBack = onBack,
                     onOpenDatePicker = onOpenDatePicker,
@@ -517,7 +540,7 @@ fun TehillimReaderScreen(
         if (showTypographySheet) {
             ReaderTypographySheet(
                 preferences = preferences,
-                fontSizeSp = preferences.chumashFontSizeSp,
+                fontSizeSp = preferences.fontSizeSp,
                 onDismiss = { showTypographySheet = false },
                 onFontSizeChange = onFontSizeChange,
                 onLineSpacingChange = onLineSpacingChange,

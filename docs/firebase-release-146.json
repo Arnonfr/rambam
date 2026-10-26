@@ -1,0 +1,55 @@
+{
+  "versionCode": 146,
+  "applicationId": "com.aistudio.dailyrambam.kzjvw.debug",
+  "sha256": "43031e4cff59462a8154528a7d0fe3eee63449d3e6df42bdb1e83fac650d9c03",
+  "tests": [
+    {
+      "name": "com.example.HebrewTextNormalizerTest",
+      "tests": "6",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.RambamAudioVisibilityTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.ReaderCorrectionsTest",
+      "tests": "6",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.ReaderFeedbackTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.ReaderFontSelectionTest",
+      "tests": "15",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.TanyaAudioVisibilityTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    }
+  ],
+  "physicalDeviceTested": false,
+  "distributedToTesters": true,
+  "releaseNotesAdded": true,
+  "testerUrl": "https://appdistribution.firebase.google.com/testerapps/1:703198161750:android:1e1d23970312aa68bbc4f7/releases/6n1d8ss0nn4rg",
+  "releaseId": "6n1d8ss0nn4rg",
+  "distributedAt": "2026-10-26T21:33:11.968957+02:00"
+}

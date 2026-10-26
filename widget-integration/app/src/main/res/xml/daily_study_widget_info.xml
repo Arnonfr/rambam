@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 4×2 by default; the user can shrink to 3×2 or enlarge to show the full lesson. -->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/daily_study_widget_description"
+    android:initialLayout="@layout/glance_default_loading_layout"
+    android:previewLayout="@layout/daily_study_widget_preview"
+    android:previewImage="@drawable/daily_study_widget_preview_image"
+    android:configure="com.example.widget.DailyStudyWidgetConfigureActivity"
+    android:widgetFeatures="reconfigurable|configuration_optional"
+    android:minWidth="250dp"
+    android:minHeight="110dp"
+    android:minResizeWidth="180dp"
+    android:minResizeHeight="110dp"
+    android:targetCellWidth="4"
+    android:targetCellHeight="2"
+    android:maxResizeWidth="600dp"
+    android:maxResizeHeight="700dp"
+    android:resizeMode="horizontal|vertical"
+    android:updatePeriodMillis="0"
+    android:widgetCategory="home_screen" />

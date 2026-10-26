@@ -5,6 +5,18 @@ import java.time.LocalDate
 
 object HebrewDateHelper {
 
+    fun formatReaderDate(fullHebrewDate: String, studyDate: String): String {
+        val parts = fullHebrewDate.trim().split(Regex("\\s+")).filter { it.isNotEmpty() }
+        val last = parts.lastOrNull().orEmpty()
+        val isYear = parts.size >= 3 &&
+            ((last.filter { it in 'א'..'ת' }.length >= 3 && (parseHebrewNumeral(last) ?: 0) >= 400) ||
+                last.matches(Regex("[0-9]{4}")))
+        val dayAndMonth = (if (isYear) parts.dropLast(1) else parts).joinToString(" ")
+        val date = runCatching { LocalDate.parse(studyDate) }.getOrNull() ?: return dayAndMonth
+        val weekday = if (date.dayOfWeek == DayOfWeek.SATURDAY) "שבת" else getHebrewDayOfWeekName(date.dayOfWeek)
+        return listOf("יום $weekday", dayAndMonth).filter { it.isNotBlank() }.joinToString(" ")
+    }
+
     /** Parses Hebrew numerals such as ט״ז, כ״ט and ל׳. */
     fun parseHebrewNumeral(value: String): Int? {
         val normalized = value

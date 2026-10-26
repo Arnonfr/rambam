@@ -8,6 +8,13 @@ import java.text.Normalizer
  * in Biblical Hebrew.
  */
 object HebrewTextNormalizer {
+    // One character in, one character out: saved reading offsets remain valid.
+    fun plainQuotes(value: String): String = value.map { char -> when (char) {
+        '\u201C', '\u201D', '\u201E', '\u201F', '\u05F4', '\u00AB', '\u00BB' -> '"'
+        '\u2018', '\u2019', '\u201A', '\u201B', '\u05F3' -> '\''
+        else -> char
+    } }.joinToString("")
+
     private fun isHebrewMark(char: Char) = char in '\u0591'..'\u05C7' &&
         Character.getType(char) == Character.NON_SPACING_MARK.toInt()
 

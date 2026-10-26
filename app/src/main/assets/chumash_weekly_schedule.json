@@ -1,0 +1,2740 @@
+{
+  "schemaVersion": 1,
+  "start": "2025-01-01",
+  "end": "2031-12-31",
+  "source": "https://www.hebcal.com/home/195/jewish-calendar-rest-api",
+  "schedules": {
+    "israel": [
+      {
+        "date": "2025-01-04",
+        "parashaId": "P11"
+      },
+      {
+        "date": "2025-01-11",
+        "parashaId": "P12"
+      },
+      {
+        "date": "2025-01-18",
+        "parashaId": "P13"
+      },
+      {
+        "date": "2025-01-25",
+        "parashaId": "P14"
+      },
+      {
+        "date": "2025-02-01",
+        "parashaId": "P15"
+      },
+      {
+        "date": "2025-02-08",
+        "parashaId": "P16"
+      },
+      {
+        "date": "2025-02-15",
+        "parashaId": "P17"
+      },
+      {
+        "date": "2025-02-22",
+        "parashaId": "P18"
+      },
+      {
+        "date": "2025-03-01",
+        "parashaId": "P19"
+      },
+      {
+        "date": "2025-03-08",
+        "parashaId": "P20"
+      },
+      {
+        "date": "2025-03-15",
+        "parashaId": "P21"
+      },
+      {
+        "date": "2025-03-22",
+        "parashaId": "P22"
+      },
+      {
+        "date": "2025-03-29",
+        "parashaId": "P23"
+      },
+      {
+        "date": "2025-04-05",
+        "parashaId": "P24"
+      },
+      {
+        "date": "2025-04-12",
+        "parashaId": "P25"
+      },
+      {
+        "date": "2025-04-26",
+        "parashaId": "P26"
+      },
+      {
+        "date": "2025-05-03",
+        "parashaId": "P27_P28"
+      },
+      {
+        "date": "2025-05-10",
+        "parashaId": "P29_P30"
+      },
+      {
+        "date": "2025-05-17",
+        "parashaId": "P31"
+      },
+      {
+        "date": "2025-05-24",
+        "parashaId": "P32_P33"
+      },
+      {
+        "date": "2025-05-31",
+        "parashaId": "P34"
+      },
+      {
+        "date": "2025-06-07",
+        "parashaId": "P35"
+      },
+      {
+        "date": "2025-06-14",
+        "parashaId": "P36"
+      },
+      {
+        "date": "2025-06-21",
+        "parashaId": "P37"
+      },
+      {
+        "date": "2025-06-28",
+        "parashaId": "P38"
+      },
+      {
+        "date": "2025-07-05",
+        "parashaId": "P39"
+      },
+      {
+        "date": "2025-07-12",
+        "parashaId": "P40"
+      },
+      {
+        "date": "2025-07-19",
+        "parashaId": "P41"
+      },
+      {
+        "date": "2025-07-26",
+        "parashaId": "P42_P43"
+      },
+      {
+        "date": "2025-08-02",
+        "parashaId": "P44"
+      },
+      {
+        "date": "2025-08-09",
+        "parashaId": "P45"
+      },
+      {
+        "date": "2025-08-16",
+        "parashaId": "P46"
+      },
+      {
+        "date": "2025-08-23",
+        "parashaId": "P47"
+      },
+      {
+        "date": "2025-08-30",
+        "parashaId": "P48"
+      },
+      {
+        "date": "2025-09-06",
+        "parashaId": "P49"
+      },
+      {
+        "date": "2025-09-13",
+        "parashaId": "P50"
+      },
+      {
+        "date": "2025-09-20",
+        "parashaId": "P51"
+      },
+      {
+        "date": "2025-09-27",
+        "parashaId": "P52"
+      },
+      {
+        "date": "2025-10-04",
+        "parashaId": "P53"
+      },
+      {
+        "date": "2025-10-18",
+        "parashaId": "P01"
+      },
+      {
+        "date": "2025-10-25",
+        "parashaId": "P02"
+      },
+      {
+        "date": "2025-11-01",
+        "parashaId": "P03"
+      },
+      {
+        "date": "2025-11-08",
+        "parashaId": "P04"
+      },
+      {
+        "date": "2025-11-15",
+        "parashaId": "P05"
+      },
+      {
+        "date": "2025-11-22",
+        "parashaId": "P06"
+      },
+      {
+        "date": "2025-11-29",
+        "parashaId": "P07"
+      },
+      {
+        "date": "2025-12-06",
+        "parashaId": "P08"
+      },
+      {
+        "date": "2025-12-13",
+        "parashaId": "P09"
+      },
+      {
+        "date": "2025-12-20",
+        "parashaId": "P10"
+      },
+      {
+        "date": "2025-12-27",
+        "parashaId": "P11"
+      },
+      {
+        "date": "2026-01-03",
+        "parashaId": "P12"
+      },
+      {
+        "date": "2026-01-10",
+        "parashaId": "P13"
+      },
+      {
+        "date": "2026-01-17",
+        "parashaId": "P14"
+      },
+      {
+        "date": "2026-01-24",
+        "parashaId": "P15"
+      },
+      {
+        "date": "2026-01-31",
+        "parashaId": "P16"
+      },
+      {
+        "date": "2026-02-07",
+        "parashaId": "P17"
+      },
+      {
+        "date": "2026-02-14",
+        "parashaId": "P18"
+      },
+      {
+        "date": "2026-02-21",
+        "parashaId": "P19"
+      },
+      {
+        "date": "2026-02-28",
+        "parashaId": "P20"
+      },
+      {
+        "date": "2026-03-07",
+        "parashaId": "P21"
+      },
+      {
+        "date": "2026-03-14",
+        "parashaId": "P22_P23"
+      },
+      {
+        "date": "2026-03-21",
+        "parashaId": "P24"
+      },
+      {
+        "date": "2026-03-28",
+        "parashaId": "P25"
+      },
+      {
+        "date": "2026-04-11",
+        "parashaId": "P26"
+      },
+      {
+        "date": "2026-04-18",
+        "parashaId": "P27_P28"
+      },
+      {
+        "date": "2026-04-25",
+        "parashaId": "P29_P30"
+      },
+      {
+        "date": "2026-05-02",
+        "parashaId": "P31"
+      },
+      {
+        "date": "2026-05-09",
+        "parashaId": "P32_P33"
+      },
+      {
+        "date": "2026-05-16",
+        "parashaId": "P34"
+      },
+      {
+        "date": "2026-05-23",
+        "parashaId": "P35"
+      },
+      {
+        "date": "2026-05-30",
+        "parashaId": "P36"
+      },
+      {
+        "date": "2026-06-06",
+        "parashaId": "P37"
+      },
+      {
+        "date": "2026-06-13",
+        "parashaId": "P38"
+      },
+      {
+        "date": "2026-06-20",
+        "parashaId": "P39"
+      },
+      {
+        "date": "2026-06-27",
+        "parashaId": "P40"
+      },
+      {
+        "date": "2026-07-04",
+        "parashaId": "P41"
+      },
+      {
+        "date": "2026-07-11",
+        "parashaId": "P42_P43"
+      },
+      {
+        "date": "2026-07-18",
+        "parashaId": "P44"
+      },
+      {
+        "date": "2026-07-25",
+        "parashaId": "P45"
+      },
+      {
+        "date": "2026-08-01",
+        "parashaId": "P46"
+      },
+      {
+        "date": "2026-08-08",
+        "parashaId": "P47"
+      },
+      {
+        "date": "2026-08-15",
+        "parashaId": "P48"
+      },
+      {
+        "date": "2026-08-22",
+        "parashaId": "P49"
+      },
+      {
+        "date": "2026-08-29",
+        "parashaId": "P50"
+      },
+      {
+        "date": "2026-09-05",
+        "parashaId": "P51_P52"
+      },
+      {
+        "date": "2026-09-19",
+        "parashaId": "P53"
+      },
+      {
+        "date": "2026-10-10",
+        "parashaId": "P01"
+      },
+      {
+        "date": "2026-10-17",
+        "parashaId": "P02"
+      },
+      {
+        "date": "2026-10-24",
+        "parashaId": "P03"
+      },
+      {
+        "date": "2026-10-31",
+        "parashaId": "P04"
+      },
+      {
+        "date": "2026-11-07",
+        "parashaId": "P05"
+      },
+      {
+        "date": "2026-11-14",
+        "parashaId": "P06"
+      },
+      {
+        "date": "2026-11-21",
+        "parashaId": "P07"
+      },
+      {
+        "date": "2026-11-28",
+        "parashaId": "P08"
+      },
+      {
+        "date": "2026-12-05",
+        "parashaId": "P09"
+      },
+      {
+        "date": "2026-12-12",
+        "parashaId": "P10"
+      },
+      {
+        "date": "2026-12-19",
+        "parashaId": "P11"
+      },
+      {
+        "date": "2026-12-26",
+        "parashaId": "P12"
+      },
+      {
+        "date": "2027-01-02",
+        "parashaId": "P13"
+      },
+      {
+        "date": "2027-01-09",
+        "parashaId": "P14"
+      },
+      {
+        "date": "2027-01-16",
+        "parashaId": "P15"
+      },
+      {
+        "date": "2027-01-23",
+        "parashaId": "P16"
+      },
+      {
+        "date": "2027-01-30",
+        "parashaId": "P17"
+      },
+      {
+        "date": "2027-02-06",
+        "parashaId": "P18"
+      },
+      {
+        "date": "2027-02-13",
+        "parashaId": "P19"
+      },
+      {
+        "date": "2027-02-20",
+        "parashaId": "P20"
+      },
+      {
+        "date": "2027-02-27",
+        "parashaId": "P21"
+      },
+      {
+        "date": "2027-03-06",
+        "parashaId": "P22"
+      },
+      {
+        "date": "2027-03-13",
+        "parashaId": "P23"
+      },
+      {
+        "date": "2027-03-20",
+        "parashaId": "P24"
+      },
+      {
+        "date": "2027-03-27",
+        "parashaId": "P25"
+      },
+      {
+        "date": "2027-04-03",
+        "parashaId": "P26"
+      },
+      {
+        "date": "2027-04-10",
+        "parashaId": "P27"
+      },
+      {
+        "date": "2027-04-17",
+        "parashaId": "P28"
+      },
+      {
+        "date": "2027-05-01",
+        "parashaId": "P29"
+      },
+      {
+        "date": "2027-05-08",
+        "parashaId": "P30"
+      },
+      {
+        "date": "2027-05-15",
+        "parashaId": "P31"
+      },
+      {
+        "date": "2027-05-22",
+        "parashaId": "P32"
+      },
+      {
+        "date": "2027-05-29",
+        "parashaId": "P33"
+      },
+      {
+        "date": "2027-06-05",
+        "parashaId": "P34"
+      },
+      {
+        "date": "2027-06-12",
+        "parashaId": "P35"
+      },
+      {
+        "date": "2027-06-19",
+        "parashaId": "P36"
+      },
+      {
+        "date": "2027-06-26",
+        "parashaId": "P37"
+      },
+      {
+        "date": "2027-07-03",
+        "parashaId": "P38"
+      },
+      {
+        "date": "2027-07-10",
+        "parashaId": "P39"
+      },
+      {
+        "date": "2027-07-17",
+        "parashaId": "P40"
+      },
+      {
+        "date": "2027-07-24",
+        "parashaId": "P41"
+      },
+      {
+        "date": "2027-07-31",
+        "parashaId": "P42_P43"
+      },
+      {
+        "date": "2027-08-07",
+        "parashaId": "P44"
+      },
+      {
+        "date": "2027-08-14",
+        "parashaId": "P45"
+      },
+      {
+        "date": "2027-08-21",
+        "parashaId": "P46"
+      },
+      {
+        "date": "2027-08-28",
+        "parashaId": "P47"
+      },
+      {
+        "date": "2027-09-04",
+        "parashaId": "P48"
+      },
+      {
+        "date": "2027-09-11",
+        "parashaId": "P49"
+      },
+      {
+        "date": "2027-09-18",
+        "parashaId": "P50"
+      },
+      {
+        "date": "2027-09-25",
+        "parashaId": "P51_P52"
+      },
+      {
+        "date": "2027-10-09",
+        "parashaId": "P53"
+      },
+      {
+        "date": "2027-10-30",
+        "parashaId": "P01"
+      },
+      {
+        "date": "2027-11-06",
+        "parashaId": "P02"
+      },
+      {
+        "date": "2027-11-13",
+        "parashaId": "P03"
+      },
+      {
+        "date": "2027-11-20",
+        "parashaId": "P04"
+      },
+      {
+        "date": "2027-11-27",
+        "parashaId": "P05"
+      },
+      {
+        "date": "2027-12-04",
+        "parashaId": "P06"
+      },
+      {
+        "date": "2027-12-11",
+        "parashaId": "P07"
+      },
+      {
+        "date": "2027-12-18",
+        "parashaId": "P08"
+      },
+      {
+        "date": "2027-12-25",
+        "parashaId": "P09"
+      },
+      {
+        "date": "2028-01-01",
+        "parashaId": "P10"
+      },
+      {
+        "date": "2028-01-08",
+        "parashaId": "P11"
+      },
+      {
+        "date": "2028-01-15",
+        "parashaId": "P12"
+      },
+      {
+        "date": "2028-01-22",
+        "parashaId": "P13"
+      },
+      {
+        "date": "2028-01-29",
+        "parashaId": "P14"
+      },
+      {
+        "date": "2028-02-05",
+        "parashaId": "P15"
+      },
+      {
+        "date": "2028-02-12",
+        "parashaId": "P16"
+      },
+      {
+        "date": "2028-02-19",
+        "parashaId": "P17"
+      },
+      {
+        "date": "2028-02-26",
+        "parashaId": "P18"
+      },
+      {
+        "date": "2028-03-04",
+        "parashaId": "P19"
+      },
+      {
+        "date": "2028-03-11",
+        "parashaId": "P20"
+      },
+      {
+        "date": "2028-03-18",
+        "parashaId": "P21"
+      },
+      {
+        "date": "2028-03-25",
+        "parashaId": "P22_P23"
+      },
+      {
+        "date": "2028-04-01",
+        "parashaId": "P24"
+      },
+      {
+        "date": "2028-04-08",
+        "parashaId": "P25"
+      },
+      {
+        "date": "2028-04-22",
+        "parashaId": "P26"
+      },
+      {
+        "date": "2028-04-29",
+        "parashaId": "P27_P28"
+      },
+      {
+        "date": "2028-05-06",
+        "parashaId": "P29_P30"
+      },
+      {
+        "date": "2028-05-13",
+        "parashaId": "P31"
+      },
+      {
+        "date": "2028-05-20",
+        "parashaId": "P32_P33"
+      },
+      {
+        "date": "2028-05-27",
+        "parashaId": "P34"
+      },
+      {
+        "date": "2028-06-03",
+        "parashaId": "P35"
+      },
+      {
+        "date": "2028-06-10",
+        "parashaId": "P36"
+      },
+      {
+        "date": "2028-06-17",
+        "parashaId": "P37"
+      },
+      {
+        "date": "2028-06-24",
+        "parashaId": "P38"
+      },
+      {
+        "date": "2028-07-01",
+        "parashaId": "P39"
+      },
+      {
+        "date": "2028-07-08",
+        "parashaId": "P40"
+      },
+      {
+        "date": "2028-07-15",
+        "parashaId": "P41"
+      },
+      {
+        "date": "2028-07-22",
+        "parashaId": "P42_P43"
+      },
+      {
+        "date": "2028-07-29",
+        "parashaId": "P44"
+      },
+      {
+        "date": "2028-08-05",
+        "parashaId": "P45"
+      },
+      {
+        "date": "2028-08-12",
+        "parashaId": "P46"
+      },
+      {
+        "date": "2028-08-19",
+        "parashaId": "P47"
+      },
+      {
+        "date": "2028-08-26",
+        "parashaId": "P48"
+      },
+      {
+        "date": "2028-09-02",
+        "parashaId": "P49"
+      },
+      {
+        "date": "2028-09-09",
+        "parashaId": "P50"
+      },
+      {
+        "date": "2028-09-16",
+        "parashaId": "P51_P52"
+      },
+      {
+        "date": "2028-09-23",
+        "parashaId": "P53"
+      },
+      {
+        "date": "2028-10-14",
+        "parashaId": "P01"
+      },
+      {
+        "date": "2028-10-21",
+        "parashaId": "P02"
+      },
+      {
+        "date": "2028-10-28",
+        "parashaId": "P03"
+      },
+      {
+        "date": "2028-11-04",
+        "parashaId": "P04"
+      },
+      {
+        "date": "2028-11-11",
+        "parashaId": "P05"
+      },
+      {
+        "date": "2028-11-18",
+        "parashaId": "P06"
+      },
+      {
+        "date": "2028-11-25",
+        "parashaId": "P07"
+      },
+      {
+        "date": "2028-12-02",
+        "parashaId": "P08"
+      },
+      {
+        "date": "2028-12-09",
+        "parashaId": "P09"
+      },
+      {
+        "date": "2028-12-16",
+        "parashaId": "P10"
+      },
+      {
+        "date": "2028-12-23",
+        "parashaId": "P11"
+      },
+      {
+        "date": "2028-12-30",
+        "parashaId": "P12"
+      },
+      {
+        "date": "2029-01-06",
+        "parashaId": "P13"
+      },
+      {
+        "date": "2029-01-13",
+        "parashaId": "P14"
+      },
+      {
+        "date": "2029-01-20",
+        "parashaId": "P15"
+      },
+      {
+        "date": "2029-01-27",
+        "parashaId": "P16"
+      },
+      {
+        "date": "2029-02-03",
+        "parashaId": "P17"
+      },
+      {
+        "date": "2029-02-10",
+        "parashaId": "P18"
+      },
+      {
+        "date": "2029-02-17",
+        "parashaId": "P19"
+      },
+      {
+        "date": "2029-02-24",
+        "parashaId": "P20"
+      },
+      {
+        "date": "2029-03-03",
+        "parashaId": "P21"
+      },
+      {
+        "date": "2029-03-10",
+        "parashaId": "P22_P23"
+      },
+      {
+        "date": "2029-03-17",
+        "parashaId": "P24"
+      },
+      {
+        "date": "2029-03-24",
+        "parashaId": "P25"
+      },
+      {
+        "date": "2029-04-07",
+        "parashaId": "P26"
+      },
+      {
+        "date": "2029-04-14",
+        "parashaId": "P27_P28"
+      },
+      {
+        "date": "2029-04-21",
+        "parashaId": "P29_P30"
+      },
+      {
+        "date": "2029-04-28",
+        "parashaId": "P31"
+      },
+      {
+        "date": "2029-05-05",
+        "parashaId": "P32"
+      },
+      {
+        "date": "2029-05-12",
+        "parashaId": "P33"
+      },
+      {
+        "date": "2029-05-19",
+        "parashaId": "P34"
+      },
+      {
+        "date": "2029-05-26",
+        "parashaId": "P35"
+      },
+      {
+        "date": "2029-06-02",
+        "parashaId": "P36"
+      },
+      {
+        "date": "2029-06-09",
+        "parashaId": "P37"
+      },
+      {
+        "date": "2029-06-16",
+        "parashaId": "P38"
+      },
+      {
+        "date": "2029-06-23",
+        "parashaId": "P39"
+      },
+      {
+        "date": "2029-06-30",
+        "parashaId": "P40"
+      },
+      {
+        "date": "2029-07-07",
+        "parashaId": "P41"
+      },
+      {
+        "date": "2029-07-14",
+        "parashaId": "P42_P43"
+      },
+      {
+        "date": "2029-07-21",
+        "parashaId": "P44"
+      },
+      {
+        "date": "2029-07-28",
+        "parashaId": "P45"
+      },
+      {
+        "date": "2029-08-04",
+        "parashaId": "P46"
+      },
+      {
+        "date": "2029-08-11",
+        "parashaId": "P47"
+      },
+      {
+        "date": "2029-08-18",
+        "parashaId": "P48"
+      },
+      {
+        "date": "2029-08-25",
+        "parashaId": "P49"
+      },
+      {
+        "date": "2029-09-01",
+        "parashaId": "P50"
+      },
+      {
+        "date": "2029-09-08",
+        "parashaId": "P51"
+      },
+      {
+        "date": "2029-09-15",
+        "parashaId": "P52"
+      },
+      {
+        "date": "2029-09-22",
+        "parashaId": "P53"
+      },
+      {
+        "date": "2029-10-06",
+        "parashaId": "P01"
+      },
+      {
+        "date": "2029-10-13",
+        "parashaId": "P02"
+      },
+      {
+        "date": "2029-10-20",
+        "parashaId": "P03"
+      },
+      {
+        "date": "2029-10-27",
+        "parashaId": "P04"
+      },
+      {
+        "date": "2029-11-03",
+        "parashaId": "P05"
+      },
+      {
+        "date": "2029-11-10",
+        "parashaId": "P06"
+      },
+      {
+        "date": "2029-11-17",
+        "parashaId": "P07"
+      },
+      {
+        "date": "2029-11-24",
+        "parashaId": "P08"
+      },
+      {
+        "date": "2029-12-01",
+        "parashaId": "P09"
+      },
+      {
+        "date": "2029-12-08",
+        "parashaId": "P10"
+      },
+      {
+        "date": "2029-12-15",
+        "parashaId": "P11"
+      },
+      {
+        "date": "2029-12-22",
+        "parashaId": "P12"
+      },
+      {
+        "date": "2029-12-29",
+        "parashaId": "P13"
+      },
+      {
+        "date": "2030-01-05",
+        "parashaId": "P14"
+      },
+      {
+        "date": "2030-01-12",
+        "parashaId": "P15"
+      },
+      {
+        "date": "2030-01-19",
+        "parashaId": "P16"
+      },
+      {
+        "date": "2030-01-26",
+        "parashaId": "P17"
+      },
+      {
+        "date": "2030-02-02",
+        "parashaId": "P18"
+      },
+      {
+        "date": "2030-02-09",
+        "parashaId": "P19"
+      },
+      {
+        "date": "2030-02-16",
+        "parashaId": "P20"
+      },
+      {
+        "date": "2030-02-23",
+        "parashaId": "P21"
+      },
+      {
+        "date": "2030-03-02",
+        "parashaId": "P22"
+      },
+      {
+        "date": "2030-03-09",
+        "parashaId": "P23"
+      },
+      {
+        "date": "2030-03-16",
+        "parashaId": "P24"
+      },
+      {
+        "date": "2030-03-23",
+        "parashaId": "P25"
+      },
+      {
+        "date": "2030-03-30",
+        "parashaId": "P26"
+      },
+      {
+        "date": "2030-04-06",
+        "parashaId": "P27"
+      },
+      {
+        "date": "2030-04-13",
+        "parashaId": "P28"
+      },
+      {
+        "date": "2030-04-27",
+        "parashaId": "P29"
+      },
+      {
+        "date": "2030-05-04",
+        "parashaId": "P30"
+      },
+      {
+        "date": "2030-05-11",
+        "parashaId": "P31"
+      },
+      {
+        "date": "2030-05-18",
+        "parashaId": "P32"
+      },
+      {
+        "date": "2030-05-25",
+        "parashaId": "P33"
+      },
+      {
+        "date": "2030-06-01",
+        "parashaId": "P34"
+      },
+      {
+        "date": "2030-06-08",
+        "parashaId": "P35"
+      },
+      {
+        "date": "2030-06-15",
+        "parashaId": "P36"
+      },
+      {
+        "date": "2030-06-22",
+        "parashaId": "P37"
+      },
+      {
+        "date": "2030-06-29",
+        "parashaId": "P38"
+      },
+      {
+        "date": "2030-07-06",
+        "parashaId": "P39"
+      },
+      {
+        "date": "2030-07-13",
+        "parashaId": "P40"
+      },
+      {
+        "date": "2030-07-20",
+        "parashaId": "P41"
+      },
+      {
+        "date": "2030-07-27",
+        "parashaId": "P42_P43"
+      },
+      {
+        "date": "2030-08-03",
+        "parashaId": "P44"
+      },
+      {
+        "date": "2030-08-10",
+        "parashaId": "P45"
+      },
+      {
+        "date": "2030-08-17",
+        "parashaId": "P46"
+      },
+      {
+        "date": "2030-08-24",
+        "parashaId": "P47"
+      },
+      {
+        "date": "2030-08-31",
+        "parashaId": "P48"
+      },
+      {
+        "date": "2030-09-07",
+        "parashaId": "P49"
+      },
+      {
+        "date": "2030-09-14",
+        "parashaId": "P50"
+      },
+      {
+        "date": "2030-09-21",
+        "parashaId": "P51_P52"
+      },
+      {
+        "date": "2030-10-05",
+        "parashaId": "P53"
+      },
+      {
+        "date": "2030-10-26",
+        "parashaId": "P01"
+      },
+      {
+        "date": "2030-11-02",
+        "parashaId": "P02"
+      },
+      {
+        "date": "2030-11-09",
+        "parashaId": "P03"
+      },
+      {
+        "date": "2030-11-16",
+        "parashaId": "P04"
+      },
+      {
+        "date": "2030-11-23",
+        "parashaId": "P05"
+      },
+      {
+        "date": "2030-11-30",
+        "parashaId": "P06"
+      },
+      {
+        "date": "2030-12-07",
+        "parashaId": "P07"
+      },
+      {
+        "date": "2030-12-14",
+        "parashaId": "P08"
+      },
+      {
+        "date": "2030-12-21",
+        "parashaId": "P09"
+      },
+      {
+        "date": "2030-12-28",
+        "parashaId": "P10"
+      },
+      {
+        "date": "2031-01-04",
+        "parashaId": "P11"
+      },
+      {
+        "date": "2031-01-11",
+        "parashaId": "P12"
+      },
+      {
+        "date": "2031-01-18",
+        "parashaId": "P13"
+      },
+      {
+        "date": "2031-01-25",
+        "parashaId": "P14"
+      },
+      {
+        "date": "2031-02-01",
+        "parashaId": "P15"
+      },
+      {
+        "date": "2031-02-08",
+        "parashaId": "P16"
+      },
+      {
+        "date": "2031-02-15",
+        "parashaId": "P17"
+      },
+      {
+        "date": "2031-02-22",
+        "parashaId": "P18"
+      },
+      {
+        "date": "2031-03-01",
+        "parashaId": "P19"
+      },
+      {
+        "date": "2031-03-08",
+        "parashaId": "P20"
+      },
+      {
+        "date": "2031-03-15",
+        "parashaId": "P21"
+      },
+      {
+        "date": "2031-03-22",
+        "parashaId": "P22_P23"
+      },
+      {
+        "date": "2031-03-29",
+        "parashaId": "P24"
+      },
+      {
+        "date": "2031-04-05",
+        "parashaId": "P25"
+      },
+      {
+        "date": "2031-04-19",
+        "parashaId": "P26"
+      },
+      {
+        "date": "2031-04-26",
+        "parashaId": "P27_P28"
+      },
+      {
+        "date": "2031-05-03",
+        "parashaId": "P29_P30"
+      },
+      {
+        "date": "2031-05-10",
+        "parashaId": "P31"
+      },
+      {
+        "date": "2031-05-17",
+        "parashaId": "P32_P33"
+      },
+      {
+        "date": "2031-05-24",
+        "parashaId": "P34"
+      },
+      {
+        "date": "2031-05-31",
+        "parashaId": "P35"
+      },
+      {
+        "date": "2031-06-07",
+        "parashaId": "P36"
+      },
+      {
+        "date": "2031-06-14",
+        "parashaId": "P37"
+      },
+      {
+        "date": "2031-06-21",
+        "parashaId": "P38"
+      },
+      {
+        "date": "2031-06-28",
+        "parashaId": "P39"
+      },
+      {
+        "date": "2031-07-05",
+        "parashaId": "P40"
+      },
+      {
+        "date": "2031-07-12",
+        "parashaId": "P41"
+      },
+      {
+        "date": "2031-07-19",
+        "parashaId": "P42_P43"
+      },
+      {
+        "date": "2031-07-26",
+        "parashaId": "P44"
+      },
+      {
+        "date": "2031-08-02",
+        "parashaId": "P45"
+      },
+      {
+        "date": "2031-08-09",
+        "parashaId": "P46"
+      },
+      {
+        "date": "2031-08-16",
+        "parashaId": "P47"
+      },
+      {
+        "date": "2031-08-23",
+        "parashaId": "P48"
+      },
+      {
+        "date": "2031-08-30",
+        "parashaId": "P49"
+      },
+      {
+        "date": "2031-09-06",
+        "parashaId": "P50"
+      },
+      {
+        "date": "2031-09-13",
+        "parashaId": "P51_P52"
+      },
+      {
+        "date": "2031-09-20",
+        "parashaId": "P53"
+      },
+      {
+        "date": "2031-10-11",
+        "parashaId": "P01"
+      },
+      {
+        "date": "2031-10-18",
+        "parashaId": "P02"
+      },
+      {
+        "date": "2031-10-25",
+        "parashaId": "P03"
+      },
+      {
+        "date": "2031-11-01",
+        "parashaId": "P04"
+      },
+      {
+        "date": "2031-11-08",
+        "parashaId": "P05"
+      },
+      {
+        "date": "2031-11-15",
+        "parashaId": "P06"
+      },
+      {
+        "date": "2031-11-22",
+        "parashaId": "P07"
+      },
+      {
+        "date": "2031-11-29",
+        "parashaId": "P08"
+      },
+      {
+        "date": "2031-12-06",
+        "parashaId": "P09"
+      },
+      {
+        "date": "2031-12-13",
+        "parashaId": "P10"
+      },
+      {
+        "date": "2031-12-20",
+        "parashaId": "P11"
+      },
+      {
+        "date": "2031-12-27",
+        "parashaId": "P12"
+      }
+    ],
+    "diaspora": [
+      {
+        "date": "2025-01-04",
+        "parashaId": "P11"
+      },
+      {
+        "date": "2025-01-11",
+        "parashaId": "P12"
+      },
+      {
+        "date": "2025-01-18",
+        "parashaId": "P13"
+      },
+      {
+        "date": "2025-01-25",
+        "parashaId": "P14"
+      },
+      {
+        "date": "2025-02-01",
+        "parashaId": "P15"
+      },
+      {
+        "date": "2025-02-08",
+        "parashaId": "P16"
+      },
+      {
+        "date": "2025-02-15",
+        "parashaId": "P17"
+      },
+      {
+        "date": "2025-02-22",
+        "parashaId": "P18"
+      },
+      {
+        "date": "2025-03-01",
+        "parashaId": "P19"
+      },
+      {
+        "date": "2025-03-08",
+        "parashaId": "P20"
+      },
+      {
+        "date": "2025-03-15",
+        "parashaId": "P21"
+      },
+      {
+        "date": "2025-03-22",
+        "parashaId": "P22"
+      },
+      {
+        "date": "2025-03-29",
+        "parashaId": "P23"
+      },
+      {
+        "date": "2025-04-05",
+        "parashaId": "P24"
+      },
+      {
+        "date": "2025-04-12",
+        "parashaId": "P25"
+      },
+      {
+        "date": "2025-04-26",
+        "parashaId": "P26"
+      },
+      {
+        "date": "2025-05-03",
+        "parashaId": "P27_P28"
+      },
+      {
+        "date": "2025-05-10",
+        "parashaId": "P29_P30"
+      },
+      {
+        "date": "2025-05-17",
+        "parashaId": "P31"
+      },
+      {
+        "date": "2025-05-24",
+        "parashaId": "P32_P33"
+      },
+      {
+        "date": "2025-05-31",
+        "parashaId": "P34"
+      },
+      {
+        "date": "2025-06-07",
+        "parashaId": "P35"
+      },
+      {
+        "date": "2025-06-14",
+        "parashaId": "P36"
+      },
+      {
+        "date": "2025-06-21",
+        "parashaId": "P37"
+      },
+      {
+        "date": "2025-06-28",
+        "parashaId": "P38"
+      },
+      {
+        "date": "2025-07-05",
+        "parashaId": "P39"
+      },
+      {
+        "date": "2025-07-12",
+        "parashaId": "P40"
+      },
+      {
+        "date": "2025-07-19",
+        "parashaId": "P41"
+      },
+      {
+        "date": "2025-07-26",
+        "parashaId": "P42_P43"
+      },
+      {
+        "date": "2025-08-02",
+        "parashaId": "P44"
+      },
+      {
+        "date": "2025-08-09",
+        "parashaId": "P45"
+      },
+      {
+        "date": "2025-08-16",
+        "parashaId": "P46"
+      },
+      {
+        "date": "2025-08-23",
+        "parashaId": "P47"
+      },
+      {
+        "date": "2025-08-30",
+        "parashaId": "P48"
+      },
+      {
+        "date": "2025-09-06",
+        "parashaId": "P49"
+      },
+      {
+        "date": "2025-09-13",
+        "parashaId": "P50"
+      },
+      {
+        "date": "2025-09-20",
+        "parashaId": "P51"
+      },
+      {
+        "date": "2025-09-27",
+        "parashaId": "P52"
+      },
+      {
+        "date": "2025-10-04",
+        "parashaId": "P53"
+      },
+      {
+        "date": "2025-10-18",
+        "parashaId": "P01"
+      },
+      {
+        "date": "2025-10-25",
+        "parashaId": "P02"
+      },
+      {
+        "date": "2025-11-01",
+        "parashaId": "P03"
+      },
+      {
+        "date": "2025-11-08",
+        "parashaId": "P04"
+      },
+      {
+        "date": "2025-11-15",
+        "parashaId": "P05"
+      },
+      {
+        "date": "2025-11-22",
+        "parashaId": "P06"
+      },
+      {
+        "date": "2025-11-29",
+        "parashaId": "P07"
+      },
+      {
+        "date": "2025-12-06",
+        "parashaId": "P08"
+      },
+      {
+        "date": "2025-12-13",
+        "parashaId": "P09"
+      },
+      {
+        "date": "2025-12-20",
+        "parashaId": "P10"
+      },
+      {
+        "date": "2025-12-27",
+        "parashaId": "P11"
+      },
+      {
+        "date": "2026-01-03",
+        "parashaId": "P12"
+      },
+      {
+        "date": "2026-01-10",
+        "parashaId": "P13"
+      },
+      {
+        "date": "2026-01-17",
+        "parashaId": "P14"
+      },
+      {
+        "date": "2026-01-24",
+        "parashaId": "P15"
+      },
+      {
+        "date": "2026-01-31",
+        "parashaId": "P16"
+      },
+      {
+        "date": "2026-02-07",
+        "parashaId": "P17"
+      },
+      {
+        "date": "2026-02-14",
+        "parashaId": "P18"
+      },
+      {
+        "date": "2026-02-21",
+        "parashaId": "P19"
+      },
+      {
+        "date": "2026-02-28",
+        "parashaId": "P20"
+      },
+      {
+        "date": "2026-03-07",
+        "parashaId": "P21"
+      },
+      {
+        "date": "2026-03-14",
+        "parashaId": "P22_P23"
+      },
+      {
+        "date": "2026-03-21",
+        "parashaId": "P24"
+      },
+      {
+        "date": "2026-03-28",
+        "parashaId": "P25"
+      },
+      {
+        "date": "2026-04-11",
+        "parashaId": "P26"
+      },
+      {
+        "date": "2026-04-18",
+        "parashaId": "P27_P28"
+      },
+      {
+        "date": "2026-04-25",
+        "parashaId": "P29_P30"
+      },
+      {
+        "date": "2026-05-02",
+        "parashaId": "P31"
+      },
+      {
+        "date": "2026-05-09",
+        "parashaId": "P32_P33"
+      },
+      {
+        "date": "2026-05-16",
+        "parashaId": "P34"
+      },
+      {
+        "date": "2026-05-30",
+        "parashaId": "P35"
+      },
+      {
+        "date": "2026-06-06",
+        "parashaId": "P36"
+      },
+      {
+        "date": "2026-06-13",
+        "parashaId": "P37"
+      },
+      {
+        "date": "2026-06-20",
+        "parashaId": "P38"
+      },
+      {
+        "date": "2026-06-27",
+        "parashaId": "P39_P40"
+      },
+      {
+        "date": "2026-07-04",
+        "parashaId": "P41"
+      },
+      {
+        "date": "2026-07-11",
+        "parashaId": "P42_P43"
+      },
+      {
+        "date": "2026-07-18",
+        "parashaId": "P44"
+      },
+      {
+        "date": "2026-07-25",
+        "parashaId": "P45"
+      },
+      {
+        "date": "2026-08-01",
+        "parashaId": "P46"
+      },
+      {
+        "date": "2026-08-08",
+        "parashaId": "P47"
+      },
+      {
+        "date": "2026-08-15",
+        "parashaId": "P48"
+      },
+      {
+        "date": "2026-08-22",
+        "parashaId": "P49"
+      },
+      {
+        "date": "2026-08-29",
+        "parashaId": "P50"
+      },
+      {
+        "date": "2026-09-05",
+        "parashaId": "P51_P52"
+      },
+      {
+        "date": "2026-09-19",
+        "parashaId": "P53"
+      },
+      {
+        "date": "2026-10-10",
+        "parashaId": "P01"
+      },
+      {
+        "date": "2026-10-17",
+        "parashaId": "P02"
+      },
+      {
+        "date": "2026-10-24",
+        "parashaId": "P03"
+      },
+      {
+        "date": "2026-10-31",
+        "parashaId": "P04"
+      },
+      {
+        "date": "2026-11-07",
+        "parashaId": "P05"
+      },
+      {
+        "date": "2026-11-14",
+        "parashaId": "P06"
+      },
+      {
+        "date": "2026-11-21",
+        "parashaId": "P07"
+      },
+      {
+        "date": "2026-11-28",
+        "parashaId": "P08"
+      },
+      {
+        "date": "2026-12-05",
+        "parashaId": "P09"
+      },
+      {
+        "date": "2026-12-12",
+        "parashaId": "P10"
+      },
+      {
+        "date": "2026-12-19",
+        "parashaId": "P11"
+      },
+      {
+        "date": "2026-12-26",
+        "parashaId": "P12"
+      },
+      {
+        "date": "2027-01-02",
+        "parashaId": "P13"
+      },
+      {
+        "date": "2027-01-09",
+        "parashaId": "P14"
+      },
+      {
+        "date": "2027-01-16",
+        "parashaId": "P15"
+      },
+      {
+        "date": "2027-01-23",
+        "parashaId": "P16"
+      },
+      {
+        "date": "2027-01-30",
+        "parashaId": "P17"
+      },
+      {
+        "date": "2027-02-06",
+        "parashaId": "P18"
+      },
+      {
+        "date": "2027-02-13",
+        "parashaId": "P19"
+      },
+      {
+        "date": "2027-02-20",
+        "parashaId": "P20"
+      },
+      {
+        "date": "2027-02-27",
+        "parashaId": "P21"
+      },
+      {
+        "date": "2027-03-06",
+        "parashaId": "P22"
+      },
+      {
+        "date": "2027-03-13",
+        "parashaId": "P23"
+      },
+      {
+        "date": "2027-03-20",
+        "parashaId": "P24"
+      },
+      {
+        "date": "2027-03-27",
+        "parashaId": "P25"
+      },
+      {
+        "date": "2027-04-03",
+        "parashaId": "P26"
+      },
+      {
+        "date": "2027-04-10",
+        "parashaId": "P27"
+      },
+      {
+        "date": "2027-04-17",
+        "parashaId": "P28"
+      },
+      {
+        "date": "2027-05-01",
+        "parashaId": "P29"
+      },
+      {
+        "date": "2027-05-08",
+        "parashaId": "P30"
+      },
+      {
+        "date": "2027-05-15",
+        "parashaId": "P31"
+      },
+      {
+        "date": "2027-05-22",
+        "parashaId": "P32"
+      },
+      {
+        "date": "2027-05-29",
+        "parashaId": "P33"
+      },
+      {
+        "date": "2027-06-05",
+        "parashaId": "P34"
+      },
+      {
+        "date": "2027-06-19",
+        "parashaId": "P35"
+      },
+      {
+        "date": "2027-06-26",
+        "parashaId": "P36"
+      },
+      {
+        "date": "2027-07-03",
+        "parashaId": "P37"
+      },
+      {
+        "date": "2027-07-10",
+        "parashaId": "P38"
+      },
+      {
+        "date": "2027-07-17",
+        "parashaId": "P39_P40"
+      },
+      {
+        "date": "2027-07-24",
+        "parashaId": "P41"
+      },
+      {
+        "date": "2027-07-31",
+        "parashaId": "P42_P43"
+      },
+      {
+        "date": "2027-08-07",
+        "parashaId": "P44"
+      },
+      {
+        "date": "2027-08-14",
+        "parashaId": "P45"
+      },
+      {
+        "date": "2027-08-21",
+        "parashaId": "P46"
+      },
+      {
+        "date": "2027-08-28",
+        "parashaId": "P47"
+      },
+      {
+        "date": "2027-09-04",
+        "parashaId": "P48"
+      },
+      {
+        "date": "2027-09-11",
+        "parashaId": "P49"
+      },
+      {
+        "date": "2027-09-18",
+        "parashaId": "P50"
+      },
+      {
+        "date": "2027-09-25",
+        "parashaId": "P51_P52"
+      },
+      {
+        "date": "2027-10-09",
+        "parashaId": "P53"
+      },
+      {
+        "date": "2027-10-30",
+        "parashaId": "P01"
+      },
+      {
+        "date": "2027-11-06",
+        "parashaId": "P02"
+      },
+      {
+        "date": "2027-11-13",
+        "parashaId": "P03"
+      },
+      {
+        "date": "2027-11-20",
+        "parashaId": "P04"
+      },
+      {
+        "date": "2027-11-27",
+        "parashaId": "P05"
+      },
+      {
+        "date": "2027-12-04",
+        "parashaId": "P06"
+      },
+      {
+        "date": "2027-12-11",
+        "parashaId": "P07"
+      },
+      {
+        "date": "2027-12-18",
+        "parashaId": "P08"
+      },
+      {
+        "date": "2027-12-25",
+        "parashaId": "P09"
+      },
+      {
+        "date": "2028-01-01",
+        "parashaId": "P10"
+      },
+      {
+        "date": "2028-01-08",
+        "parashaId": "P11"
+      },
+      {
+        "date": "2028-01-15",
+        "parashaId": "P12"
+      },
+      {
+        "date": "2028-01-22",
+        "parashaId": "P13"
+      },
+      {
+        "date": "2028-01-29",
+        "parashaId": "P14"
+      },
+      {
+        "date": "2028-02-05",
+        "parashaId": "P15"
+      },
+      {
+        "date": "2028-02-12",
+        "parashaId": "P16"
+      },
+      {
+        "date": "2028-02-19",
+        "parashaId": "P17"
+      },
+      {
+        "date": "2028-02-26",
+        "parashaId": "P18"
+      },
+      {
+        "date": "2028-03-04",
+        "parashaId": "P19"
+      },
+      {
+        "date": "2028-03-11",
+        "parashaId": "P20"
+      },
+      {
+        "date": "2028-03-18",
+        "parashaId": "P21"
+      },
+      {
+        "date": "2028-03-25",
+        "parashaId": "P22_P23"
+      },
+      {
+        "date": "2028-04-01",
+        "parashaId": "P24"
+      },
+      {
+        "date": "2028-04-08",
+        "parashaId": "P25"
+      },
+      {
+        "date": "2028-04-22",
+        "parashaId": "P26"
+      },
+      {
+        "date": "2028-04-29",
+        "parashaId": "P27_P28"
+      },
+      {
+        "date": "2028-05-06",
+        "parashaId": "P29_P30"
+      },
+      {
+        "date": "2028-05-13",
+        "parashaId": "P31"
+      },
+      {
+        "date": "2028-05-20",
+        "parashaId": "P32_P33"
+      },
+      {
+        "date": "2028-05-27",
+        "parashaId": "P34"
+      },
+      {
+        "date": "2028-06-03",
+        "parashaId": "P35"
+      },
+      {
+        "date": "2028-06-10",
+        "parashaId": "P36"
+      },
+      {
+        "date": "2028-06-17",
+        "parashaId": "P37"
+      },
+      {
+        "date": "2028-06-24",
+        "parashaId": "P38"
+      },
+      {
+        "date": "2028-07-01",
+        "parashaId": "P39"
+      },
+      {
+        "date": "2028-07-08",
+        "parashaId": "P40"
+      },
+      {
+        "date": "2028-07-15",
+        "parashaId": "P41"
+      },
+      {
+        "date": "2028-07-22",
+        "parashaId": "P42_P43"
+      },
+      {
+        "date": "2028-07-29",
+        "parashaId": "P44"
+      },
+      {
+        "date": "2028-08-05",
+        "parashaId": "P45"
+      },
+      {
+        "date": "2028-08-12",
+        "parashaId": "P46"
+      },
+      {
+        "date": "2028-08-19",
+        "parashaId": "P47"
+      },
+      {
+        "date": "2028-08-26",
+        "parashaId": "P48"
+      },
+      {
+        "date": "2028-09-02",
+        "parashaId": "P49"
+      },
+      {
+        "date": "2028-09-09",
+        "parashaId": "P50"
+      },
+      {
+        "date": "2028-09-16",
+        "parashaId": "P51_P52"
+      },
+      {
+        "date": "2028-09-23",
+        "parashaId": "P53"
+      },
+      {
+        "date": "2028-10-14",
+        "parashaId": "P01"
+      },
+      {
+        "date": "2028-10-21",
+        "parashaId": "P02"
+      },
+      {
+        "date": "2028-10-28",
+        "parashaId": "P03"
+      },
+      {
+        "date": "2028-11-04",
+        "parashaId": "P04"
+      },
+      {
+        "date": "2028-11-11",
+        "parashaId": "P05"
+      },
+      {
+        "date": "2028-11-18",
+        "parashaId": "P06"
+      },
+      {
+        "date": "2028-11-25",
+        "parashaId": "P07"
+      },
+      {
+        "date": "2028-12-02",
+        "parashaId": "P08"
+      },
+      {
+        "date": "2028-12-09",
+        "parashaId": "P09"
+      },
+      {
+        "date": "2028-12-16",
+        "parashaId": "P10"
+      },
+      {
+        "date": "2028-12-23",
+        "parashaId": "P11"
+      },
+      {
+        "date": "2028-12-30",
+        "parashaId": "P12"
+      },
+      {
+        "date": "2029-01-06",
+        "parashaId": "P13"
+      },
+      {
+        "date": "2029-01-13",
+        "parashaId": "P14"
+      },
+      {
+        "date": "2029-01-20",
+        "parashaId": "P15"
+      },
+      {
+        "date": "2029-01-27",
+        "parashaId": "P16"
+      },
+      {
+        "date": "2029-02-03",
+        "parashaId": "P17"
+      },
+      {
+        "date": "2029-02-10",
+        "parashaId": "P18"
+      },
+      {
+        "date": "2029-02-17",
+        "parashaId": "P19"
+      },
+      {
+        "date": "2029-02-24",
+        "parashaId": "P20"
+      },
+      {
+        "date": "2029-03-03",
+        "parashaId": "P21"
+      },
+      {
+        "date": "2029-03-10",
+        "parashaId": "P22_P23"
+      },
+      {
+        "date": "2029-03-17",
+        "parashaId": "P24"
+      },
+      {
+        "date": "2029-03-24",
+        "parashaId": "P25"
+      },
+      {
+        "date": "2029-04-14",
+        "parashaId": "P26"
+      },
+      {
+        "date": "2029-04-21",
+        "parashaId": "P27_P28"
+      },
+      {
+        "date": "2029-04-28",
+        "parashaId": "P29_P30"
+      },
+      {
+        "date": "2029-05-05",
+        "parashaId": "P31"
+      },
+      {
+        "date": "2029-05-12",
+        "parashaId": "P32_P33"
+      },
+      {
+        "date": "2029-05-19",
+        "parashaId": "P34"
+      },
+      {
+        "date": "2029-05-26",
+        "parashaId": "P35"
+      },
+      {
+        "date": "2029-06-02",
+        "parashaId": "P36"
+      },
+      {
+        "date": "2029-06-09",
+        "parashaId": "P37"
+      },
+      {
+        "date": "2029-06-16",
+        "parashaId": "P38"
+      },
+      {
+        "date": "2029-06-23",
+        "parashaId": "P39"
+      },
+      {
+        "date": "2029-06-30",
+        "parashaId": "P40"
+      },
+      {
+        "date": "2029-07-07",
+        "parashaId": "P41"
+      },
+      {
+        "date": "2029-07-14",
+        "parashaId": "P42_P43"
+      },
+      {
+        "date": "2029-07-21",
+        "parashaId": "P44"
+      },
+      {
+        "date": "2029-07-28",
+        "parashaId": "P45"
+      },
+      {
+        "date": "2029-08-04",
+        "parashaId": "P46"
+      },
+      {
+        "date": "2029-08-11",
+        "parashaId": "P47"
+      },
+      {
+        "date": "2029-08-18",
+        "parashaId": "P48"
+      },
+      {
+        "date": "2029-08-25",
+        "parashaId": "P49"
+      },
+      {
+        "date": "2029-09-01",
+        "parashaId": "P50"
+      },
+      {
+        "date": "2029-09-08",
+        "parashaId": "P51"
+      },
+      {
+        "date": "2029-09-15",
+        "parashaId": "P52"
+      },
+      {
+        "date": "2029-09-22",
+        "parashaId": "P53"
+      },
+      {
+        "date": "2029-10-06",
+        "parashaId": "P01"
+      },
+      {
+        "date": "2029-10-13",
+        "parashaId": "P02"
+      },
+      {
+        "date": "2029-10-20",
+        "parashaId": "P03"
+      },
+      {
+        "date": "2029-10-27",
+        "parashaId": "P04"
+      },
+      {
+        "date": "2029-11-03",
+        "parashaId": "P05"
+      },
+      {
+        "date": "2029-11-10",
+        "parashaId": "P06"
+      },
+      {
+        "date": "2029-11-17",
+        "parashaId": "P07"
+      },
+      {
+        "date": "2029-11-24",
+        "parashaId": "P08"
+      },
+      {
+        "date": "2029-12-01",
+        "parashaId": "P09"
+      },
+      {
+        "date": "2029-12-08",
+        "parashaId": "P10"
+      },
+      {
+        "date": "2029-12-15",
+        "parashaId": "P11"
+      },
+      {
+        "date": "2029-12-22",
+        "parashaId": "P12"
+      },
+      {
+        "date": "2029-12-29",
+        "parashaId": "P13"
+      },
+      {
+        "date": "2030-01-05",
+        "parashaId": "P14"
+      },
+      {
+        "date": "2030-01-12",
+        "parashaId": "P15"
+      },
+      {
+        "date": "2030-01-19",
+        "parashaId": "P16"
+      },
+      {
+        "date": "2030-01-26",
+        "parashaId": "P17"
+      },
+      {
+        "date": "2030-02-02",
+        "parashaId": "P18"
+      },
+      {
+        "date": "2030-02-09",
+        "parashaId": "P19"
+      },
+      {
+        "date": "2030-02-16",
+        "parashaId": "P20"
+      },
+      {
+        "date": "2030-02-23",
+        "parashaId": "P21"
+      },
+      {
+        "date": "2030-03-02",
+        "parashaId": "P22"
+      },
+      {
+        "date": "2030-03-09",
+        "parashaId": "P23"
+      },
+      {
+        "date": "2030-03-16",
+        "parashaId": "P24"
+      },
+      {
+        "date": "2030-03-23",
+        "parashaId": "P25"
+      },
+      {
+        "date": "2030-03-30",
+        "parashaId": "P26"
+      },
+      {
+        "date": "2030-04-06",
+        "parashaId": "P27"
+      },
+      {
+        "date": "2030-04-13",
+        "parashaId": "P28"
+      },
+      {
+        "date": "2030-04-27",
+        "parashaId": "P29"
+      },
+      {
+        "date": "2030-05-04",
+        "parashaId": "P30"
+      },
+      {
+        "date": "2030-05-11",
+        "parashaId": "P31"
+      },
+      {
+        "date": "2030-05-18",
+        "parashaId": "P32"
+      },
+      {
+        "date": "2030-05-25",
+        "parashaId": "P33"
+      },
+      {
+        "date": "2030-06-01",
+        "parashaId": "P34"
+      },
+      {
+        "date": "2030-06-15",
+        "parashaId": "P35"
+      },
+      {
+        "date": "2030-06-22",
+        "parashaId": "P36"
+      },
+      {
+        "date": "2030-06-29",
+        "parashaId": "P37"
+      },
+      {
+        "date": "2030-07-06",
+        "parashaId": "P38"
+      },
+      {
+        "date": "2030-07-13",
+        "parashaId": "P39_P40"
+      },
+      {
+        "date": "2030-07-20",
+        "parashaId": "P41"
+      },
+      {
+        "date": "2030-07-27",
+        "parashaId": "P42_P43"
+      },
+      {
+        "date": "2030-08-03",
+        "parashaId": "P44"
+      },
+      {
+        "date": "2030-08-10",
+        "parashaId": "P45"
+      },
+      {
+        "date": "2030-08-17",
+        "parashaId": "P46"
+      },
+      {
+        "date": "2030-08-24",
+        "parashaId": "P47"
+      },
+      {
+        "date": "2030-08-31",
+        "parashaId": "P48"
+      },
+      {
+        "date": "2030-09-07",
+        "parashaId": "P49"
+      },
+      {
+        "date": "2030-09-14",
+        "parashaId": "P50"
+      },
+      {
+        "date": "2030-09-21",
+        "parashaId": "P51_P52"
+      },
+      {
+        "date": "2030-10-05",
+        "parashaId": "P53"
+      },
+      {
+        "date": "2030-10-26",
+        "parashaId": "P01"
+      },
+      {
+        "date": "2030-11-02",
+        "parashaId": "P02"
+      },
+      {
+        "date": "2030-11-09",
+        "parashaId": "P03"
+      },
+      {
+        "date": "2030-11-16",
+        "parashaId": "P04"
+      },
+      {
+        "date": "2030-11-23",
+        "parashaId": "P05"
+      },
+      {
+        "date": "2030-11-30",
+        "parashaId": "P06"
+      },
+      {
+        "date": "2030-12-07",
+        "parashaId": "P07"
+      },
+      {
+        "date": "2030-12-14",
+        "parashaId": "P08"
+      },
+      {
+        "date": "2030-12-21",
+        "parashaId": "P09"
+      },
+      {
+        "date": "2030-12-28",
+        "parashaId": "P10"
+      },
+      {
+        "date": "2031-01-04",
+        "parashaId": "P11"
+      },
+      {
+        "date": "2031-01-11",
+        "parashaId": "P12"
+      },
+      {
+        "date": "2031-01-18",
+        "parashaId": "P13"
+      },
+      {
+        "date": "2031-01-25",
+        "parashaId": "P14"
+      },
+      {
+        "date": "2031-02-01",
+        "parashaId": "P15"
+      },
+      {
+        "date": "2031-02-08",
+        "parashaId": "P16"
+      },
+      {
+        "date": "2031-02-15",
+        "parashaId": "P17"
+      },
+      {
+        "date": "2031-02-22",
+        "parashaId": "P18"
+      },
+      {
+        "date": "2031-03-01",
+        "parashaId": "P19"
+      },
+      {
+        "date": "2031-03-08",
+        "parashaId": "P20"
+      },
+      {
+        "date": "2031-03-15",
+        "parashaId": "P21"
+      },
+      {
+        "date": "2031-03-22",
+        "parashaId": "P22_P23"
+      },
+      {
+        "date": "2031-03-29",
+        "parashaId": "P24"
+      },
+      {
+        "date": "2031-04-05",
+        "parashaId": "P25"
+      },
+      {
+        "date": "2031-04-19",
+        "parashaId": "P26"
+      },
+      {
+        "date": "2031-04-26",
+        "parashaId": "P27_P28"
+      },
+      {
+        "date": "2031-05-03",
+        "parashaId": "P29_P30"
+      },
+      {
+        "date": "2031-05-10",
+        "parashaId": "P31"
+      },
+      {
+        "date": "2031-05-17",
+        "parashaId": "P32_P33"
+      },
+      {
+        "date": "2031-05-24",
+        "parashaId": "P34"
+      },
+      {
+        "date": "2031-05-31",
+        "parashaId": "P35"
+      },
+      {
+        "date": "2031-06-07",
+        "parashaId": "P36"
+      },
+      {
+        "date": "2031-06-14",
+        "parashaId": "P37"
+      },
+      {
+        "date": "2031-06-21",
+        "parashaId": "P38"
+      },
+      {
+        "date": "2031-06-28",
+        "parashaId": "P39"
+      },
+      {
+        "date": "2031-07-05",
+        "parashaId": "P40"
+      },
+      {
+        "date": "2031-07-12",
+        "parashaId": "P41"
+      },
+      {
+        "date": "2031-07-19",
+        "parashaId": "P42_P43"
+      },
+      {
+        "date": "2031-07-26",
+        "parashaId": "P44"
+      },
+      {
+        "date": "2031-08-02",
+        "parashaId": "P45"
+      },
+      {
+        "date": "2031-08-09",
+        "parashaId": "P46"
+      },
+      {
+        "date": "2031-08-16",
+        "parashaId": "P47"
+      },
+      {
+        "date": "2031-08-23",
+        "parashaId": "P48"
+      },
+      {
+        "date": "2031-08-30",
+        "parashaId": "P49"
+      },
+      {
+        "date": "2031-09-06",
+        "parashaId": "P50"
+      },
+      {
+        "date": "2031-09-13",
+        "parashaId": "P51_P52"
+      },
+      {
+        "date": "2031-09-20",
+        "parashaId": "P53"
+      },
+      {
+        "date": "2031-10-11",
+        "parashaId": "P01"
+      },
+      {
+        "date": "2031-10-18",
+        "parashaId": "P02"
+      },
+      {
+        "date": "2031-10-25",
+        "parashaId": "P03"
+      },
+      {
+        "date": "2031-11-01",
+        "parashaId": "P04"
+      },
+      {
+        "date": "2031-11-08",
+        "parashaId": "P05"
+      },
+      {
+        "date": "2031-11-15",
+        "parashaId": "P06"
+      },
+      {
+        "date": "2031-11-22",
+        "parashaId": "P07"
+      },
+      {
+        "date": "2031-11-29",
+        "parashaId": "P08"
+      },
+      {
+        "date": "2031-12-06",
+        "parashaId": "P09"
+      },
+      {
+        "date": "2031-12-13",
+        "parashaId": "P10"
+      },
+      {
+        "date": "2031-12-20",
+        "parashaId": "P11"
+      },
+      {
+        "date": "2031-12-27",
+        "parashaId": "P12"
+      }
+    ]
+  }
+}

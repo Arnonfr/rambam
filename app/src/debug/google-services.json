@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "703198161750",
+    "project_id": "daily-rambam-pilot-20261001",
+    "storage_bucket": "daily-rambam-pilot-20261001.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:703198161750:android:cd9e6753f4b8abfdbbc4f7",
+        "android_client_info": {
+          "package_name": "com.aistudio.dailyrambam.kzjvw"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCltZpi1MBuKSmtZNOvvqxzSzI8TtQhfps"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:703198161750:android:1e1d23970312aa68bbc4f7",
+        "android_client_info": {
+          "package_name": "com.aistudio.dailyrambam.kzjvw.debug"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCltZpi1MBuKSmtZNOvvqxzSzI8TtQhfps"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

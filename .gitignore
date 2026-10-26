@@ -15,4 +15,23 @@
 .cxx
 local.properties
 .env
+/.bundle/
+/vendor/bundle/
+/fastlane/report.xml
+/fastlane/README.md
+/fastlane/.env*
+!/fastlane/.env.example
+*service-account*.json
 debug.keystore
+# Private local prayer recordings are never committed or included in release assets.
+/app/src/debug/assets/prayer-audio/
+
+# Local agent state, build outputs and generated authentication files.
+.a5c/
+**/__pycache__/
+*.pyc
+/app/build/
+/node_modules/
+firebase-debug*.log
+gha-creds-*.json
+/docs/agent-handoff/audio/reference/*.wav

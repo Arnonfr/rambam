@@ -17,8 +17,8 @@ android {
     applicationId = "com.aistudio.dailyrambam.kzjvw"
     minSdk = 24
     targetSdk = 36
-    versionCode = 115
-    versionName = "1.0.115"
+    versionCode = 147
+    versionName = "2.0"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
@@ -32,11 +32,6 @@ android {
         storePassword = System.getenv("STORE_PASSWORD")
         keyAlias = System.getenv("KEY_ALIAS") ?: "upload"
         keyPassword = System.getenv("KEY_PASSWORD")
-      } else {
-        storeFile = file("${rootDir}/debug.keystore")
-        storePassword = "android"
-        keyAlias = "androiddebugkey"
-        keyPassword = "android"
       }
     }
     create("debugConfig") {
@@ -52,7 +47,11 @@ android {
       isCrunchPngs = false
       isMinifyEnabled = false
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-      signingConfig = signingConfigs.getByName("release")
+      // Without upload credentials, bundleRelease creates an unsigned bundle.
+      // Do not silently sign a Play upload using the debug certificate.
+      if (signingConfigs.getByName("release").storeFile != null) {
+        signingConfig = signingConfigs.getByName("release")
+      }
     }
     debug {
       applicationIdSuffix = ".debug"
@@ -61,6 +60,7 @@ android {
     }
   }
   compileOptions {
+    isCoreLibraryDesugaringEnabled = true
     sourceCompatibility = JavaVersion.VERSION_11
     targetCompatibility = JavaVersion.VERSION_11
   }
@@ -92,8 +92,15 @@ googleServices { missingGoogleServicesStrategy = MissingGoogleServicesStrategy.W
 // Some unused dependencies are commented out below instead of being removed.
 // This makes it easy to add them back in the future if needed.
 dependencies {
+  implementation("com.google.android.play:review:2.0.2")
+  implementation("com.microsoft.onnxruntime:onnxruntime-android:1.31.0")
+  coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
+  implementation("com.kosherjava:zmanim:2.5.0")
+  implementation("androidx.media3:media3-exoplayer:1.10.1")
+  implementation("androidx.media3:media3-session:1.10.1")
   implementation(platform(libs.androidx.compose.bom))
   implementation(platform(libs.firebase.bom))
+  implementation("com.google.firebase:firebase-analytics")
   // implementation(libs.accompanist.permissions)
   implementation(libs.androidx.activity.compose)
   // implementation(libs.androidx.camera.camera2)
@@ -108,6 +115,7 @@ dependencies {
   implementation(libs.androidx.compose.ui.tooling.preview)
   implementation(libs.androidx.core.ktx)
   implementation(libs.androidx.datastore.preferences)
+  implementation(libs.androidx.glance.appwidget)
   implementation(libs.androidx.lifecycle.runtime.compose)
   implementation(libs.androidx.lifecycle.runtime.ktx)
   implementation(libs.androidx.lifecycle.viewmodel.compose)
@@ -138,6 +146,7 @@ dependencies {
   testImplementation(libs.androidx.compose.ui.test.junit4)
   testImplementation(libs.androidx.core)
   testImplementation(libs.androidx.junit)
+  testRuntimeOnly("com.microsoft.onnxruntime:onnxruntime:1.31.0")
   testImplementation(libs.junit)
   testImplementation(libs.kotlinx.coroutines.test)
   testImplementation(libs.robolectric)

@@ -2,6 +2,14 @@
 
 package com.example.ui.screens
 
+import com.example.ui.components.ReaderAudioOverlay
+
+import com.example.data.local.CompletionText
+import com.example.data.local.SavedStudyCompletion
+import com.example.domain.content.CompletionReaderRow
+import com.example.ui.components.ManualStudyCompletionControls
+import com.example.ui.components.rememberManualStudyCompletionState
+
 import android.app.Activity
 import android.view.WindowManager
 import androidx.activity.compose.BackHandler
@@ -17,6 +25,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,6 +60,7 @@ import com.example.ui.components.EndOfLessonPullIndicator
 import com.example.ui.components.ReaderTypographySheet
 import com.example.ui.components.StudyTextBlock
 import com.example.ui.components.endOfLessonPull
+import com.example.ui.components.rememberReaderViewportState
 import com.example.ui.components.rememberEndOfLessonPullState
 import com.example.ui.theme.*
 import com.example.ui.util.HebrewNumberFormatter
@@ -90,6 +103,10 @@ sealed interface ReaderUiRow {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReaderScreen(
+    audioControls: (@Composable () -> Unit)? = null,
+    audioPlaying: Boolean = false,
+    audioLoading: Boolean = false,
+    onSaveCompletion: (SavedStudyCompletion) -> Unit = {},
     chapter: ChapterEntity,
     section: ContentSectionEntity?,
     halachot: List<HalachaEntity>,
@@ -120,10 +137,17 @@ fun ReaderScreen(
     BackHandler(onBack = onBack)
 
     var showTypographySheet by remember { mutableStateOf(false) }
+    var showAudio by rememberSaveable(dailyLesson?.studyDate) { mutableStateOf(false) }
+    val readerScope = rememberCoroutineScope()
     val resumePosition = remember(chapter.id, dailyLesson?.studyDate) { savedPosition }
 
     // Keep screen on during study
     val context = LocalContext.current
+    val usageAnalytics = remember(context) { com.example.data.analytics.AudioAnalytics.get(context) }
+    val usageType = if(preferences.selectedTrack == "three") "rambam_three" else "rambam_one"
+    androidx.lifecycle.compose.LifecycleEventEffect(androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+        if(audioControls != null) usageAnalytics.available(usageType)
+    }
     DisposableEffect(preferences.keepScreenOn) {
         val window = (context as? Activity)?.window
         if (preferences.keepScreenOn) {
@@ -222,13 +246,14 @@ fun ReaderScreen(
 
     val initialOffset = remember(flatRows) {
         if (resumePosition != null) {
-            (resumePosition.scrollOffsetFraction.coerceIn(0f, 1f) * 200).toInt()
+            (resumePosition.scrollOffsetFraction.coerceIn(0f, 1f) * 300).toInt()
         } else 0
     }
 
-    val listState = rememberLazyListState(
-        initialFirstVisibleItemIndex = initialListIndex,
-        initialFirstVisibleItemScrollOffset = initialOffset
+    val listState = rememberReaderViewportState(
+        contentId = "rambam_${preferences.selectedTrack}",
+        assignmentDate = dailyLesson?.studyDate ?: chapter.id,
+        rowKeys = flatRows.map { it.key }, fallbackIndex = initialListIndex, fallbackOffset = initialOffset
     )
     val completionPullState = rememberEndOfLessonPullState(
         key = dailyLesson?.studyDate ?: chapter.id,
@@ -240,6 +265,13 @@ fun ReaderScreen(
         },
         onExitAfterCompletion = onBack
     )
+
+    val manualCompletion = rememberManualStudyCompletionState(dailyLesson?.studyDate to chapter.id)
+    val completionRows = remember(flatRows) { flatRows.mapIndexedNotNull { index, row ->
+        (row as? ReaderUiRow.HalachaRow)?.let { CompletionReaderRow(index, CompletionText(
+            it.key, "${it.chapter.chapterHebrew} · ${it.halacha.halachaHebrew}",
+            it.halacha.textWithNikud, it.halacha.textPlain)) }
+    } }
 
     // Helper to extract active halacha or chapter header from visible row
     fun getActiveHalachaInfo(visibleIndex: Int): Pair<ReaderUiRow.HalachaRow?, ReaderUiRow.ChapterHeader?> {
@@ -348,7 +380,7 @@ fun ReaderScreen(
                     .fillMaxSize()
                     .endOfLessonPull(completionPullState)
                     .padding(horizontal = 20.dp),
-                contentPadding = PaddingValues(top = 40.dp, bottom = 220.dp)
+                contentPadding = PaddingValues(top = 64.dp, bottom = 220.dp)
             ) {
                 items(
                     items = flatRows,
@@ -402,8 +434,7 @@ fun ReaderScreen(
                                 halacha = row.halacha,
                                 preferences = preferences,
                                 fontFamily = activeFontFamily,
-                                isReadingAnchor = row.chapter.id == resumePosition?.chapterId &&
-                                    row.indexInChapter == resumePosition?.halachaIndex,
+                                isReadingAnchor = false,
                                 modifier = Modifier.padding(bottom = 20.dp)
                             )
                         }
@@ -490,8 +521,25 @@ fun ReaderScreen(
                 accentColor = Color(0xFFFF6422),
                 scrollProgress = scrollProgress,
                 readerTheme = preferences.readerTheme,
-                modifier = Modifier.align(Alignment.TopCenter)
+                modifier = Modifier.align(Alignment.TopCenter),
+                trailingAction = if(audioControls == null) null else ({
+                    com.example.ui.components.ReaderAudioButton(showAudio, audioPlaying, audioLoading,
+                        accent = Color(0xFFFFA477), readerTheme = preferences.readerTheme,
+                        tag = "rambam_audio_toggle", showLabel = "הצגת ההקראה", hideLabel = "הסתרת ההקראה",
+                        onClick = {
+                            showAudio = !showAudio
+                            if(showAudio) usageAnalytics.panelEvent("audio_panel_open", usageType)
+                        })
+                })
             )
+
+            if (showAudio && audioControls != null) {
+                ReaderAudioOverlay(onClose = { showAudio = false }) { audioControls() }
+            }
+
+            ManualStudyCompletionControls(manualCompletion, listState, completionRows,
+                track = preferences.selectedTrack, studyDate = dailyLesson?.studyDate.orEmpty(),
+                dateLabel = dailyLesson?.hebrewDate.orEmpty(), title = "רמב״ם", onSave = onSaveCompletion)
 
             EndOfLessonPullIndicator(
                 state = completionPullState,
@@ -508,6 +556,7 @@ fun ReaderScreen(
                 FloatingReaderBar(
                     currentHalachaText = currentHalachaText.value,
                     hebrewDateText = dailyLesson?.hebrewDate ?: "",
+                    studyDate = dailyLesson?.studyDate.orEmpty(),
                     scrollProgress = scrollProgress,
                     onBack = onBack,
                     onOpenDatePicker = onOpenDatePicker,
@@ -552,7 +601,8 @@ private fun HalachaBlock(
             textColor = MaterialTheme.colorScheme.onBackground,
             isReadingAnchor = isReadingAnchor,
             modifier = Modifier,
-            testTag = "halacha_item_${halacha.halachaNumber}"
+            testTag = "halacha_item_${halacha.halachaNumber}",
+            textIncludesIndex = true
         )
         RambamDiagrams.forHalacha(halacha.sectionId, halacha.chapterNumber, halacha.halachaNumber)
             .forEach { RambamDiagramBlock(it) }

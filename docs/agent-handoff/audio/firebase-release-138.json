@@ -1,0 +1,78 @@
+{
+  "versionCode": 138,
+  "apk": "/Users/hyh/Documents/Codex/לימוד-יומי/הפצות/138-Michael/baderech-138-debug.apk",
+  "sha256": "bf21fa394e57cd137cc0e86489f72f8613015d611618c78318873b369967a272",
+  "pronunciationSha256": "455597ed7bdb9f0505dd85546dcfa298605c3832b34fc5cc5ce719dc692d579f",
+  "voiceSha256": "d2824d46ecd7ca8a206686d818d3178effe4661ce78bdb4e754eed32fe604320",
+  "tests": [
+    {
+      "name": "com.example.RambamAudioVisibilityTest",
+      "tests": "1",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-22T20:54:51.608Z",
+      "hostname": "MacBook-Air-sl-mspht.local",
+      "time": "0.466"
+    },
+    {
+      "name": "com.example.TanyaPlaybackControlsTest",
+      "tests": "1",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-22T20:54:52.079Z",
+      "hostname": "MacBook-Air-sl-mspht.local",
+      "time": "0.158"
+    },
+    {
+      "name": "com.example.PiperModelIntegrationTest",
+      "tests": "1",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-22T20:54:37.231Z",
+      "hostname": "MacBook-Air-sl-mspht.local",
+      "time": "6.614"
+    },
+    {
+      "name": "com.example.DailySpeechTest",
+      "tests": "7",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-22T20:54:51.342Z",
+      "hostname": "MacBook-Air-sl-mspht.local",
+      "time": "0.264"
+    },
+    {
+      "name": "com.example.MichaelPronunciationTest",
+      "tests": "2",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-22T20:54:26.855Z",
+      "hostname": "MacBook-Air-sl-mspht.local",
+      "time": "10.372"
+    },
+    {
+      "name": "com.example.DailySpeechControlsTest",
+      "tests": "1",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-10-22T20:54:43.860Z",
+      "hostname": "MacBook-Air-sl-mspht.local",
+      "time": "7.475"
+    }
+  ],
+  "chaptersCovered": 1673,
+  "partsCovered": 17480,
+  "selectedSamplePhonemesMatch": true,
+  "physicalDeviceTested": false,
+  "lintErrors": 0,
+  "firebaseReleaseId": "69knrk3g1ba78",
+  "testerUrl": "https://appdistribution.firebase.google.com/testerapps/1:703198161750:android:1e1d23970312aa68bbc4f7/releases/69knrk3g1ba78",
+  "distributed": true,
+  "releaseNotesAdded": true
+}

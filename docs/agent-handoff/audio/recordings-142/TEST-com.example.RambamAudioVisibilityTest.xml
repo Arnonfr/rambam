@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.RambamAudioVisibilityTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-24T17:51:15.198Z" hostname="MacBook-Air-sl-mspht.local" time="0.849">
+  <properties/>
+  <testcase name="reader uses Tanya visibility rules and hiding controls does not stop the audio" classname="com.example.RambamAudioVisibilityTest" time="0.845"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -17,18 +17,41 @@ import java.io.File
 @Config(sdk = [35])
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class SquareIconTest {
-    @Test fun vectorHasTheExactHomeColorsAndExportsStoreAndLegacyAssets() {
+    @Test fun adaptiveForegroundKeepsAllColoredArtworkInsideTheSafeCircle() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val drawable = context.getDrawable(R.drawable.ic_launcher_foreground)!!
+        val bitmap = Bitmap.createBitmap(1080, 1080, Bitmap.Config.ARGB_8888)
+        drawable.setBounds(0, 0, 1080, 1080)
+        drawable.draw(Canvas(bitmap))
+        var coloredPixels = 0
+        for (y in 0 until 1080) for (x in 0 until 1080) {
+            val pixel = bitmap.getPixel(x, y)
+            val orange = Color.red(pixel) > 200 && Color.green(pixel) < 160 && Color.blue(pixel) < 80
+            val blue = Color.blue(pixel) > 100 && Color.red(pixel) < 90 && Color.blue(pixel) > Color.green(pixel)
+            if (Color.alpha(pixel) > 200 && (orange || blue)) {
+                coloredPixels++
+                val radiusSquared = (x - 540) * (x - 540) + (y - 540) * (y - 540)
+                org.junit.Assert.assertTrue("Logo must fit the adaptive-icon safe circle", radiusSquared <= 330 * 330)
+            }
+        }
+        org.junit.Assert.assertTrue("The complete artwork must remain visible", coloredPixels > 20000)
+        val output = File("build/review/launcher-safe-zone.png")
+        output.parentFile.mkdirs()
+        output.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+    }
+
+    @Test fun suppliedLogoRetainsItsColorsAndExportsStoreAndLegacyAssets() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val drawable = context.getDrawable(R.drawable.app_icon_square)!!
         val master = Bitmap.createBitmap(1080, 1080, Bitmap.Config.ARGB_8888)
         drawable.setBounds(0, 0, 1080, 1080)
         drawable.draw(Canvas(master))
-        assertEquals(Color.parseColor("#FF873F"), master.getPixel(380, 390))
-        assertEquals(Color.parseColor("#F4F66A"), master.getPixel(700, 390))
-        assertEquals(Color.parseColor("#F0A0DD"), master.getPixel(380, 670))
-        assertEquals(Color.parseColor("#9FDEEF"), master.getPixel(700, 670))
-        assertEquals(Color.parseColor("#FFFCF6"), master.getPixel(10, 10))
-        // Opt-in asset export; ordinary test runs never rewrite source assets.
+        // The supplied artwork has an orange figure, blue book and white background.
+        org.junit.Assert.assertTrue(Color.red(master.getPixel(10, 10)) > 245)
+        val orange = master.getPixel(550, 650)
+        org.junit.Assert.assertTrue(Color.red(orange) > 220 && Color.green(orange) < 130 && Color.blue(orange) < 50)
+        val blue = master.getPixel(520, 470)
+        org.junit.Assert.assertTrue(Color.blue(blue) > Color.red(blue) && Color.blue(blue) > Color.green(blue))
         val root = System.getenv("SQUARE_ICON_EXPORT_ROOT") ?: return
         fun export(path: String, size: Int) {
             val file = File(root, path)

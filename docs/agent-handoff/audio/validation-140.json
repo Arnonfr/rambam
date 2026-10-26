@@ -1,0 +1,29 @@
+{
+  "version": 140,
+  "apk_sha256": "45cfcb0245010718e7aa0698e47adfd4f65a7b133063b6d0131012a0a08c037d",
+  "apk_bytes": 227263311,
+  "checks": {
+    "focused_distinct_tests_passed": 40,
+    "lint_errors": 0,
+    "debug_build": "passed",
+    "release_compilation": "passed"
+  },
+  "emulator": {
+    "actual_voice": "Michael",
+    "cached_startup_ms": 4431,
+    "background_listened_ms_sample": 30131,
+    "engaged_30_seconds": "received by SDK and uploaded with HTTP 204",
+    "pause_seconds_without_additional_time_events": 29,
+    "opt_out_seconds_without_audio_events": 49,
+    "physical_device_used": false
+  },
+  "zmanim": {
+    "profile": "SINGAVI",
+    "location": "תל אביב–יפו",
+    "date": "2026-10-23",
+    "sunrise": "06:44",
+    "true_sunset": "18:07",
+    "candles": "17:45",
+    "source": "https://zmanim.org.il/"
+  }
+}

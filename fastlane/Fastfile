@@ -1,0 +1,62 @@
+require "json"
+require "fileutils"
+
+default_platform(:android)
+opt_out_usage
+
+platform :android do
+  desc "Show the existing Google Play tracks and versions"
+  lane :play_status do |options|
+    require "supply"
+    Supply.config = FastlaneCore::Configuration.create(Supply::Options.available_options, {
+      package_name: CredentialsManager::AppfileConfig.try_fetch_value(:package_name),
+      json_key: CredentialsManager::AppfileConfig.try_fetch_value(:json_key_file)
+    })
+    client = Supply::Client.make_from_config
+    begin
+      client.begin_edit(package_name: Supply.config[:package_name])
+      tracks = client.tracks.map(&:to_h)
+      data = { package_name: Supply.config[:package_name], tracks: tracks }
+      UI.message(JSON.pretty_generate(data))
+      File.write(File.expand_path(options[:output]), JSON.pretty_generate(data) + "\n") if options[:output]
+    ensure
+      client.abort_current_edit if client.current_edit
+    end
+  end
+
+  desc "Upload a signed bundle to the existing Alpha tester track"
+  lane :play_testers do |options|
+    aab = File.expand_path(options.fetch(:aab))
+    UI.user_error!("Bundle does not exist: #{aab}") unless File.file?(aab)
+    metadata = nil
+    if options[:notes]
+      notes = File.read(File.expand_path(options[:notes]), encoding: "UTF-8").strip
+      UI.user_error!("Release notes must contain 1–500 characters") if notes.empty? || notes.length > 500
+      require "tmpdir"
+      metadata = Dir.mktmpdir("baderech-play-notes-")
+      notes_dir = File.join(metadata, "en-US", "changelogs")
+      FileUtils.mkdir_p(notes_dir)
+      File.write(File.join(notes_dir, "default.txt"), notes + "\n")
+    end
+    begin
+      upload_to_play_store(
+        aab: aab,
+        track: "alpha",
+        release_status: "completed",
+        version_name: options[:name],
+        metadata_path: metadata,
+        skip_upload_apk: true,
+        skip_upload_metadata: true,
+        skip_upload_changelogs: metadata.nil?,
+        skip_upload_images: true,
+        skip_upload_screenshots: true,
+        changes_not_sent_for_review: false,
+        rescue_changes_not_sent_for_review: false,
+        validate_only: options[:validate_only] == true || options[:validate_only] == "true",
+        timeout: 600
+      )
+    ensure
+      FileUtils.remove_entry(metadata) if metadata
+    end
+  end
+end

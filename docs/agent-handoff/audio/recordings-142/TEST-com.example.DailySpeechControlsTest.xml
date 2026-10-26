@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.DailySpeechControlsTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-24T17:50:54.542Z" hostname="MacBook-Air-sl-mspht.local" time="14.399">
+  <properties/>
+  <testcase name="recording source is selectable and never offers fictitious halacha boundaries" classname="com.example.DailySpeechControlsTest" time="13.582"/>
+  <testcase name="one action starts the entire daily assignment and transport remains accessible at 320dp" classname="com.example.DailySpeechControlsTest" time="0.336"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

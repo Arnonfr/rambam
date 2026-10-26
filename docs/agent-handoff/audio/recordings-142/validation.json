@@ -1,0 +1,60 @@
+{
+  "versionCode": 142,
+  "applicationId": "com.aistudio.dailyrambam.kzjvw.debug",
+  "sha256": "9e406d758f318fa809e0596811c45730bd90f884501b93ef071c8ee5971540f5",
+  "tests": [
+    {
+      "name": "com.example.RambamAudioVisibilityTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.AudioUsageTrackerTest",
+      "tests": "8",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.RambamRecordingTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.DailySpeechTest",
+      "tests": "8",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.RambamRecordingLiveTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.ReaderFeedbackTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.example.DailySpeechControlsTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    }
+  ],
+  "lintErrors": [],
+  "physicalDeviceTested": false,
+  "livePublisherCheck": "RambamRecordingLiveTest: date POST, all chapter labels, and MP3 HEAD for both tracks using actual app client",
+  "materialAnimationSource": "https://android.googlesource.com/platform/frameworks/support/+/2d05dd9baedc69e5930f2af4808037c59d0a2055/compose/material3/material3/src/commonMain/kotlin/androidx/compose/material3/Checkbox.kt"
+}

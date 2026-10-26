@@ -23,6 +23,7 @@ data class SavedReadingAnchor(
  * abrupt process deaths, force-stops, and app switches.
  */
 class ReadingStateManager(context: Context) {
+    private val reviewEngagement=com.example.data.reviews.ReviewEngagement(context.applicationContext)
     private val prefs: SharedPreferences =
         context.getSharedPreferences("rambam_reading_anchor", Context.MODE_PRIVATE)
 
@@ -146,7 +147,9 @@ class ReadingStateManager(context: Context) {
     }
 
     fun setCompleted(track: String, date: String, completed: Boolean = true) {
+        val newlyCompleted=completed && !isCompleted(track,date)
         prefs.edit().putString("completed_$track", if (completed) date else "").commit()
+        if(newlyCompleted) reviewEngagement.completed(track,date)
     }
 
     fun isCompleted(track: String, date: String): Boolean =

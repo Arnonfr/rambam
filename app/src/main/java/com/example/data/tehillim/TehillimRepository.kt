@@ -12,8 +12,22 @@ import java.io.BufferedReader
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.time.LocalDate
+import com.example.domain.schedule.DailyScheduleEngine
+import com.example.ui.util.HebrewDateHelper
 
 class TehillimRepository(private val context: Context) {
+
+    /** A personal psalm is always complete, including all 176 verses of Psalm 119. */
+    suspend fun getChapter(number: Int): TehillimChapter = withContext(Dispatchers.IO) {
+        require(number in 1..150)
+        val verses = getTehillimJson().getJSONArray(number.toString())
+        TehillimChapter(number, "פרק " + HebrewNumberFormatter.toHebrewNumeral(number),
+            (0 until verses.length()).map { index ->
+                val text = cleanTehillimText(verses.getString(index))
+                TehillimVerse(index + 1, HebrewNumberFormatter.toHebrewNumeral(index + 1) + "׳",
+                    text, removeCantillation(text))
+            })
+    }
 
     private var cachedTehillimJson: JSONObject? = null
 
@@ -33,10 +47,18 @@ class TehillimRepository(private val context: Context) {
         }
     }
 
+    suspend fun getDailyTehillimLesson(studyDate: LocalDate, scheduleEngine: DailyScheduleEngine): DailyTehillimLesson {
+        val hebrewDate = scheduleEngine.getHebrewDate(studyDate)
+        val day = HebrewDateHelper.extractHebrewDayNumeral(hebrewDate)
+        val number = requireNotNull(HebrewDateHelper.parseHebrewNumeral(day)?.takeIf { it in 1..30 })
+        return getDailyTehillimLesson(number, HebrewDateHelper.extractHebrewMonth(hebrewDate), day, studyDate)
+    }
+
     suspend fun getDailyTehillimLesson(
         dayOfMonth: Int,
         hebrewMonthName: String,
-        hebrewDayOfMonthStr: String
+        hebrewDayOfMonthStr: String,
+        studyDate: LocalDate = LocalDate.now()
     ): DailyTehillimLesson = withContext(Dispatchers.IO) {
         val json = getTehillimJson()
         
@@ -113,7 +135,7 @@ class TehillimRepository(private val context: Context) {
         }
 
         DailyTehillimLesson(
-            date = LocalDate.now().toString(),
+            date = studyDate.toString(),
             dayOfMonth = dayOfMonth,
             dayOfMonthHebrew = hebrewDayOfMonthStr,
             chapters = chaptersList,

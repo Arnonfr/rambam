@@ -1,0 +1,49 @@
+{
+  "versionCode": 144,
+  "applicationId": "com.aistudio.dailyrambam.kzjvw.debug",
+  "sha256": "63665f0b5faf800fb5db7eb65ac3e5990331fc6d30cae10f4a89da5c6542699a",
+  "tests": [
+    {
+      "name": "ReaderViewportTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "ZmanimLayoutTest",
+      "tests": "7",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "SettingsScreenTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "RambamAudioVisibilityTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "TehillimStudyDateTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    }
+  ],
+  "lintErrors": [],
+  "physicalDeviceTested": false,
+  "distributedToTesters": true,
+  "testerUrl": "https://appdistribution.firebase.google.com/testerapps/1:703198161750:android:1e1d23970312aa68bbc4f7/releases/1mplpcqbblk6g",
+  "releaseId": "1mplpcqbblk6g",
+  "distributedAt": "2026-10-24T22:13:22.718743+03:00",
+  "releaseNotesAdded": true
+}

@@ -2,6 +2,7 @@ package com.example
 
 import com.example.data.podcasts.PodcastCatalog
 import com.example.data.podcasts.PodcastRepository
+import com.example.data.podcasts.podcastDurationLabel
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -11,6 +12,12 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35])
 class PodcastRepositoryTest {
+    @Test fun `duration renders seconds and hours and ignores bad metadata`() {
+        assertEquals("20:15", podcastDurationLabel("1215"))
+        assertEquals("1:02:03", podcastDurationLabel("01:02:03"))
+        assertEquals("", podcastDurationLabel("1:99"))
+        assertEquals("", podcastDurationLabel("unknown"))
+    }
     @Test fun `parses episode CDATA and audio without channel metadata`() {
         val feed = """<rss><channel><title>Channel</title><item>
             <title><![CDATA[שיעור & תניא]]></title><link>https://example.org/episode</link>
@@ -33,12 +40,20 @@ class PodcastRepositoryTest {
         PodcastRepository.parse("<!DOCTYPE rss [<!ENTITY x SYSTEM 'file:///secret'>]><rss/>")
     }
     @Test fun `episode list is bounded`() {
-        val item = "<item><title>x</title><link>https://example.org/e</link></item>"
-        assertEquals(50, PodcastRepository.parse("<rss><channel>${item.repeat(80)}</channel></rss>").size)
+        val items = (1..80).joinToString("") { "<item><title>x</title><link>https://example.org/e/$it</link></item>" }
+        assertEquals(50, PodcastRepository.parse("<rss><channel>$items</channel></rss>").size)
+    }
+    @Test fun `duplicate recordings are shown only once and duration is read`() {
+        val item = """<item><title>שיעור</title><link>https://example.org/e</link>
+            <itunes:duration>20:15</itunes:duration><enclosure type="audio/mpeg" url="https://example.org/e.mp3"/></item>"""
+        val result = PodcastRepository.parse("<rss xmlns:itunes='http://www.itunes.com/dtds/podcast-1.0.dtd'><channel>$item$item</channel></rss>")
+        assertEquals(1, result.size)
+        assertEquals("20:15", result.single().duration)
     }
     @Test fun `all requested teachers have distinct secure source feeds`() {
         assertEquals(5, PodcastCatalog.channels.size)
         assertEquals(5, PodcastCatalog.channels.map { it.feed }.distinct().size)
         assertTrue(PodcastCatalog.channels.all { it.feed.startsWith("https://") })
+        assertTrue(PodcastCatalog.channels.all { it.artwork.startsWith("https://") })
     }
 }

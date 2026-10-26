@@ -26,7 +26,14 @@ fun TanyaPageLine(
             HorizontalDivider(color = textColor.copy(alpha = .1f), thickness = 1.dp)
             Box(Modifier.fillMaxWidth().height(26.dp).padding(horizontal = 8.dp)
                 .testTag("tanya_page_start_${line.page}")) {
-                Text(if (line.page >= 306) "קונטרס אחרון" else "אגרת הקדש", color = textColor.copy(alpha = .8f), fontSize = 11.sp,
+                Text(when {
+                    line.page == 1 -> "לקוטי אמרים"
+                    line.page in 4..5 -> "הסכמות"
+                    line.page in 6..8 -> "הקדמת המלקט"
+                    line.page < 270 -> "ליקוטי אמרים"
+                    line.page >= 306 -> "קונטרס אחרון"
+                    else -> "אגרת הקדש"
+                }, color = textColor.copy(alpha = .8f), fontSize = 11.sp,
                     modifier = Modifier.align(Alignment.Center))
                 Text(line.page.toString(), color = textColor.copy(alpha = .5f), fontSize = 9.sp,
                     modifier = Modifier.align(if (line.page % 2 == 0) Alignment.CenterEnd else Alignment.CenterStart))

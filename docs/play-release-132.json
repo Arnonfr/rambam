@@ -1,0 +1,18 @@
+{
+  "package_name": "com.aistudio.dailyrambam.kzjvw",
+  "version_code": 132,
+  "version_name": "2.0",
+  "upload_certificate_sha256": "05:24:AA:BB:F9:10:AC:23:97:54:4F:41:9E:C2:3A:D6:A0:57:14:95:2E:D1:35:9F:5E:C8:F5:1F:91:50:31:5A",
+  "sha256": "b90fbe3dd9958e8e31be87ff4ad1d2e8fdfa97a7aceaf00e8e340b4a26abdd45",
+  "track": "alpha",
+  "upload_result": "success",
+  "track_status": "completed",
+  "review_submission_requested": true,
+  "tester_availability_verified": false,
+  "date": "2026-10-16",
+  "validation": {
+    "debug_tests_passed": 9,
+    "release_tests_passed": 13
+  },
+  "firebase_tester_url": "https://appdistribution.firebase.google.com/testerapps/1:703198161750:android:1e1d23970312aa68bbc4f7/releases/5j5d1b4418ju0"
+}

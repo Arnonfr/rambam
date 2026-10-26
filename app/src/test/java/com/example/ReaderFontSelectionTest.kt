@@ -5,9 +5,12 @@ import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.withStyle
+import com.github.takahirom.roborazzi.captureRoboImage
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.size
 import androidx.compose.ui.draw.clipToBounds
@@ -34,7 +37,8 @@ import org.robolectric.annotation.GraphicsMode
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(sdk = [35], qualifiers = "w400dp-h900dp")
 class ReaderFontSelectionTest {
-    @get:Rule val compose = createComposeRule()
+    val compose = createComposeRule()
+    @get:Rule val hostAndCompose = withComposeHost(compose)
 
     @Test fun `two fingers zoom printed text but never change its layout width or rows`() {
         val zoom = com.example.ui.components.PrintedPageZoomState()
@@ -67,7 +71,7 @@ class ReaderFontSelectionTest {
     }
 
     @Test fun `former torani option selects actual Tanya print font`() {
-        assertEquals("דפוס תניא", FontStyleOption.SERIF.title)
+        assertEquals("וילנא", FontStyleOption.SERIF.title)
         assertEquals(com.example.ui.theme.TanyaPrintFontFamily, FontStyleOption.SERIF.fontFamily)
     }
 
@@ -105,7 +109,7 @@ class ReaderFontSelectionTest {
             com.example.ui.components.CompactReaderHeader("תניא", "אגרת הקדש", androidx.compose.ui.graphics.Color.Magenta,
                 0f, "light", Modifier.testTag("header"))
         } }
-        compose.onNodeWithTag("header").assertHeightIsEqualTo(34.dp)
+        compose.onNodeWithTag("header").assertHeightIsEqualTo(54.dp)
     }
 
     @Test fun `nikud and cantillation do not silently override chosen font`() {
@@ -122,6 +126,47 @@ class ReaderFontSelectionTest {
         }
     }
 
+    @Test fun `fallback keeps Hebrew vowels with their base letters and preserves bold Rashi`() {
+        val source = androidx.compose.ui.text.buildAnnotatedString {
+            withStyle(androidx.compose.ui.text.SpanStyle(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)) {
+                append("שָׁלוֹם ")
+            }
+            append("מֶֽלֶךְ טקסט")
+        }
+        val result = com.example.ui.components.withStableHebrewMarks(source, com.example.ui.theme.TanyaPrintFontFamily)
+        assertEquals(source.text, result.text)
+        assertTrue(result.spanStyles.any { it.item.fontWeight == androidx.compose.ui.text.font.FontWeight.Bold })
+        assertFalse("Pointed words must keep the chosen font", result.spanStyles.any { it.item.fontFamily != null })
+    }
+
+    @Test fun `pointed Chumash words render with complete glyph clusters in every font`() {
+        var fontId by mutableStateOf("sans")
+        val verse = "וַיֹּאמֶר לוֹ יְהוָה לָכֵן כָּל־הֹרֵג קַיִן שִׁבְעָתַיִם יֻקָּם וַיָּשֶׂם יְהוָה לְקַיִן אוֹת לְבִלְתִּי הַכּוֹת־אֹתוֹ כָּל־מֹצְאוֹ׃"
+        compose.setContent { DailyRambamTheme {
+            CompositionLocalProvider(androidx.compose.ui.platform.LocalLayoutDirection provides androidx.compose.ui.unit.LayoutDirection.Rtl) {
+                Box(Modifier.width(340.dp).background(androidx.compose.ui.graphics.Color.White)) {
+                    StudyTextBlock("ט״ו", verse, verse, UserPreferences(fontFamily = fontId, showNikud = true), textColor = androidx.compose.ui.graphics.Color.Black)
+                }
+            }
+        } }
+        FontStyleOption.entries.forEach { font ->
+            compose.runOnIdle { fontId = font.id }
+            compose.onRoot().captureRoboImage(filePath = "build/review/chumash-${font.id}.png")
+        }
+    }
+
+    @Test fun `verse number is bold and letter spacing follows global preference`() {
+        compose.setContent { DailyRambamTheme {
+            StudyTextBlock("א׳", "שָׁלוֹם", "שלום", UserPreferences(letterSpacingEm = .08f))
+        } }
+        val results = mutableListOf<TextLayoutResult>()
+        compose.onNode(hasText("א׳. שָׁלוֹם")).performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(results) }
+        val layout = results.single()
+        assertEquals(androidx.compose.ui.unit.TextUnitType.Em, layout.layoutInput.style.letterSpacing.type)
+        assertEquals(.08f, layout.layoutInput.style.letterSpacing.value, .0001f)
+        assertTrue(layout.layoutInput.text.spanStyles.any { it.start == 0 && it.item.fontWeight == androidx.compose.ui.text.font.FontWeight.Bold })
+    }
+
     @Test fun `print mode hides controls which cannot affect its fixed layout`() {
         compose.setContent { DailyRambamTheme {
             ReaderTypographySheet(UserPreferences(), onDismiss = {}, onFontSizeChange = {},
@@ -129,6 +174,7 @@ class ReaderFontSelectionTest {
                 onThemeChange = {}, onKeepScreenOnChange = {}, fixedPrintLayout = true)
         } }
         compose.onNodeWithText("סוג גופן").assertDoesNotExist()
+        compose.onNodeWithText("ריווח תווים").assertDoesNotExist()
         compose.onNodeWithText("גודל ומרווח").assertDoesNotExist()
         compose.onNodeWithText("הצג ניקוד וטעמים").assertDoesNotExist()
         compose.onNodeWithText("השאר מסך דולק").assertExists()
@@ -169,12 +215,14 @@ class ReaderFontSelectionTest {
                 }
             }
         } }
-        val wordLayouts = mutableListOf<TextLayoutResult>()
-        line.text.split(' ').distinct().forEach { word ->
-            compose.onNodeWithText(word).performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(wordLayouts) }
+        val baselines = line.text.split(' ').distinct().map { word ->
+            val node = compose.onNodeWithText(word)
+            val layouts = mutableListOf<TextLayoutResult>()
+            node.performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
+            assertEquals(1, layouts.single().lineCount)
+            node.fetchSemanticsNode().boundsInRoot.top + layouts.single().firstBaseline
         }
-        assertTrue(wordLayouts.all { it.lineCount == 1 })
-        assertEquals(1, wordLayouts.map { it.firstBaseline }.distinct().size)
+        assertTrue("All printed words share the baseline", baselines.max() - baselines.min() <= 1f)
     }
 
     @Test fun `printed pages fill available width and preserve source rows at phone widths`() {
@@ -182,7 +230,7 @@ class ReaderFontSelectionTest {
             "25:1-40", "26:1-36", "27:1-19", "28:1-5")
         val samples = references.flatMap {
             com.example.domain.tanya.VerifiedTanyaPrint.forReference("Tanya, Part IV; Iggeret HaKodesh $it")
-        }.filter { it.largeOpeningWords == 0 && it.wordFontScales.isEmpty() && !it.centered }
+        }.filter { it.largeOpeningWords == 0 && it.wordFontScales.isEmpty() && !it.centered && it.rightIndentFraction == 0f }
             .groupBy { it.page }.values.map { page -> page.maxBy { it.text.length } }
         var source by mutableStateOf(samples.first())
         var pageWidth by mutableStateOf(240.dp)
@@ -199,7 +247,15 @@ class ReaderFontSelectionTest {
                 val pageBounds = compose.onNodeWithTag("page_width").fetchSemanticsNode().boundsInRoot
                 val words = line.text.split(' ').distinct()
                 val bounds = words.flatMap { compose.onAllNodesWithText(it).fetchSemanticsNodes() }.map { it.boundsInRoot }
-                assertTrue("All original words must share a single row", bounds.all { kotlin.math.abs(it.top - bounds.first().top) < 1f })
+                val baselines = words.flatMap { word ->
+                    val nodes = compose.onAllNodesWithText(word)
+                    nodes.fetchSemanticsNodes().indices.map { index ->
+                        val layouts = mutableListOf<TextLayoutResult>()
+                        nodes[index].performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
+                        nodes[index].fetchSemanticsNode().boundsInRoot.top + layouts.single().firstBaseline
+                    }
+                }
+                assertTrue("All original words must share one baseline", baselines.max() - baselines.min() <= 1f)
                 // Only the font's tiny ink-overhang guard is allowed, not page padding.
                 val tolerance = pageBounds.width * .009f + 1f
                 val pageInset = 4f * pageBounds.width / width.value

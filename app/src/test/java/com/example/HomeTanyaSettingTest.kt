@@ -8,7 +8,7 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.assertIsOff
 import com.example.data.local.UserPreferences
-import com.example.ui.components.SettingsDialog
+import com.example.ui.screens.SettingsScreen
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -24,7 +24,7 @@ class HomeTanyaSettingTest {
     @Test fun homeSwitchUsesTheExistingReaderPreferenceAndDoesNotHideTanya() {
         val preferences = mutableStateOf(UserPreferences())
         composeRule.setContent {
-            SettingsDialog(preferences.value, onDismiss = {}, onTrackChange = {},
+            SettingsScreen(preferences.value, onBack = {}, onToggleStudy = {}, onFontFamilyChange = {},
                 onDayBoundaryChange = {}, onCityChange = {}, onOpenAttribution = {},
                 onTanyaBookViewChange = { preferences.value = preferences.value.copy(tanyaBookView = it) })
         }

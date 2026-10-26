@@ -1,0 +1,24 @@
+{
+  "source": "מסמכים/מיפוי-מקטעי-תפילה.xlsx — גיליון ״מטריצת ימים״. כל תרחיש: תאריך לדוגמה (ארץ ישראל) ורשימה מלאה של התנאים שמתקיימים בו. PrayerDayRulesTest מוודאת שמנוע היום מחזיר בדיוק את הרשימה, ודף בדיקת האודיו בונה ממנה את רצף המקטעים.",
+  "scenarios": [
+    {"name": "חול רגיל", "date": "2026-10-21", "flags": ["tachanun", "mizmorLetoda"]},
+    {"name": "שני/חמישי רגילים", "date": "2026-10-19", "flags": ["tachanun", "mondayOrThursday", "mizmorLetoda", "torahReading"]},
+    {"name": "חול ללא תחנון", "date": "2026-10-05", "flags": ["mondayOrThursday", "mizmorLetoda", "torahReading"]},
+    {"name": "ראש חודש בחול", "date": "2026-11-11", "flags": ["roshChodesh", "mizmorLetoda", "hallel", "musaf", "torahReading"]},
+    {"name": "חנוכה בחול", "date": "2026-12-06", "flags": ["chanukah", "mizmorLetoda", "hallel", "hallelFull", "torahReading"]},
+    {"name": "ראש חודש בחנוכה", "date": "2026-12-11", "flags": ["roshChodesh", "chanukah", "mizmorLetoda", "hallel", "hallelFull", "musaf", "torahReading"]},
+    {"name": "פורים", "date": "2027-03-23", "flags": ["purim", "mizmorLetoda", "torahReading"]},
+    {"name": "פורים קטן", "date": "2027-02-21", "flags": ["mizmorLetoda"]},
+    {"name": "א׳ אלול", "date": "2027-09-03", "flags": ["roshChodesh", "elulLedavid", "mizmorLetoda", "hallel", "musaf", "torahReading"]},
+    {"name": "יום חול באלול", "date": "2026-08-26", "flags": ["tachanun", "elulLedavid", "mizmorLetoda"]},
+    {"name": "ערב ראש השנה", "date": "2026-09-11", "flags": ["elulLedavid", "mizmorLetoda"]},
+    {"name": "חול בעשרת ימי תשובה", "date": "2026-09-16", "flags": ["tachanun", "elulLedavid", "tenDaysOfRepentance", "avinuMalkeinu", "mizmorLetoda"]},
+    {"name": "צום גדליה", "date": "2026-09-14", "flags": ["tachanun", "mondayOrThursday", "elulLedavid", "tenDaysOfRepentance", "avinuMalkeinu", "mizmorLetoda", "fast", "torahReading"]},
+    {"name": "ערב יום כיפור", "date": "2026-09-20", "flags": ["elulLedavid", "tenDaysOfRepentance"]},
+    {"name": "חול המועד סוכות", "date": "2026-09-28", "flags": ["mondayOrThursday", "cholHamoed", "elulLedavid", "mizmorLetoda", "hallel", "hallelFull", "musaf", "torahReading"]},
+    {"name": "חול המועד פסח", "date": "2027-04-25", "flags": ["cholHamoed", "hallel", "musaf", "torahReading"]},
+    {"name": "תענית ציבור רגילה", "date": "2026-12-20", "flags": ["tachanun", "avinuMalkeinu", "mizmorLetoda", "fast", "torahReading"]},
+    {"name": "תשעה באב", "date": "2027-08-12", "flags": ["outOfScope", "mondayOrThursday", "fast", "mizmorLetoda", "torahReading"]},
+    {"name": "שבת — מחוץ לתחום", "date": "2026-10-10", "flags": ["outOfScope", "mizmorLetoda"]}
+  ]
+}

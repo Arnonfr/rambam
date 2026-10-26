@@ -1,0 +1,15 @@
+{
+  "package_name": "com.aistudio.dailyrambam.kzjvw",
+  "version_code": 131,
+  "version_name": "2.0",
+  "upload_certificate_sha256": "05:24:AA:BB:F9:10:AC:23:97:54:4F:41:9E:C2:3A:D6:A0:57:14:95:2E:D1:35:9F:5E:C8:F5:1F:91:50:31:5A",
+  "sha256": "d20ab2d4073480adb57c5418b5539d644337585a3f07c3cf3a39593a24336428",
+  "track": "alpha",
+  "upload_result": "success",
+  "track_status": "completed",
+  "release_notes": "חדש: פרקים אישיים ומשפחתיים בתהילים, לפי פרק קבוע או תאריך לידה, עם בחירת תאריך עברי נוחה וקריאה רציפה בין הפרקים.\nנוספה האזנה לשיעורי תניא מכפתור אוזניות בראש השיעור, כולל שיעורי הרב נדב כהן והרב שניאור אשכנזי.\nהנגן עוצב מחדש עם סרגל עדין, דילוג ומהירות האזנה. שופרו הגישה לעריכת הפרקים והעדפות הקריאה.",
+  "review_submission_requested": true,
+  "tester_availability_verified": false,
+  "console_verification": "Mac locked; Publishing overview could not be inspected",
+  "date": "2026-10-15"
+}

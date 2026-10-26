@@ -1,0 +1,14 @@
+{
+  "url": "https://prices.azure.com/api/retail/prices?%24filter=contains%28productName%2C%27Speech%27%29+and+armRegionName+eq+%27westeurope%27",
+  "rows": [
+    {
+      "serviceName": "Foundry Tools",
+      "productName": "Azure Speech",
+      "skuName": "S1",
+      "meterName": "S1 Neural Text To Speech Characters",
+      "unitOfMeasure": "1M",
+      "retailPrice": 15.0,
+      "currencyCode": "USD"
+    }
+  ]
+}

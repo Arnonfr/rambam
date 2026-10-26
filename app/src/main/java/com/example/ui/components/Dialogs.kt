@@ -23,19 +23,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
-import com.example.data.local.UserPreferences
 import com.example.domain.schedule.DailyLessonResult
-import com.example.domain.sunset.CityLocation
-import com.example.domain.sunset.SolarSunsetCalculator
-import com.example.domain.sunset.SupportedCities
-import com.example.ui.theme.FontStyleOption
 import com.example.ui.theme.GoldAccent
 import com.example.ui.theme.GoldWarm
 import com.example.ui.util.HebrewNumberFormatter
@@ -46,219 +40,17 @@ import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun SettingsDialog(
-    preferences: UserPreferences,
-    onDismiss: () -> Unit,
-    onTrackChange: (String) -> Unit,
-    onDayBoundaryChange: (String) -> Unit,
-    onCityChange: (String) -> Unit,
-    onFontFamilyChange: (String) -> Unit = {},
-    onToggleStudy: (String) -> Unit = {},
-    onTanyaBookViewChange: (Boolean) -> Unit = {},
-    onOpenAttribution: () -> Unit
-) {
-    var expandedCityDropdown by remember { mutableStateOf(false) }
-
-    val selectedCity = remember(preferences.selectedCity) {
-        SupportedCities.findCityByName(preferences.selectedCity)
-    }
-    val sunsetInstant = remember(selectedCity) {
-        SolarSunsetCalculator.calculateSunset(LocalDate.now(), selectedCity, ZoneId.systemDefault())
-    }
-    val sunsetTimeStr = remember(sunsetInstant) {
-        if (sunsetInstant != null) {
-            val zdt = sunsetInstant.atZone(ZoneId.systemDefault())
-            String.format("%02d:%02d", zdt.hour, zdt.minute)
-        } else {
-            "לא זמין"
-        }
-    }
-
-    val ink = Color(0xFF111111)
-    val paper = Color(0xFFFFFCF6)
-    val studies = listOf(
-        Triple("rambam_one", "רמב״ם — פרק אחד", Color(0xFFFF873F)),
-        Triple("rambam_three", "רמב״ם — ג׳ פרקים", Color(0xFFFF873F)),
-        Triple("mitzvot", "ספר המצוות", Color(0xFF72D7E8)),
-        Triple("chumash", "חומש", Color(0xFFF4F66A)),
-        Triple("tanya", "תניא", Color(0xFFF0A0DD)),
-        Triple("tehillim", "תהילים", Color(0xFF9FDEEF)),
-        Triple("hayom_yom", "היום יום", Color(0xFFC5B8F5))
-    )
-
-    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
-        AlertDialog(
-            onDismissRequest = onDismiss,
-            modifier = Modifier.fillMaxWidth(0.92f).fillMaxHeight(0.9f).heightIn(max = 760.dp).border(1.5.dp, ink, RoundedCornerShape(22.dp)),
-            properties = DialogProperties(usePlatformDefaultWidth = false),
-            containerColor = paper,
-            shape = RoundedCornerShape(22.dp),
-            title = {
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text("הגדרות האפליקציה", fontWeight = FontWeight.ExtraBold, fontSize = 23.sp, color = ink, modifier = Modifier.weight(1f))
-                    IconButton(onClick = onDismiss, modifier = Modifier.size(32.dp)) {
-                        Icon(Icons.Default.Close, contentDescription = "סגירה", tint = ink)
-                    }
-                }
-            },
-            text = {
-                Column(
-                    Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Text("השיעורים במסך הבית", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, color = ink)
-                    Text("אפשר לבחור כמה מסלולי רמב״ם במקביל.", fontSize = 12.sp, color = ink)
-                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                        studies.forEach { (key, name, color) ->
-                            val subtitle = when (key) {
-                                "rambam_one" -> "פרק אחד ליום"
-                                "rambam_three" -> "שלושה פרקים ליום"
-                                "mitzvot" -> "השיעור המקביל למסלול ג׳ פרקים"
-                                "chumash" -> "העלייה היומית"
-                                "tanya" -> "השיעור היומי"
-                                "hayom_yom" -> "פתגם יומי לפי התאריך העברי"
-                                else -> "לפי ימי החודש"
-                            }
-                            val icon = when (key) {
-                                "rambam_one", "rambam_three" -> Icons.Default.MenuBook
-                                "mitzvot" -> Icons.Default.FactCheck
-                                "chumash" -> Icons.Default.AutoStories
-                                "tanya" -> Icons.Default.Book
-                                else -> Icons.Default.MusicNote
-                            }
-                            Row(
-                                Modifier.fillMaxWidth().height(58.dp).background(color).clickable { onToggleStudy(key) }.padding(horizontal = 12.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                com.example.ui.components.StudyLineIcon(key.removePrefix("rambam_"), Modifier.size(27.dp))
-                                Spacer(Modifier.width(10.dp))
-                                Column(Modifier.weight(1f)) {
-                                    Text(name, fontSize = 17.sp, fontWeight = FontWeight.ExtraBold, color = ink)
-                                    Text(subtitle, fontSize = 11.sp, color = ink.copy(alpha = 0.72f))
-                                }
-                                Switch(
-                                    checked = preferences.visibleStudies.contains(key),
-                                    onCheckedChange = { onToggleStudy(key) },
-                                    colors = SwitchDefaults.colors(
-                                        checkedThumbColor = Color.White,
-                                        checkedTrackColor = ink,
-                                        uncheckedThumbColor = Color.White,
-                                        uncheckedTrackColor = ink.copy(alpha = 0.35f),
-                                        uncheckedBorderColor = Color.Transparent
-                                    )
-                                )
-                            }
-                        }
-                    }
-
-                    Row(
-                        Modifier.fillMaxWidth().background(Color(0xFFF0A0DD)).padding(horizontal = 12.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(Modifier.weight(1f)) {
-                            Text("תניא — צורת הדף", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, color = ink)
-                            Text("תצוגת הספר במקום טקסט רגיל", fontSize = 11.sp, color = ink.copy(alpha = 0.72f))
-                        }
-                        Switch(
-                            checked = preferences.tanyaBookView,
-                            onCheckedChange = onTanyaBookViewChange,
-                            modifier = Modifier.testTag("home_tanya_book_view"),
-                            colors = SwitchDefaults.colors(
-                                checkedThumbColor = Color.White, checkedTrackColor = ink,
-                                uncheckedThumbColor = Color.White, uncheckedTrackColor = ink.copy(alpha = 0.35f),
-                                uncheckedBorderColor = Color.Transparent
-                            )
-                        )
-                    }
-
-                    HorizontalDivider(color = ink, thickness = 1.dp)
-                    Text("גופן הלימוד", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, color = ink)
-                    if (preferences.tanyaBookView) Text("בתניא בצורת הדף נשמר גופן הספר. הבחירה כאן חלה על יתר השיעורים.", fontSize = 11.sp, color = ink.copy(alpha = 0.72f))
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        FontStyleOption.entries.forEach { option ->
-                            val selected = preferences.fontFamily == option.id
-                            Surface(
-                                modifier = Modifier.weight(1f).clickable { onFontFamilyChange(option.id) },
-                                color = if (selected) ink else Color.Transparent,
-                                contentColor = if (selected) Color.White else ink,
-                                border = BorderStroke(1.2.dp, ink),
-                                shape = RoundedCornerShape(7.dp)
-                            ) {
-                                Column(Modifier.padding(vertical = 7.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text("רמב״ם", fontFamily = option.fontFamily, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                                    Text(option.title, fontSize = 9.sp, maxLines = 1)
-                                }
-                            }
-                        }
-                    }
-
-                    HorizontalDivider(color = ink, thickness = 1.dp)
-                    Text("מועד החלפת היום", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, color = ink)
-                    listOf(
-                        "midnight" to Pair("חצות מקומי (ברירת מחדל)", "לפי שעון המכשיר"),
-                        "sunset" to Pair("שקיעת החמה (הלכתי)", "לפי שקיעת השמש")
-                    ).forEach { (value, copy) ->
-                        val selected = preferences.dayBoundary == value
-                        Row(
-                            Modifier.fillMaxWidth().border(1.2.dp, ink, RoundedCornerShape(8.dp)).clickable { onDayBoundaryChange(value) }.padding(10.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            RadioButton(selected = selected, onClick = { onDayBoundaryChange(value) }, colors = RadioButtonDefaults.colors(selectedColor = ink))
-                            Column(Modifier.padding(start = 8.dp)) {
-                                Text(copy.first, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = ink)
-                                Text(copy.second, fontSize = 10.sp, color = ink.copy(alpha = 0.55f))
-                            }
-                        }
-                    }
-
-                    if (preferences.dayBoundary == "sunset") {
-                        ExposedDropdownMenuBox(expanded = expandedCityDropdown, onExpandedChange = { expandedCityDropdown = it }) {
-                            OutlinedTextField(
-                                value = "${selectedCity.nameHebrew} · $sunsetTimeStr",
-                                onValueChange = {}, readOnly = true,
-                                label = { Text("עיר לחישוב שקיעה") },
-                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expandedCityDropdown) },
-                                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = ink, unfocusedBorderColor = ink),
-                                modifier = Modifier.menuAnchor().fillMaxWidth()
-                            )
-                            ExposedDropdownMenu(expanded = expandedCityDropdown, onDismissRequest = { expandedCityDropdown = false }) {
-                                SupportedCities.CITIES.forEach { city ->
-                                    DropdownMenuItem(text = { Text(city.nameHebrew) }, onClick = { onCityChange(city.nameHebrew); expandedCityDropdown = false })
-                                }
-                            }
-                        }
-                    }
-
-                    TextButton(onClick = { onDismiss(); onOpenAttribution() }, modifier = Modifier.fillMaxWidth()) {
-                        Icon(Icons.Default.Info, contentDescription = null, tint = ink, modifier = Modifier.size(17.dp))
-                        Spacer(Modifier.width(6.dp))
-                        Text("אודות התוכן, מקורות ורישוי", color = ink, fontWeight = FontWeight.Bold)
-                    }
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = onDismiss,
-                    colors = ButtonDefaults.buttonColors(containerColor = ink),
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.fillMaxWidth().height(48.dp).testTag("close_settings_button")
-                ) { Text("שמירה", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 16.sp) }
-            }
-        )
-    }
-}
-
 @Composable
 fun AttributionDialog(
     onDismiss: () -> Unit
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     var showHayomLicense by remember { mutableStateOf(false) }
+    var showZmanimLicense by remember { mutableStateOf(false) }
     val hayomLicense = remember {
         context.assets.open("GFDL-1.3.txt").bufferedReader().use { it.readText() }
     }
+    val zmanimLicense = remember { context.assets.open("licenses/zmanim-LGPL-2.1.txt").bufferedReader().use { it.readText() } }
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         AlertDialog(
             onDismissRequest = onDismiss,
@@ -331,13 +123,29 @@ fun AttributionDialog(
                         }
                     }
 
+                    Text("ספר המצוות — מקור וניקוד", fontWeight = FontWeight.Bold)
+                    Text("נוסח דפוס ורשה תרמ״ג, תרגום אבן תיבון, מתוך ספריא — ברשות הציבור. ניקוד באמצעות Dicta Nakdan, עם החזרת כתיב המקור ותיקוני הקשר. הניקוד ממוחשב ולא עבר הגהה מלאה. שכבת הניקוד וההתאמות: CC BY-NC-SA 4.0 (ייחוס, שימוש לא מסחרי, שיתוף זהה).", fontSize = 12.sp)
+                    TextButton(onClick = { android.content.Intent(android.content.Intent.ACTION_VIEW,
+                        android.net.Uri.parse("https://nakdan.dicta.org.il"))
+                        .also { context.startActivity(it) } }) { Text("Dicta — מקור הניקוד") }
+                    TextButton(onClick = { android.content.Intent(android.content.Intent.ACTION_VIEW,
+                        android.net.Uri.parse("https://creativecommons.org/licenses/by-nc-sa/4.0/"))
+                        .also { context.startActivity(it) } }) { Text("רישיון הניקוד") }
+
                     Text("היום יום", fontWeight = FontWeight.Bold)
-                    Text("מלקט: רבי מנחם מענדל שניאורסון. הטקסט מתוך חב״דטקסט, מאת תורמי האתר, ברישיון GFDL 1.3 או מאוחר יותר. הוסרו ניווט ועיצוב; פירושי מונחים מוצגים בסוגריים. המקור השקוף ומספרי הגרסאות מצורפים לאפליקציה.", fontSize = 12.sp)
+                    Text("מלקט: רבי מנחם מענדל שניאורסון. הטקסט מתוך חב״דטקסט, מאת תורמי האתר, ברישיון GFDL 1.3 או מאוחר יותר. הוסרו ניווט ועיצוב; פירושי מונחים מוצגים בסוגריים. המקור השקוף ומספרי הגרסאות מצורפים לאפליקציה. תיקוני העתקה מתועדים הושוו למהדורת קה״ת ולספר הסרוק.", fontSize = 12.sp)
                     TextButton(onClick = { android.content.Intent(android.content.Intent.ACTION_VIEW,
                         android.net.Uri.parse("https://text.chabadpedia.com/index.php?title=היום_יום"))
                         .also { context.startActivity(it) } }) { Text("מקור הטקסט והתורמים") }
                     TextButton(onClick = { showHayomLicense = !showHayomLicense }) { Text("רישיון GFDL — הנוסח המלא") }
                     if (showHayomLicense) Text(hayomLicense, fontSize = 11.sp)
+                    Text("זמני היום", fontWeight = FontWeight.Bold)
+                    Text("נוסחאות לפי Chabad.org; בבחירת הרב סינגאווי — נתונים מלוחו באתר zmanim.org.il, כולל גובה העיר כפי שקבע בלוח. מנוע חישוב: KosherJava Zmanim 2.5.0, Eliyahu Hershfeld, ברישיון LGPL 2.1 או מאוחר יותר. מיפוי אזורי זמן: tz-lookup 6.1.25, ברשות הציבור (CC0).", fontSize = 12.sp)
+                    TextButton(onClick = { android.content.Intent(android.content.Intent.ACTION_VIEW,
+                        android.net.Uri.parse("https://github.com/KosherJava/zmanim"))
+                        .also { context.startActivity(it) } }) { Text("מקור מנוע הזמנים") }
+                    TextButton(onClick = { showZmanimLicense = !showZmanimLicense }) { Text("רישיון מנוע הזמנים") }
+                    if (showZmanimLicense) Text(zmanimLicense, fontSize = 11.sp)
                     Text(
                         text = "הבהרה משפטית: המקורות ובעלי הזכויות אינם תומכים באפליקציה או מעניקים לה חסות רשמית. האפליקציה פותחה לשם שמיים, להפצה חינמית לחלוטין ולזיכוי הרבים.",
                         fontSize = 12.sp,

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="daily_study_widget_label">היום יום</string>
+    <string name="daily_study_widget_description">פתגם היום וגישה מהירה לחומש, תהילים, תניא ורמב״ם</string>
+    <style name="DailyStudyWidgetPreviewButton">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:gravity">center</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:fontFamily">@font/romm_vilna_regular</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+</resources>

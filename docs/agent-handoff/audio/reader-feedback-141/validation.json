@@ -1,0 +1,56 @@
+{
+  "versionCode": 141,
+  "applicationId": "com.aistudio.dailyrambam.kzjvw.debug",
+  "apkSha256": "f4ee653e15efde628c62f224b6954fc7b570ebe38792bf97f59d6ff690449008",
+  "tests": [
+    {
+      "suite": "com.example.RambamAudioVisibilityTest",
+      "tests": 1,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "com.example.TanyaPlaybackControlsTest",
+      "tests": 1,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "com.example.TanyaAudioEmptyStateTest",
+      "tests": 2,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "com.example.TanyaAudioVisibilityTest",
+      "tests": 2,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "com.example.TanyaAvailableLessonsTest",
+      "tests": 3,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "com.example.ReaderFeedbackTest",
+      "tests": 3,
+      "failures": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "com.example.TanyaAudioTest",
+      "tests": 3,
+      "failures": 0,
+      "skipped": 0
+    }
+  ],
+  "lintErrors": [],
+  "physicalDeviceTested": false,
+  "screenshotsReviewed": [
+    "reader-feedback-light.png",
+    "reader-feedback-oled.png",
+    "tanya-empty-compact-dark-large.png"
+  ]
+}

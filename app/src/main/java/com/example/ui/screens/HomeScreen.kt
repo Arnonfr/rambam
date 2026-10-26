@@ -25,6 +25,8 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
@@ -52,6 +54,13 @@ private val CardBorderColor = Color(0xFFE2E8F0)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
+    showCivilDate: Boolean = false,
+    zmanimHeader: @Composable () -> Unit = {},
+    zmanimDateContext: String? = null,
+    onOpenCompletion: (com.example.data.local.SavedStudyCompletion) -> Unit = {},
+    onRemoveCompletion: (String) -> Unit = {},
+    personalPsalmCount: Int = 0,
+    onOpenPersonalPsalms: () -> Unit = {},
     uiState: DailyRambamUiState,
     onGetHebrewDate: (LocalDate) -> String = { _ -> "" },
     onOpenChapter: (String) -> Unit,
@@ -84,13 +93,14 @@ fun HomeScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
+                .background(if (uiState.selectedTab == HomeTab.STUDY)
+                    homeStudyBackground(uiState.preferences.visibleStudies) else Color.White)
         ) {
             Column(
                 modifier = Modifier.fillMaxSize()
             ) {
                 // 2. Date Drawer
-                DateDrawer(
+                if (uiState.selectedTab != HomeTab.PODCASTS) DateDrawer(
                     selectedDate = uiState.selectedStudyDate,
                     effectiveToday = uiState.effectiveToday,
                     drawerState = uiState.dateDrawerState,
@@ -99,11 +109,17 @@ fun HomeScreen(
                     onSelectDate = onSelectDate,
                     onStepDate = onStepDate,
                     onToggleDrawer = onToggleDateDrawer,
-                    onOpenSettings = onOpenSettings
+                    dateContext = zmanimDateContext,
+                    showCivilDate = showCivilDate,
+                    times = zmanimHeader
                 )
 
                 // 3. Main Content
                 MainContentList(
+                    personalPsalmCount = personalPsalmCount,
+                    onOpenPersonalPsalms = onOpenPersonalPsalms,
+                    onOpenCompletion = onOpenCompletion,
+                    onRemoveCompletion = onRemoveCompletion,
                     uiState = uiState,
                     onOpenChapter = onOpenChapter,
                     onOpenDailyLesson = onOpenDailyLesson,
@@ -129,7 +145,7 @@ fun HomeScreen(
                 onSelectTab = onSelectTab,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(bottom = 24.dp)
+                    .navigationBarsPadding().padding(bottom = 10.dp)
             )
 
             // 5. Edit Daily Study Bottom Sheet ("התאמת הלימוד היומי")
@@ -171,7 +187,7 @@ private fun TopHomeBar(
         ) {
             // App Title Right
             Text(
-                text = "לימוד יומי",
+                text = "בדרך",
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
                 color = TextDark,
@@ -187,8 +203,8 @@ private fun TopHomeBar(
                         .testTag("home_settings_button")
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Settings,
-                        contentDescription = "הגדרות",
+                        imageVector = Icons.Default.Tune,
+                        contentDescription = "העדפות",
                         tint = Color.Black,
                         modifier = Modifier.size(28.dp)
                     )
@@ -213,10 +229,10 @@ private fun TopHomeBar(
 }
 
 /**
- * Date Drawer: Month/Year header, arrows, 7 days week carousel, and bottom navy handle
+ * Compact selected date and zmanim, with the existing expandable week drawer.
  */
 @Composable
-private fun DateDrawer(
+internal fun DateDrawer(
     selectedDate: LocalDate,
     effectiveToday: LocalDate,
     drawerState: DateDrawerState,
@@ -225,11 +241,11 @@ private fun DateDrawer(
     onSelectDate: (LocalDate) -> Unit,
     onStepDate: (Long) -> Unit,
     onToggleDrawer: () -> Unit,
-    onOpenSettings: () -> Unit
+    dateContext: String? = null,
+    showCivilDate: Boolean = false,
+    times: @Composable () -> Unit = {}
 ) {
-    val fullHebrewDate = dailyLesson?.hebrewDate ?: onGetHebrewDate(selectedDate).ifBlank { "ב׳ בתשרי תשפ״ז" }
-    val monthYearTitle = HebrewDateHelper.extractHebrewMonthYear(fullHebrewDate)
-    val hebrewDay = HebrewDateHelper.extractHebrewDay(fullHebrewDate)
+    val fullHebrewDate = onGetHebrewDate(selectedDate).ifBlank { dailyLesson?.hebrewDate.orEmpty() }
     val civilFormatted = HebrewDateHelper.formatCivilDateHebrew(selectedDate)
 
     Column(
@@ -241,96 +257,53 @@ private fun DateDrawer(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 10.dp),
+                .padding(horizontal = 16.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            IconButton(onClick = onOpenSettings,
-                modifier = Modifier.size(40.dp).testTag("home_settings_button")) {
-                Icon(Icons.Default.Settings, contentDescription = "הגדרות והתאמת מסך הבית",
-                    tint = Color.Black, modifier = Modifier.size(23.dp))
-            }
             // Right Arrow: Previous day
-            Surface(
-                shape = CircleShape,
-                color = Color.White,
-                border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
-                modifier = Modifier
-                    .size(38.dp)
-                    .clickable { onStepDate(-1) }
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = Icons.Default.KeyboardArrowRight,
-                        contentDescription = "יום קודם",
-                        tint = TextDark,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
+            IconButton(onClick = { onStepDate(-1) }, modifier = Modifier.size(48.dp).testTag("home_previous_day")) {
+                Icon(Icons.Default.KeyboardArrowRight, "יום קודם", tint = TextDark, modifier = Modifier.size(18.dp))
             }
 
             // Centered Month & Date Title (Clickable to expand/collapse)
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
                 modifier = Modifier
                     .weight(1f)
                     .clip(RoundedCornerShape(8.dp))
                     .clickable { onToggleDrawer() }
-                    .padding(horizontal = 8.dp, vertical = 2.dp)
+                    .semantics { contentDescription = fullHebrewDate + if(showCivilDate) " · $civilFormatted" else "" }
+                    .testTag("home_date_expand")
+                    .heightIn(min = 44.dp)
+                    .padding(horizontal = 4.dp)
             ) {
-                Text(
-                    text = fullHebrewDate,
-                fontSize = 22.sp,
-                    maxLines = 1,
-                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-                    fontWeight = FontWeight.Bold,
-                    color = TextDark
-                )
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
+                Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.Center) {
                     Text(
-                        text = civilFormatted,
-                        fontSize = 15.sp,
-                        color = Color(0xFF333333),
-                        fontWeight = FontWeight.Normal
-                    )
-                    if (selectedDate != effectiveToday) {
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "•  חזור להיום",
-                            fontSize = 13.sp,
-                            color = PurplePrimary,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(4.dp))
-                                .clickable { onSelectDate(effectiveToday) }
-                                .padding(horizontal = 4.dp, vertical = 1.dp)
-                        )
+                        text="${HebrewDateHelper.getHebrewDayOfWeekName(selectedDate.dayOfWeek)} ${HebrewDateHelper.extractHebrewDayNumeral(fullHebrewDate)} ${HebrewDateHelper.extractHebrewMonth(fullHebrewDate)}",
+                        modifier=Modifier.weight(1f,fill=false),fontSize=17.sp,maxLines=1,
+                        overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis,fontWeight=FontWeight.Bold,color=TextDark)
+                    if(showCivilDate) {
+                        Spacer(Modifier.width(8.dp))
+                        Text(selectedDate.format(java.time.format.DateTimeFormatter.ofPattern("dd.MM")),fontSize=12.sp,color=TextMuted,
+                            modifier=Modifier.testTag("home_civil_date"),maxLines=1)
                     }
+                    Icon(if(drawerState==DateDrawerState.EXPANDED) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                        null,Modifier.size(16.dp),tint=TextMuted)
                 }
+                dateContext?.let { Text(it,fontSize=11.sp,color=TextMuted,maxLines=1,
+                    overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis) }
+
             }
 
             // Left Arrow: Next day
-            Surface(
-                shape = CircleShape,
-                color = Color.White,
-                border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
-                modifier = Modifier
-                    .size(38.dp)
-                    .clickable { onStepDate(1) }
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = Icons.Default.KeyboardArrowLeft,
-                        contentDescription = "יום הבא",
-                        tint = TextDark,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
+            IconButton(onClick = { onStepDate(1) }, modifier = Modifier.size(48.dp).testTag("home_next_day")) {
+                Icon(Icons.Default.KeyboardArrowLeft, "יום הבא", tint = TextDark, modifier = Modifier.size(18.dp))
             }
         }
+
+        times()
 
         // 7-day week row (Animated based on expanded/collapsed)
         AnimatedVisibility(
@@ -365,17 +338,19 @@ private fun DateDrawer(
                         isSelected = isSelected,
                         isToday = isToday,
                         isShabbat = isShabbat,
-                        onClick = { onSelectDate(date) }
+                        onClick = { onSelectDate(date) },
+                        modifier = Modifier.weight(1f)
                     )
                 }
             }
         }
 
-        HorizontalDivider(
-            modifier = Modifier.padding(horizontal = 28.dp, vertical = 12.dp),
-            thickness = 1.dp,
-            color = Color(0xFFD9D9D9)
-        )
+        if (drawerState == DateDrawerState.EXPANDED) {
+            Text(fullHebrewDate + if(showCivilDate) " · $civilFormatted" else "", modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center, color = TextMuted, fontSize = 12.sp)
+            if (selectedDate != effectiveToday) TextButton(onClick = { onSelectDate(effectiveToday) },
+                modifier = Modifier.fillMaxWidth().heightIn(min = 44.dp)) { Text("חזור להיום") }
+        }
     }
 }
 
@@ -389,112 +364,23 @@ private fun DayCell(
     isSelected: Boolean,
     isToday: Boolean,
     isShabbat: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    val dayOfWeekHebrew = HebrewDateHelper.getHebrewDayOfWeekShort(date.dayOfWeek)
-    val civilDay = date.dayOfMonth.toString()
-
-    if (isSelected) {
-        // Vertical purple capsule (50dp x 74dp)
-        Surface(
-            shape = RoundedCornerShape(16.dp),
-            color = PurplePrimary,
-            modifier = Modifier
-                .width(50.dp)
-                .height(74.dp)
-                .clickable(onClick = onClick)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(vertical = 5.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = dayOfWeekHebrew,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-                Text(
-                    text = hebrewDayNumeral,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = civilDay,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = Color.White.copy(alpha = 0.85f)
-                    )
-                    if (isToday) {
-                        Box(
-                            modifier = Modifier
-                                .padding(top = 2.dp)
-                                .size(4.dp)
-                                .clip(CircleShape)
-                                .background(GoldAccent)
-                        )
-                    }
-                }
-            }
-        }
-    } else {
-        // Normal cell with optional peach indicator for effective today
-        Surface(
-            shape = RoundedCornerShape(14.dp),
-            color = Color.Transparent,
-            modifier = Modifier
-                .width(46.dp)
-                .height(72.dp)
-                .clickable(onClick = onClick)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(vertical = 5.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = dayOfWeekHebrew,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = if (isShabbat) PurplePrimary else TextMuted
-                )
-                Text(
-                    text = hebrewDayNumeral,
-                    fontSize = 17.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = TextDark
-                )
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = civilDay,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Normal,
-                        color = Color(0xFF94A3B8)
-                    )
-                    if (isToday) {
-                        Box(
-                            modifier = Modifier
-                                .padding(top = 2.dp)
-                                .size(5.dp)
-                                .clip(CircleShape)
-                                .background(PurplePrimary)
-                        )
-                    }
-                }
-            }
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = if (isSelected) PurplePrimary else Color.Transparent,
+        modifier = modifier.height(56.dp).testTag("home_day_$date").clickable(onClick = onClick)
+    ) {
+        Column(Modifier.fillMaxSize().padding(vertical = 5.dp),
+            horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+            Text(HebrewDateHelper.getHebrewDayOfWeekShort(date.dayOfWeek), fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                color = if (isSelected) Color.White else if (isShabbat) PurplePrimary else TextMuted)
+            Text(hebrewDayNumeral, fontSize = 17.sp, fontWeight = FontWeight.SemiBold,
+                color = if (isSelected) Color.White else TextDark)
+            if (isToday) Box(Modifier.size(3.dp).clip(CircleShape)
+                .background(if (isSelected) GoldAccent else PurplePrimary))
         }
     }
 }

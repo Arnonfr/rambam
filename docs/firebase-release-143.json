@@ -1,0 +1,28 @@
+{
+  "versionCode": 143,
+  "applicationId": "com.aistudio.dailyrambam.kzjvw.debug",
+  "sha256": "10bf7d1436c5041448725a72f7a943d898ba616b117a0ce61434cdd2d272cbd2",
+  "tests": [
+    {
+      "name": "ReaderFeedbackTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "EndOfLessonPullTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    }
+  ],
+  "lintErrors": [],
+  "physicalDeviceTested": false,
+  "testerUrl": "https://appdistribution.firebase.google.com/testerapps/1:703198161750:android:1e1d23970312aa68bbc4f7/releases/5o5a01jm8r6s8",
+  "releaseId": "5o5a01jm8r6s8",
+  "distributedAt": "2026-10-24",
+  "distributedToTesters": true,
+  "releaseNotesAdded": true
+}

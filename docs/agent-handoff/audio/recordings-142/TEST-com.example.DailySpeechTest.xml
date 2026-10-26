@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.DailySpeechTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-24T17:51:08.950Z" hostname="MacBook-Air-sl-mspht.local" time="6.243">
+  <properties/>
+  <testcase name="publisher recording uses shared playback and resumes without initializing a voice" classname="com.example.DailySpeechTest" time="5.86"/>
+  <testcase name="source niqqud remains intact while markup and cantillation never become spoken instructions" classname="com.example.DailySpeechTest" time="0.027"/>
+  <testcase name="daily assignment contains all three chapters in order with bounded speech requests" classname="com.example.DailySpeechTest" time="0.029"/>
+  <testcase name="next and previous jump to halacha boundaries rather than synthesis chunks" classname="com.example.DailySpeechTest" time="0.052"/>
+  <testcase name="shared player seeks across generated parts without losing pause state" classname="com.example.DailySpeechTest" time="0.064"/>
+  <testcase name="the entire daily lesson is prepared and its resume point is saved" classname="com.example.DailySpeechTest" time="0.054"/>
+  <testcase name="resume reopens the right part and milliseconds instead of starting at the first chapter" classname="com.example.DailySpeechTest" time="0.036"/>
+  <testcase name="pause before the first audio cannot autoplay later and a different recording cancels preparation" classname="com.example.DailySpeechTest" time="0.042"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

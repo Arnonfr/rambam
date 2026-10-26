@@ -20,13 +20,13 @@ data class UserPreferences(
     val selectedCity: String = "ירושלים",
     val fontSizeSp: Float = 20f,
     val lineSpacingMultiplier: Float = 1.65f,
+    val letterSpacingEm: Float = 0f,
     val fontFamily: String = "bonanova", // "bonanova", "sans", "serif", "libertinus"
     val showNikud: Boolean = true,
     val readerTheme: String = "light", // "light", "sepia", "dark"
     val lastOpenedChapterId: String? = null,
     val keepScreenOn: Boolean = true,
     val visibleStudies: Set<String> = setOf("rambam_one", "mitzvot", "chumash", "tehillim", "tanya"),
-    val chumashFontSizeSp: Float = 22f,
     val chumashShowTeamim: Boolean = false,
     val completedAliyot: Set<String> = emptySet(),
     val tanyaBookView: Boolean = false,
@@ -40,6 +40,7 @@ class UserPreferencesRepository(private val context: Context) {
         val DAY_BOUNDARY = stringPreferencesKey("day_boundary")
         val SELECTED_CITY = stringPreferencesKey("selected_city")
         val FONT_SIZE_SP = floatPreferencesKey("font_size_sp")
+        val LETTER_SPACING = floatPreferencesKey("letter_spacing_em")
         val LINE_SPACING = floatPreferencesKey("line_spacing_multiplier")
         val FONT_FAMILY = stringPreferencesKey("font_family")
         val SHOW_NIKUD = booleanPreferencesKey("show_nikud")
@@ -61,7 +62,8 @@ class UserPreferencesRepository(private val context: Context) {
                 selectedTrack = preferences[PreferencesKeys.SELECTED_TRACK] ?: "one",
                 dayBoundary = preferences[PreferencesKeys.DAY_BOUNDARY] ?: "midnight",
                 selectedCity = preferences[PreferencesKeys.SELECTED_CITY] ?: "ירושלים",
-                fontSizeSp = preferences[PreferencesKeys.FONT_SIZE_SP] ?: 20f,
+                fontSizeSp = preferences[PreferencesKeys.FONT_SIZE_SP] ?: preferences[PreferencesKeys.CHUMASH_FONT_SIZE] ?: 20f,
+                letterSpacingEm = preferences[PreferencesKeys.LETTER_SPACING] ?: 0f,
                 lineSpacingMultiplier = preferences[PreferencesKeys.LINE_SPACING] ?: 1.65f,
                 fontFamily = preferences[PreferencesKeys.FONT_FAMILY] ?: "bonanova",
                 showNikud = preferences[PreferencesKeys.SHOW_NIKUD] ?: true,
@@ -73,7 +75,6 @@ class UserPreferencesRepository(private val context: Context) {
                     if ("rambam" in studies) studies - "rambam" +
                         "rambam_${preferences[PreferencesKeys.SELECTED_TRACK] ?: "one"}" else studies
                 },
-                chumashFontSizeSp = preferences[PreferencesKeys.CHUMASH_FONT_SIZE] ?: 22f,
                 chumashShowTeamim = preferences[PreferencesKeys.CHUMASH_SHOW_TEAMIM] ?: false,
                 completedAliyot = preferences[PreferencesKeys.COMPLETED_ALIYOT] ?: emptySet(),
                 tanyaBookView = preferences[PreferencesKeys.TANYA_BOOK_VIEW] ?: false,
@@ -102,7 +103,11 @@ class UserPreferencesRepository(private val context: Context) {
     }
 
     suspend fun updateFontSize(sizeSp: Float) {
-        context.dataStore.edit { it[PreferencesKeys.FONT_SIZE_SP] = sizeSp.coerceIn(16f, 30f) }
+        context.dataStore.edit { it[PreferencesKeys.FONT_SIZE_SP] = sizeSp.coerceIn(16f, 32f) }
+    }
+
+    suspend fun updateLetterSpacing(value: Float) {
+        context.dataStore.edit { it[PreferencesKeys.LETTER_SPACING] = value.coerceIn(0f, .12f) }
     }
 
     suspend fun updateLineSpacing(multiplier: Float) {
@@ -144,9 +149,6 @@ class UserPreferencesRepository(private val context: Context) {
         }
     }
 
-    suspend fun updateChumashFontSize(sizeSp: Float) {
-        context.dataStore.edit { it[PreferencesKeys.CHUMASH_FONT_SIZE] = sizeSp.coerceIn(16f, 36f) }
-    }
 
     suspend fun updateChumashShowTeamim(show: Boolean) {
         context.dataStore.edit { it[PreferencesKeys.CHUMASH_SHOW_TEAMIM] = show }

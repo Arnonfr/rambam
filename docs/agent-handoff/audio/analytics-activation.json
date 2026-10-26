@@ -1,0 +1,18 @@
+{
+  "streamMappings": [
+    {
+      "app": "projects/daily-rambam-pilot-20261001/androidApps/1:703198161750:android:cd9e6753f4b8abfdbbc4f7",
+      "streamId": "16188541940"
+    },
+    {
+      "app": "projects/daily-rambam-pilot-20261001/androidApps/1:703198161750:android:1e1d23970312aa68bbc4f7",
+      "streamId": "16188537930"
+    }
+  ],
+  "analyticsProperty": {
+    "id": "560518590",
+    "displayName": "daily-rambam-pilot-20261001",
+    "analyticsAccountId": "69658038"
+  },
+  "activated_on": "2026-10-23"
+}

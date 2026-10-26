@@ -1,0 +1,14 @@
+{
+  "halachot": 15038,
+  "chapters": 1060,
+  "plain": {
+    "characters": 3858654,
+    "words": 770260
+  },
+  "nikud": {
+    "characters": 6320514,
+    "words": 770260
+  },
+  "scope": "Rambam texts including introduction/appendices, excluding positive_mitzvot and negative_mitzvot",
+  "measuredAt": "2026-10-15"
+}

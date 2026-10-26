@@ -37,6 +37,31 @@ def clean(raw):
     raw = re.sub(r"</?(?:includeonly|onlyinclude|small|big|span|div)[^>]*>", "", raw)
     return html.unescape(raw).strip()
 
+def apply_corrections(entries, corrections):
+    for key, correction in corrections["entries"].items():
+        entry = entries[key]
+        for old, new in correction["replacements"]:
+            # Existing correct occurrences elsewhere must not hide a bad occurrence.
+            # Protect full corrections so an appended completion stays idempotent.
+            marker = "\u0000CORRECTED\u0000"
+            protected = [p.replace(new, marker) for p in entry["paragraphs"]]
+            count = sum(p.count(old) for p in protected)
+            if count == 0 and any(marker in p for p in protected):
+                continue
+            if count != 1:
+                raise ValueError(f"Correction source changed; review {key}: {old!r}")
+            entry["paragraphs"] = [p.replace(old, new).replace(marker, new) for p in protected]
+        entry["correctionsSourceUrl"] = correction["sourceUrl"]
+
+
+def validate_entries(entries):
+    # Review suspicious endings; adding punctuation automatically would hide a cut.
+    for key, entry in entries.items():
+        text = " ".join(entry["paragraphs"]).rstrip()
+        if not text or re.search(r"[א-ת0-9]$", text):
+            raise ValueError(f"Possible unfinished Hayom Yom text; review {key}: {text[-100:]}")
+
+
 if __name__ == "__main__":
     rights = query(action="query", meta="siteinfo", siprop="rightsinfo")["query"]["rightsinfo"]
     assert rights["url"] == "https://www.gnu.org/copyleft/fdl.html", rights
@@ -83,6 +108,10 @@ if __name__ == "__main__":
     payload = dict(version="chabadtext-2026-10", title="היום יום", license="GFDL-1.3-or-later",
                    attribution="חב״דטקסט — תורמי דפי היום יום; מלקט: רבי מנחם מענדל שניאורסון",
                    modifications="הוסרו ניווט וסימוני עיצוב ויקי; תבניות תרגום מוצגות בסוגריים. המקור השקוף מצורף.", entries=entries)
+    corrections = json.loads((assets / "hayom_yom_corrections.json").read_text())
+    apply_corrections(entries, corrections)
+    validate_entries(entries)
+    payload["modifications"] += " תוקנו שגיאות הקלדה והושלם תרגום קטוע, כמתועד בקובץ hayom_yom_corrections.json."
     license_path = assets / "GFDL-1.3.txt"
     if not license_path.exists():
         with urllib.request.urlopen("https://www.gnu.org/licenses/fdl-1.3.txt", timeout=45) as response:

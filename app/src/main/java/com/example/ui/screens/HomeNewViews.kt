@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Headphones
 import androidx.compose.material.icons.filled.Eco
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
@@ -21,14 +22,22 @@ import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.NightlightRound
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.outlined.LibraryBooks
 import androidx.compose.material.icons.outlined.MenuBook
 import androidx.compose.material.icons.outlined.MusicNote
 import androidx.compose.material.icons.outlined.ReceiptLong
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.layout.FirstBaseline
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
@@ -40,8 +49,10 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.domain.schedule.DailyLessonResult
@@ -57,6 +68,11 @@ import androidx.compose.ui.text.style.TextOverflow
 
 @Composable
 fun MainContentList(
+    playback: com.example.data.prayers.audio.StudyPlaybackState? = null,
+    onOpenCompletion: (com.example.data.local.SavedStudyCompletion) -> Unit = {},
+    onRemoveCompletion: (String) -> Unit = {},
+    personalPsalmCount: Int = 0,
+    onOpenPersonalPsalms: () -> Unit = {},
     uiState: DailyRambamUiState,
     onOpenChapter: (String) -> Unit,
     onOpenDailyLesson: () -> Unit,
@@ -74,6 +90,14 @@ fun MainContentList(
     onResumeStudy: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    val servicePlayback by com.example.data.prayers.audio.StudyPlaybackStatus.state.collectAsState()
+    val activePlayback = playback ?: servicePlayback
+    if (uiState.selectedTab in setOf(HomeTab.PODCASTS, HomeTab.PRAYERS)) {
+        Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text("בבניה", fontSize = 22.sp, color = Color.Black)
+        }
+        return
+    }
     val rambamSubtitle = remember(uiState.dailyLesson) {
         val lesson = uiState.dailyLesson
         if (lesson == null || lesson.chapters.isEmpty()) {
@@ -115,15 +139,16 @@ fun MainContentList(
         }
     }
 
-    val tehillimSubtitle = remember(uiState.dailyLesson) {
+    val tehillimDate = remember(uiState.dailyLesson) {
         val hebDate = uiState.dailyLesson?.hebrewDate
         if (!hebDate.isNullOrBlank()) {
             val dayNum = HebrewDateHelper.extractHebrewDayNumeral(hebDate)
-            "יום $dayNum בחודש"
+            dayNum to HebrewDateHelper.extractHebrewMonth(hebDate)
         } else {
-            "יום ב׳ בחודש"
+            null
         }
     }
+    val tehillimSubtitle = tehillimDate?.let { "יום ${it.first} בחודש" } ?: "טוען..."
 
     val tanyaSubtitle = remember(uiState.dailyTanya, uiState.selectedStudyDate) {
         val tanya = uiState.dailyTanya
@@ -152,11 +177,34 @@ fun MainContentList(
     }
 
     LazyColumn(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth().background(homeStudyBackground(uiState.preferences.visibleStudies)),
         verticalArrangement = Arrangement.spacedBy(0.dp),
-        contentPadding = PaddingValues(bottom = 128.dp)
+        contentPadding = PaddingValues(bottom = 80.dp)
     ) {
         if (uiState.selectedTab == HomeTab.STUDY) {
+            item(key = "study_preferences_header") {
+                Row(
+                    modifier = Modifier.fillMaxWidth().background(Color.White).padding(horizontal = 18.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "השיעורים שלי",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color(0xFF575757)
+                    )
+                    TextButton(
+                        onClick = onOpenSettings,
+                        colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFF686868)),
+                        modifier = Modifier.testTag("home_study_preferences")
+                    ) {
+                        Icon(Icons.Default.Tune, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text("העדפות", fontSize = 12.sp, fontWeight = FontWeight.Normal)
+                    }
+                }
+            }
             val visibleStudies = uiState.preferences.visibleStudies
             val cards = buildList {
                     listOf("one", "three").forEach { track ->
@@ -204,7 +252,7 @@ fun MainContentList(
                                 title = "ספר המצוות",
                                 subtitle = mitzvahSubtitle,
                                 metric = metric,
-                                progress = current.toFloat() / total,
+                                progress = 0f,
                                 color = Color(0xFF72D7E8),
                                 icon = Icons.Outlined.MenuBook,
                                 onClick = onOpenMitzvah
@@ -221,7 +269,7 @@ fun MainContentList(
                                 title = "חומש",
                                 subtitle = chumashSubtitle,
                                 metric = "$current/$total",
-                                progress = current.toFloat() / total,
+                                progress = 0f,
                                 color = Color(0xFFF4F66A),
                                 icon = Icons.Outlined.ReceiptLong,
                                 onClick = onOpenChumash
@@ -258,15 +306,14 @@ fun MainContentList(
                             onClick = onOpenHayomYom))
                     }
                     if (visibleStudies.contains("tehillim")) {
-                        val day = uiState.dailyTehillim?.dayOfMonth ?: 1
                         add(
                             StudyDashboardCard(
                                 track = "tehillim",
                                 eyebrow = "תהילים יומי",
                                 title = "תהילים",
                                 subtitle = tehillimSubtitle,
-                                metric = "${HebrewNumberFormatter.toHebrewNumeral(day, true)}\n${uiState.dailyLesson?.hebrewDate?.let(HebrewDateHelper::extractHebrewMonth) ?: "לחודש"}",
-                                progress = day / 30f,
+                                metric = tehillimDate?.let { "${it.first}\n${it.second}" } ?: "–",
+                                progress = 0f,
                                 color = Color(0xFF9FDEEF),
                                 icon = Icons.Outlined.MusicNote,
                                 onClick = onOpenTehillim
@@ -279,8 +326,13 @@ fun MainContentList(
                 val savedDate = uiState.bookmarkDates[card.track]
                     ?.takeUnless { card.track in uiState.completedBookmarks }
                 StudyStrip(card, savedDate, uiState.selectedStudyDate.toString(),
-                    completed = uiState.completedStudyDates[card.track] == uiState.selectedStudyDate.toString(),
-                    onResume = { onResumeStudy(card.track) })
+                    playing = activePlayback.playing && activePlayback.track == card.track,
+                    completed = uiState.completedStudyDates[card.track] == uiState.selectedStudyDate.toString() || card.progress >= 1f || (uiState.studyProgress[card.track] ?: 0f) >= 1f,
+                    uiProgress = uiState.studyProgress[card.track],
+                    onResume = { onResumeStudy(card.track) },
+                    onOpenPersonalPsalms = onOpenPersonalPsalms.takeIf { card.track == "tehillim" && personalPsalmCount > 0 })
+                val completions = uiState.savedCompletions.filter { it.track == card.track }
+                if (completions.isNotEmpty()) SavedCompletionsStrip(card.color, completions, onOpenCompletion, onRemoveCompletion)
             }
         } else if (uiState.selectedTab == HomeTab.PODCASTS) {
             item { PodcastPanel() }
@@ -303,6 +355,16 @@ fun MainContentList(
     }
 }
 
+internal fun homeStudyBackground(visibleStudies: Set<String>): Color = when {
+    "tehillim" in visibleStudies -> Color(0xFF9FDEEF)
+    "hayom_yom" in visibleStudies -> Color(0xFFC5B8F5)
+    "tanya" in visibleStudies -> Color(0xFFF0A0DD)
+    "chumash" in visibleStudies -> Color(0xFFF4F66A)
+    "mitzvot" in visibleStudies -> Color(0xFF72D7E8)
+    visibleStudies.any { it == "rambam_one" || it == "rambam_three" } -> Color(0xFFFF873F)
+    else -> Color.White
+}
+
 private data class StudyDashboardCard(
     val track: String,
     val eyebrow: String,
@@ -321,96 +383,87 @@ private fun StudyStrip(
     savedDate: String?,
     selectedDate: String,
     completed: Boolean,
+    playing: Boolean = false,
+    uiProgress: Float? = null,
     onResume: () -> Unit,
+    onOpenPersonalPsalms: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val resumeToday = savedDate == selectedDate
     Column(modifier.fillMaxWidth().height(148.dp).background(card.color)
         .padding(horizontal = 18.dp, vertical = 12.dp)) {
-    Row(
+    Column(
         modifier = Modifier.fillMaxWidth().weight(1f)
             .clickable(onClick = if (resumeToday) onResume else card.onClick),
-        verticalAlignment = Alignment.CenterVertically
+        verticalArrangement = Arrangement.Center
     ) {
-        StudyLineIcon(card.track, Modifier.size(48.dp))
-        Spacer(Modifier.width(12.dp))
-        Column(
-            modifier = Modifier.weight(1f),
-            horizontalAlignment = Alignment.Start
-        ) {
-            Text(
-                text = card.title,
-                fontSize = 25.sp,
-                lineHeight = 28.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black
-            )
-            Text(
-                text = card.subtitle,
-                fontSize = 14.sp,
-                lineHeight = 18.sp,
-                color = Color.Black.copy(alpha = 0.82f),
-                maxLines = 2, overflow = TextOverflow.Ellipsis
-            )
-            if (completed) StudyCompletionHint(Modifier.testTag("completed_${card.track}"))
-        }
-        Column(
-            modifier = Modifier.width(76.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            card.metric.split('\n').forEach { metricLine ->
-            Text(
-                text = metricLine,
-                fontSize = if (card.track == "tehillim") 19.sp else 28.sp,
-                lineHeight = 25.sp,
-                textAlign = TextAlign.Center,
-                maxLines = 1,
-                softWrap = false,
-                overflow = TextOverflow.Ellipsis,
-                fontWeight = FontWeight.Normal,
-                color = Color.Black
-            )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            StudyLineIcon(card.track, Modifier.size(36.dp).testTag("study_icon_${card.track}"))
+            Spacer(Modifier.width(12.dp))
+            Text(card.title, fontSize = 25.sp, lineHeight = 32.sp, fontWeight = FontWeight.Bold,
+                color = Color.Black, modifier = Modifier.testTag("study_title_${card.track}"))
+            if (playing) {
+                Spacer(Modifier.width(14.dp))
+                com.example.ui.components.PlaybackWaveform(Color.Black,
+                    Modifier.size(24.dp).testTag("study_audio_${card.track}").semantics {
+                        contentDescription = "שיעור מתנגן"
+                    })
             }
         }
+        Text(card.subtitle, fontSize = 14.sp, lineHeight = 18.sp, color = Color.Black.copy(alpha = .82f),
+            maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 48.dp))
     }
     Row(Modifier.fillMaxWidth().height(40.dp), verticalAlignment = Alignment.CenterVertically) {
         Box(Modifier.weight(1f).padding(end = 16.dp)) {
             LinearProgressIndicator(
-                progress = { card.progress.coerceIn(0f, 1f) },
+                progress = { if (completed) 1f else (uiProgress ?: card.progress).coerceIn(0f, .99f) },
                 modifier = Modifier
                     .widthIn(max = 140.dp).fillMaxWidth()
                     .height(5.dp)
+                    .testTag("study_progress_${card.track}")
                     .clip(CircleShape),
                 color = Color.Black,
                 trackColor = Color.White.copy(alpha = 0.58f)
             )
         }
-        if (savedDate != null) {
-            Surface(onClick = onResume, color = Color(card.color.red * 0.32f,
-                card.color.green * 0.32f, card.color.blue * 0.32f),
-                shape = RoundedCornerShape(20.dp), modifier = Modifier.testTag("resume_${card.track}")) {
-                Text("מיקום אחרון", fontSize = 12.sp, color = Color.White,
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp))
-            }
+        if (completed) {
+            Icon(Icons.Default.Check, contentDescription = "השיעור הושלם", tint = Color.Black,
+                modifier = Modifier.size(22.dp).testTag("completed_${card.track}"))
             Spacer(Modifier.width(8.dp))
         }
-        if (!resumeToday) {
-        Surface(
-            onClick = card.onClick,
-            shape = CircleShape,
-            color = Color.Transparent,
-            border = BorderStroke(1.5.dp, Color.Black),
-            modifier = Modifier.size(38.dp).testTag("open_${card.track}")
+        Row(
+            modifier = Modifier.height(40.dp).clip(RoundedCornerShape(20.dp))
+                .border(1.5.dp, Color.Black, RoundedCornerShape(20.dp))
+                .testTag("study_actions_${card.track}"),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(contentAlignment = Alignment.Center) {
-                Icon(
-                    imageVector = Icons.Default.KeyboardArrowLeft,
-                    contentDescription = "פתיחת ${card.title}",
-                    tint = Color.Black,
-                    modifier = Modifier.size(24.dp)
-                )
+            onOpenPersonalPsalms?.let { open ->
+                Box(Modifier.fillMaxHeight().clickable(role = Role.Button, onClick = open)
+                    .testTag("home_personal_psalms").padding(horizontal = 10.dp), contentAlignment = Alignment.Center) {
+                    Text("הפרקים שלי", fontSize = 12.sp, color = Color.Black, maxLines = 1)
+                }
+                VerticalDivider(Modifier.fillMaxHeight().width(1.dp), color = Color.Black)
             }
-        }
+            if (savedDate != null) {
+                Box(
+                    modifier = Modifier.fillMaxHeight().clickable(role = Role.Button, onClick = onResume)
+                        .testTag("resume_${card.track}").padding(horizontal = 12.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("מיקום אחרון", fontSize = 12.sp, color = Color.Black, maxLines = 1)
+                }
+                VerticalDivider(Modifier.fillMaxHeight().width(1.dp), color = Color.Black)
+            }
+            Row(
+                modifier = Modifier.fillMaxHeight().clickable(role = Role.Button, onClick = card.onClick)
+                    .testTag("open_${card.track}").padding(horizontal = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text("השיעור היומי", fontSize = 12.sp, color = Color.Black, maxLines = 1)
+                Icon(Icons.Default.KeyboardArrowLeft, contentDescription = null,
+                    tint = Color.Black, modifier = Modifier.size(16.dp))
+            }
         }
     }
     }
@@ -433,93 +486,28 @@ fun FloatingDarkNavBar(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val constructionToast = remember(context) {
-        Toast.makeText(context, "בבנייה", Toast.LENGTH_SHORT)
-    }
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
+    val constructionToast = remember(context) { Toast.makeText(context, "בבניה", Toast.LENGTH_SHORT) }
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         Surface(
-            shape = RoundedCornerShape(32.dp),
-            color = Color(0xFFF2F2F2),
-            shadowElevation = 8.dp,
-            modifier = Modifier
-                .widthIn(max = 360.dp).fillMaxWidth(.95f)
-                .height(60.dp)
+            modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp)
+                .height(58.dp).testTag("home_bottom_menu"),
+            shape = RoundedCornerShape(28.dp), color = Color(0xFFF2F2F2), shadowElevation = 3.dp
         ) {
-        Row(
-            modifier = Modifier.fillMaxSize(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.weight(1f).fillMaxHeight().padding(4.dp)
-                    .clip(RoundedCornerShape(28.dp))
-                    .background(if (selectedTab == HomeTab.PODCASTS) Color.White else Color.Transparent)
-                    .clickable { constructionToast.show() }) {
-                Text("פודקאסטים", fontSize = 13.sp,
-                    color = if (selectedTab == HomeTab.PODCASTS) Color.Black else Color(0xFF777777))
+            Row(Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
+                listOf(HomeTab.STUDY to "שיעורים", HomeTab.PRAYERS to "תפילות", HomeTab.PODCASTS to "פודקאסטים").forEach { (tab, label) ->
+                    val active = selectedTab == tab
+                    Box(Modifier.weight(1f).fillMaxHeight().padding(4.dp)
+                        .clip(RoundedCornerShape(24.dp))
+                        .background(if (active) Color.White else Color.Transparent)
+                        .clickable { if (tab == HomeTab.STUDY) onSelectTab(tab) else constructionToast.show() }
+                        .testTag("home_tab_${tab.name}"), contentAlignment = Alignment.Center) {
+                        Text(label,
+                            textAlign = TextAlign.Center, fontSize = 14.sp, lineHeight = 16.sp,
+                            fontWeight = if (active) FontWeight.Bold else FontWeight.Medium,
+                            color = if (active) Color.Black else Color(0xFF777777))
+                    }
+                }
             }
-            // Prayers Tab (Left)
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-                    .padding(4.dp)
-                    .clip(RoundedCornerShape(28.dp))
-                    .background(if (selectedTab == HomeTab.PRAYERS) Color.White else Color.Transparent)
-                    .clickable { constructionToast.show() },
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Icon(
-                    Icons.Default.NightlightRound,
-                    contentDescription = null,
-                    tint = if (selectedTab == HomeTab.PRAYERS) Color.Black else Color(0xFF9A9A9A),
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    text = "תפילות",
-                    color = if (selectedTab == HomeTab.PRAYERS) Color.Black else Color(0xFF9A9A9A),
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Medium
-                )
-            }
-
-            // Divider
-            Box(modifier = Modifier.width(1.dp).height(24.dp).background(Color(0xFFD0D0D0)))
-
-            // Study Tab (Right)
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-                    .padding(4.dp)
-                    .clip(RoundedCornerShape(28.dp))
-                    .background(if (selectedTab == HomeTab.STUDY) Color.White else Color.Transparent)
-                    .clickable { onSelectTab(HomeTab.STUDY) },
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Icon(
-                    Icons.Default.MenuBook,
-                    contentDescription = null,
-                    tint = if (selectedTab == HomeTab.STUDY) Color.Black else Color(0xFF9A9A9A),
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    text = "לימוד",
-                    color = if (selectedTab == HomeTab.STUDY) Color.Black else Color(0xFF9A9A9A),
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Medium
-                )
-            }
-        }
         }
     }
 }

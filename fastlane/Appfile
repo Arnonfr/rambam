@@ -1,0 +1,2 @@
+package_name("com.aistudio.dailyrambam.kzjvw")
+json_key_file(ENV.fetch("GOOGLE_PLAY_JSON_KEY", File.expand_path("../../חתימה-פרטי/google-play-service-account.json", __dir__)))

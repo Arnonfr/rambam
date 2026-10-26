@@ -1,0 +1,32 @@
+{
+  "firebase": {
+    "status": "success"
+  },
+  "version_code": 140,
+  "apk_sha256": "45cfcb0245010718e7aa0698e47adfd4f65a7b133063b6d0131012a0a08c037d",
+  "apk_bytes": 227263311,
+  "validation": {
+    "unit_and_layout_tests": "40 distinct tests passed across focused runs",
+    "assembleDebug": "passed",
+    "lintDebug": "passed",
+    "compileReleaseKotlin": "passed",
+    "emulator": "Michael actual playback, background screen off, 30-second engagement, pause and opt-out verified; SDK upload HTTP 204"
+  },
+  "release": {
+    "name": "projects/703198161750/apps/1:703198161750:android:1e1d23970312aa68bbc4f7/releases/3f09i54nhvsio",
+    "releaseNotes": {
+      "text": "מדידת שימוש באודיו עם אפשרות כיבוי בהעדפות: הפעלות, דקות האזנה וחזרה. בחירת לוח הרב סינגאווי בהעדפות זמני היום, עם נתונים מהאתר המקורי לפי עיר ותאריך זמין. כוללת את שיפורי ההקראה של Michael ואת הארכת צורת הדף בתניא לחודשיים נוספים.\n"
+    },
+    "displayVersion": "2.0-debug",
+    "buildVersion": "140",
+    "createTime": "2026-10-23T12:13:51.239660Z",
+    "firebaseConsoleUri": "https://console.firebase.google.com/project/daily-rambam-pilot-20261001/appdistribution/app/android:com.aistudio.dailyrambam.kzjvw.debug/releases/3f09i54nhvsio",
+    "testingUri": "https://appdistribution.firebase.google.com/testerapps/1:703198161750:android:1e1d23970312aa68bbc4f7/releases/3f09i54nhvsio",
+    "updateTime": "2026-10-23T12:13:55.794041Z",
+    "expireTime": "2027-03-22T12:13:51.239660Z",
+    "acceptedInvitationCount": 1,
+    "binaryType": "APK",
+    "testState": "NO_TESTS_REQUESTED",
+    "androidPackageRegistrationState": "NOT_REGISTERED"
+  }
+}

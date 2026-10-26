@@ -2,6 +2,14 @@
 
 package com.example.ui.screens
 
+import com.example.ui.components.ReaderAudioOverlay
+
+import com.example.data.local.CompletionText
+import com.example.data.local.SavedStudyCompletion
+import com.example.domain.content.CompletionReaderRow
+import com.example.ui.components.ManualStudyCompletionControls
+import com.example.ui.components.rememberManualStudyCompletionState
+
 import android.app.Activity
 import android.view.WindowManager
 import androidx.activity.compose.BackHandler
@@ -16,6 +24,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Stars
+import androidx.compose.material.icons.filled.Headphones
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+import kotlinx.coroutines.launch
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -57,6 +70,7 @@ import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun TanyaReaderScreen(
+    onSaveCompletion: (SavedStudyCompletion) -> Unit = {},
     lesson: DailyTanyaLesson?,
     isLoading: Boolean,
     onBack: () -> Unit,
@@ -79,16 +93,30 @@ fun TanyaReaderScreen(
     readerTitle: String = "תניא",
     contentId: String = "tanya",
     allowPrintLayout: Boolean = true,
+    audioStudyDate: String? = null,
     modifier: Modifier = Modifier
 ) {
     BackHandler(onBack = onBack)
 
     var showTypographySheet by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
+    var showAudio by rememberSaveable(lesson?.date) { mutableStateOf(false) }
+    val readerScope = rememberCoroutineScope()
+    val audioUiState = androidx.compose.runtime.saveable.rememberSaveableStateHolder()
     val resumePosition = remember(lesson?.date) { savedPosition }
 
     // Keep screen on during study
     val context = LocalContext.current
+    val usageAnalytics = remember(context) { com.example.data.analytics.AudioAnalytics.get(context) }
+    val usageType = "tanya"
+    androidx.lifecycle.compose.LifecycleEventEffect(androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+        if(contentId == "tanya" && audioStudyDate != null) usageAnalytics.available(usageType)
+    }
+    val audioPlayer = if (contentId == "tanya" && audioStudyDate != null) remember(lesson?.date, lesson?.fullRef) {
+        com.example.data.tanya.TanyaAudioPlayer(context)
+    } else null
+    DisposableEffect(audioPlayer) { onDispose { audioPlayer?.close() } }
+    val audioPlayback = audioPlayer?.state?.collectAsState()?.value
     val anchorManager = remember { ContentReadingAnchorManager(context) }
     val printLines = remember(lesson?.fullRef) {
         com.example.domain.tanya.VerifiedTanyaPrint.fullPagesForReference(lesson?.fullRef.orEmpty())
@@ -124,7 +152,7 @@ fun TanyaReaderScreen(
                     .fillMaxSize()
                     .background(
                         when (preferences.readerTheme) {
-                            "dark" -> Color(0xFF121214)
+                            "dark", "oled" -> Color(0xFF121214)
                             "sepia" -> Color(0xFFF4ECD8)
                             else -> MaterialTheme.colorScheme.background
                         }
@@ -133,7 +161,7 @@ fun TanyaReaderScreen(
             ) {
                 CircularProgressIndicator(
                     color = when (preferences.readerTheme) {
-                        "dark" -> GoldAccent
+                        "dark", "oled" -> GoldAccent
                         "sepia" -> Color(0xFF8C6D4F)
                         else -> MaterialTheme.colorScheme.primary
                     }
@@ -151,6 +179,22 @@ fun TanyaReaderScreen(
     )
 
     val sections = lesson.sections
+
+    val manualCompletion = rememberManualStudyCompletionState(lesson.date to mappedPrint)
+    val completionRows = remember(sections, mappedPrint, printLines) {
+        if (mappedPrint) printLines.mapIndexedNotNull { index, line ->
+            if (!com.example.domain.tanya.VerifiedTanyaPrint.hasDailyWords(line) || line.isCatchword) null else {
+                val words = line.text.split(' ')
+                val text = words.subList((line.greyBeforeWord ?: 0).coerceIn(0, words.size),
+                    (line.greyFromWord ?: words.size).coerceIn(0, words.size)).joinToString(" ")
+                CompletionReaderRow(index + 1, CompletionText("print_${line.page}_$index", "עמוד ${line.page}",
+                    text, com.example.ui.util.HebrewTextNormalizer.stripMarks(text)))
+            }
+        } else sections.mapIndexed { index, section -> CompletionReaderRow(index + 1, CompletionText(
+            "section_${section.sectionIndex}", lesson.chapterTitle,
+            com.example.ui.util.HebrewTextNormalizer.forDisplay(section.textWithNikud),
+            com.example.ui.util.HebrewTextNormalizer.forDisplay(section.textPlain))) }
+    }
 
     // Identify current active section from scroll index (offset by 1 for intro card)
     val displayCount = if (mappedPrint) printLines.size else sections.size
@@ -246,13 +290,13 @@ fun TanyaReaderScreen(
     val activeFontFamily = FontStyleOption.fromId(preferences.fontFamily).fontFamily
 
     val backgroundColor = when (preferences.readerTheme) {
-        "dark" -> Color(0xFF121214)
+        "dark", "oled" -> Color(0xFF121214)
         "sepia" -> Color(0xFFF5EEDA)
         else -> MaterialTheme.colorScheme.background
     }
 
     val textColor = when (preferences.readerTheme) {
-        "dark" -> Color(0xFFE2E2E6)
+        "dark", "oled" -> Color(0xFFE2E2E6)
         "sepia" -> Color(0xFF3C3020)
         else -> MaterialTheme.colorScheme.onBackground
     }
@@ -274,11 +318,18 @@ fun TanyaReaderScreen(
                     .then(if (mappedPrint) Modifier.printedPageZoomLayer(pageZoom) else Modifier)
                     .then(if (!pageZoom.isZoomed) Modifier.endOfLessonPull(completionPullState) else Modifier)
                     .padding(horizontal = if (mappedPrint) 6.dp else 20.dp),
-                contentPadding = PaddingValues(top = 40.dp, bottom = 220.dp)
+                contentPadding = PaddingValues(top = 64.dp, bottom = 220.dp)
             ) {
                 // 1. Header Card (Same structure as Tehillim and Chumash)
                 // Retain the zero-height slot so existing saved paragraph indices stay valid.
-                item(key = "tanya_intro_card") { }
+                item(key = "tanya_intro_card") {
+                    lesson.originalStudies?.let { original ->
+                        com.example.ui.components.OriginalHayomYomHeading(original, preferences, textColor)
+                    }
+                    lesson.additionalOriginalStudies.forEach { original ->
+                        com.example.ui.components.OriginalHayomYomHeading(original, preferences, textColor)
+                    }
+                }
 
                 // 2. Sections / Paragraphs
                 if (mappedPrint) {
@@ -294,15 +345,17 @@ fun TanyaReaderScreen(
                 itemsIndexed(
                     items = sections,
                     key = { idx, sec -> "tanya_sec_${sec.sectionIndex}_$idx" }
-                ) { _, section ->
+                ) { sectionIndex, section ->
                     StudyTextBlock(
+                        onTextLayout = { manualCompletion.measure(sectionIndex + 1, it) },
+                        onTextTop = { manualCompletion.textTop(sectionIndex + 1, it) },
                         indexLetter = "",
                         textWithNikud = section.textWithNikud,
                         textPlain = section.textPlain,
                         preferences = preferences,
                         fontFamily = activeFontFamily,
                         textColor = textColor,
-                        fontSizeSp = preferences.chumashFontSizeSp,
+                        fontSizeSp = preferences.fontSizeSp,
                         isReadingAnchor = section.sectionIndex == (entryAnchor?.blockIndex ?: resumePosition?.halachaIndex?.plus(1)),
                         modifier = Modifier.padding(bottom = 18.dp),
                         testTag = "tanya_section_${section.sectionIndex}"
@@ -320,12 +373,34 @@ fun TanyaReaderScreen(
                 accentColor = if (allowPrintLayout) Color(0xFFEA78D5) else Color(0xFFB8ACF4),
                 scrollProgress = scrollProgress,
                 readerTheme = preferences.readerTheme,
-                modifier = Modifier.align(Alignment.TopCenter)
+                modifier = Modifier.align(Alignment.TopCenter),
+                trailingAction = if (audioPlayer == null) null else ({
+                    com.example.ui.components.ReaderAudioButton(showAudio,
+                        playing = audioPlayback?.playing == true, loading = audioPlayback?.loading == true,
+                        accent = Color(0xFFEA78D5), readerTheme = preferences.readerTheme,
+                        tag = "tanya_audio_toggle", showLabel = "הצגת השיעור המוקלט", hideLabel = "הסתרת השיעור המוקלט",
+                        onClick = {
+                            showAudio = !showAudio
+                            if (showAudio) usageAnalytics.panelEvent("audio_panel_open", usageType)
+                        })
+                })
             )
+
+            if (audioPlayer != null && showAudio) {
+                ReaderAudioOverlay(onClose = { showAudio = false }) {
+                    audioUiState.SaveableStateProvider(lesson.date + lesson.fullRef) {
+                        com.example.ui.components.TanyaAudioControls(lesson, audioStudyDate ?: lesson.date, audioPlayer)
+                    }
+                }
+            }
+
+            ManualStudyCompletionControls(manualCompletion, listState, completionRows,
+                track = contentId, studyDate = lesson.date, dateLabel = lesson.hebrewDate, title = readerTitle,
+                cutAtMiddle = true, enabled = !pageZoom.isZoomed, onSave = onSaveCompletion)
 
             EndOfLessonPullIndicator(
                 state = completionPullState,
-                accentColor = Color(0xFFEA78D5),
+                accentColor = if (allowPrintLayout) Color(0xFFEA78D5) else Color(0xFFB8ACF4),
                 modifier = Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(bottom = 92.dp)
             )
 
@@ -343,6 +418,7 @@ fun TanyaReaderScreen(
                 FloatingReaderBar(
                     currentHalachaText = "",
                     hebrewDateText = displayDate,
+                    studyDate = lesson.date,
                     scrollProgress = scrollProgress,
                     onBack = onBack,
                     onOpenDatePicker = onOpenDatePicker,
@@ -357,7 +433,7 @@ fun TanyaReaderScreen(
         if (showTypographySheet) {
             ReaderTypographySheet(
                 preferences = if (allowPrintLayout && preferences.tanyaBookView) preferences.copy(showNikud = preferences.tanyaBookShowNikud) else preferences,
-                fontSizeSp = preferences.chumashFontSizeSp,
+                fontSizeSp = preferences.fontSizeSp,
                 onDismiss = { showTypographySheet = false },
                 onFontSizeChange = onFontSizeChange,
                 onLineSpacingChange = onLineSpacingChange,
