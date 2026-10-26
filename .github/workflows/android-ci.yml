@@ -93,13 +93,18 @@ jobs:
         run: npm install --global firebase-tools@15.10.1
       # Obtain fresh credentials after the build; GitHub OIDC tokens are short-lived.
       - name: Authenticate for distribution
+        id: distribute-auth
         if: github.event_name != 'pull_request'
         uses: google-github-actions/auth@v3
         with:
           workload_identity_provider: ${{ vars.FIREBASE_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.FIREBASE_SERVICE_ACCOUNT }}
+          token_format: access_token
       - name: Distribute to the existing Firebase testers
         if: github.event_name != 'pull_request'
+        env:
+          GOOGLE_ACCESS_TOKEN: ${{ steps.distribute-auth.outputs.access_token }}
+          FIREBASE_BUILD_VERSION: ${{ steps.version.outputs.version }}
         run: |
           firebase appdistribution:distribute app/build/outputs/apk/debug/app-debug.apk \
             --app "$FIREBASE_APP_ID" --testers "$FIREBASE_TESTERS" \
