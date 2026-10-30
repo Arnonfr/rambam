@@ -79,6 +79,8 @@ jobs:
           --tests com.example.TanyaAudioVisibilityTest
           --tests com.example.HebrewTextNormalizerTest
           --tests com.example.HomeResumeActionsTest
+          --tests com.example.TesterFeedbackTest
+          --tests com.example.PlayReviewTest
       - name: Build debug APK
         run: gradle assembleDebug --no-daemon --console=plain
       - name: Save the verified APK

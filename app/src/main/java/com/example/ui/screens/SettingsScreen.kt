@@ -19,6 +19,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.StarOutline
+import androidx.compose.material.icons.outlined.Feedback
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.*
@@ -83,6 +84,7 @@ fun SettingsScreen(
 ) {
     val analytics = com.example.data.analytics.AudioAnalytics.get(androidx.compose.ui.platform.LocalContext.current)
     val measurementEnabled by analytics.enabled.collectAsState()
+    var showFeedback by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
     var showZmanimPreferences by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(expandZmanim) }
     fun navigateBack() { if (showZmanimPreferences) showZmanimPreferences = false else onBack() }
     BackHandler { navigateBack() }
@@ -108,6 +110,10 @@ fun SettingsScreen(
     )
 
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+        if (showFeedback) {
+            com.example.ui.components.FeedbackScreen { showFeedback = false }
+            return@CompositionLocalProvider
+        }
         Column(Modifier.fillMaxSize().background(SettingsPaper).testTag("settings_screen")) {
             Row(
                 Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
@@ -355,6 +361,16 @@ fun SettingsScreen(
                 SettingsToggleRow("שיתוף נתוני שימוש לשיפור האפליקציה", measurementEnabled, "settings_measurement", analytics::setEnabled)
                 Text("נמדדים פתיחת הנגן, זמן האזנה ותקלות באמצעות Google Analytics. מזהה התקנה מאפשר לזהות שימוש חוזר; לא נשלחים שם, דוא״ל או טקסט הלימוד. אפשר לכבות בכל עת.", fontSize=11.sp, color=SettingsMuted)
                 SettingsDivider()
+                TextButton(
+                    onClick = { showFeedback = true }, modifier = Modifier.fillMaxWidth().testTag("settings_feedback"),
+                    contentPadding = PaddingValues(vertical = 8.dp),
+                    colors = ButtonDefaults.textButtonColors(contentColor = SettingsInk)
+                ) {
+                    Icon(Icons.Outlined.Feedback, null, Modifier.size(17.dp))
+                    Spacer(Modifier.width(9.dp))
+                    Text("שליחת משוב", Modifier.weight(1f), fontSize = 12.sp)
+                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = SettingsMuted, modifier = Modifier.size(18.dp))
+                }
                 TextButton(
                     onClick=onRateInStore,modifier=Modifier.fillMaxWidth().testTag("settings_rate_in_store"),
                     contentPadding=PaddingValues(vertical=8.dp),colors=ButtonDefaults.textButtonColors(contentColor=SettingsInk)
