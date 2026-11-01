@@ -368,7 +368,7 @@ fun SettingsScreen(
                 ) {
                     Icon(Icons.Outlined.Feedback, null, Modifier.size(17.dp))
                     Spacer(Modifier.width(9.dp))
-                    Text("שליחת משוב", Modifier.weight(1f), fontSize = 12.sp)
+                    Text("דיווח תקלה למפתח בדוא״ל", Modifier.weight(1f), fontSize = 12.sp)
                     Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = SettingsMuted, modifier = Modifier.size(18.dp))
                 }
                 TextButton(
@@ -377,7 +377,7 @@ fun SettingsScreen(
                 ) {
                     Icon(Icons.Outlined.StarOutline,null,Modifier.size(17.dp))
                     Spacer(Modifier.width(9.dp))
-                    Text("דירוג בחנות",Modifier.weight(1f),fontSize=12.sp)
+                    Text("משוב ב־Google Play",Modifier.weight(1f),fontSize=12.sp)
                     Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight,null,tint=SettingsMuted,modifier=Modifier.size(18.dp))
                 }
                 TextButton(

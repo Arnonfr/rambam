@@ -62,9 +62,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             val viewModel: DailyRambamViewModel = viewModel()
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-            val reviewEngagement=remember { com.example.data.reviews.ReviewEngagement(applicationContext) }
+            val feedbackEngagement=remember { com.example.data.reviews.TesterFeedbackEngagement(applicationContext) }
             val reviewCoordinator=remember { com.example.data.reviews.PlayReviewCoordinator(this@MainActivity) }
-            var reviewPending by remember { mutableStateOf(false) }
+            var feedbackSession by remember { mutableStateOf(0) }
             val speechViewModel: com.example.ui.DailySpeechViewModel = viewModel()
             val speechState by speechViewModel.state.collectAsStateWithLifecycle()
             val zmanimViewModel: com.example.ui.ZmanimViewModel = viewModel()
@@ -142,22 +142,23 @@ class MainActivity : ComponentActivity() {
                 uiState.dateDrawerState==com.example.ui.DateDrawerState.COLLAPSED &&
                 prayerId==null && !personalOpen && !showZmanim
             val latestReviewHome=androidx.compose.runtime.rememberUpdatedState(reviewHome)
-            LaunchedEffect(Unit) {
-                com.example.data.reviews.ReviewEngagement.completions.collect { reviewPending=true }
-            }
-            LaunchedEffect(reviewPending,reviewHome,foreground) {
-                if(reviewPending && reviewHome && foreground.isAtLeast(Lifecycle.State.RESUMED)) {
+            LaunchedEffect(feedbackSession,reviewHome,foreground) {
+                if(feedbackEngagement.eligible() && reviewHome && foreground.isAtLeast(Lifecycle.State.RESUMED) && reviewCoordinator.isPlayDistribution()) {
                     kotlinx.coroutines.delay(1200)
-                    reviewPending=false
-                    reviewCoordinator.requestAfterStudy { latestReviewHome.value }
+                    while (!reviewCoordinator.canInviteFeedback()) kotlinx.coroutines.delay(2000)
+                    reviewCoordinator.requestTesterFeedback({ latestReviewHome.value }, feedbackEngagement::claimPrompt)
                 }
             }
 
             DisposableEffect(lifecycleOwner) {
                 val observer = LifecycleEventObserver { _, event ->
-                    if (event == Lifecycle.Event.ON_STOP) zmanimViewModel.stopLocation()
+                    if (event == Lifecycle.Event.ON_STOP) {
+                        feedbackEngagement.recordBackground()
+                        zmanimViewModel.stopLocation()
+                    }
                     if (event == Lifecycle.Event.ON_RESUME) {
-                        reviewEngagement.recordUse()
+                        feedbackEngagement.recordUse()
+                        feedbackSession++
                         viewModel.checkAndUpdateCurrentDate()
                         zmanimViewModel.refreshIfNeeded()
                     }

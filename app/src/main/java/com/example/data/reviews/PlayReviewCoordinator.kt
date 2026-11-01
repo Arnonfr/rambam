@@ -21,11 +21,18 @@ class PlayReviewCoordinator(
 ) {
     private var requesting=false
 
-    fun requestAfterStudy(safeScreen:()->Boolean) {
+    fun canInviteFeedback(): Boolean = playInstall() && !audioBusy()
+    fun isPlayDistribution(): Boolean = playInstall()
+
+    fun requestAfterStudy(safeScreen:()->Boolean) = requestFlow(safeScreen, engagement::claimAttempt)
+
+    fun requestTesterFeedback(safeScreen:()->Boolean, claimAttempt:()->Boolean) = requestFlow(safeScreen, claimAttempt)
+
+    private fun requestFlow(safeScreen:()->Boolean, claimAttempt:()->Boolean) {
         fun safe()=!activity.isFinishing && !activity.isDestroyed &&
             activity.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) && safeScreen() && !audioBusy()
-        if(requesting || !playInstall() || !safe() || !engagement.eligible()) return
-        if(!engagement.claimAttempt()) return
+        if(requesting || !playInstall() || !safe()) return
+        if(!claimAttempt()) return
         requesting=true
         try {
             manager.requestReviewFlow().addOnCompleteListener { result ->

@@ -33,12 +33,53 @@ class PlayReviewTest {
     @Before fun reset() {
         app.getSharedPreferences("play_review_engagement",Context.MODE_PRIVATE).edit().clear().commit()
         app.getSharedPreferences("rambam_reading_anchor",Context.MODE_PRIVATE).edit().clear().commit()
+        app.getSharedPreferences("tester_feedback_sessions",Context.MODE_PRIVATE).edit().clear().commit()
     }
     private fun engaged():ReviewEngagement {
         val store=ReviewEngagement(app){clock}
         repeat(3) {store.recordUse();clock+=day}
         repeat(5) {store.completed("study-$it","2026-10-23")}
         return store
+    }
+
+    @Test fun feedbackInvitesOnThirdSessionAndDoesNotCountRotationOrShortStoreVisits() {
+        val store=com.example.data.reviews.TesterFeedbackEngagement(app){clock}
+        store.recordUse();assertFalse(store.eligible())
+        repeat(5) { store.recordBackground();clock+=1000;store.recordUse() }
+        assertFalse(store.eligible())
+        store.recordBackground();clock+=com.example.data.reviews.TesterFeedbackEngagement.SESSION_GAP
+        store.recordUse();assertFalse(store.eligible())
+        store.recordBackground();clock+=com.example.data.reviews.TesterFeedbackEngagement.SESSION_GAP
+        store.recordUse();assertTrue(store.claimPrompt());assertFalse(store.claimPrompt())
+        assertFalse(com.example.data.reviews.TesterFeedbackEngagement(app){clock}.eligible())
+    }
+
+    @Test fun thirdUseRequestsTheActualGoogleCardWithoutCompletionOrDayRequirements() {
+        val activity=Robolectric.buildActivity(ComponentActivity::class.java).setup().get()
+        val store=com.example.data.reviews.TesterFeedbackEngagement(app){clock}
+        val manager=ControlledManager(activity)
+        val coordinator=PlayReviewCoordinator(activity,ReviewEngagement(app){clock},manager,{true},{false})
+        repeat(2) {
+            store.recordUse()
+            coordinator.requestTesterFeedback({true},store::claimPrompt)
+            assertEquals(0,manager.requests)
+            store.recordBackground();clock+=com.example.data.reviews.TesterFeedbackEngagement.SESSION_GAP
+        }
+        store.recordUse()
+        coordinator.requestTesterFeedback({true},store::claimPrompt)
+        assertEquals(1,manager.requests)
+        manager.resolve();assertEquals(1,manager.launches)
+        coordinator.requestTesterFeedback({true},store::claimPrompt)
+        assertEquals(1,manager.requests)
+    }
+
+    @Test fun feedbackInvitationRequiresPlayInstallAndIdleAudio() {
+        val activity=Robolectric.buildActivity(ComponentActivity::class.java).setup().get()
+        val manager=ControlledManager(activity)
+        assertFalse(PlayReviewCoordinator(activity,engaged(),manager,{false},{false}).canInviteFeedback())
+        assertFalse(PlayReviewCoordinator(activity,engaged(),manager,{true},{true}).canInviteFeedback())
+        assertTrue(PlayReviewCoordinator(activity,engaged(),manager,{true},{false}).canInviteFeedback())
+        assertEquals(0,manager.requests)
     }
 
     @Test fun realStudyCompletionsAreDeduplicatedAndNeedThreeActualUsageDays() {
