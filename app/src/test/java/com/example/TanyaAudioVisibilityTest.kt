@@ -47,7 +47,7 @@ class TanyaAudioVisibilityTest {
         compose.onNodeWithTag("tanya_section_1").assertExists()
     }
 
-    @Test fun missingDailyChapterOffersScrollableLessonsAndVideoRemainsExternal() {
+    @Test fun removedTeachersAreNotOfferedEvenWithAnOldSavedSelection() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         org.robolectric.Shadows.shadowOf(context as android.app.Application).declareComponentUnbindable(
             android.content.ComponentName(context, com.example.data.prayers.audio.PrayerPlaybackService::class.java))
@@ -59,23 +59,9 @@ class TanyaAudioVisibilityTest {
                 preferences = UserPreferences(keepScreenOn = false, tanyaBookView = false), audioStudyDate = lesson.date)
         } }
         compose.onNodeWithContentDescription("הצגת השיעור המוקלט").performClick()
-        compose.onNodeWithText("עדיין אין הקלטה לפרק הזה").assertExists()
-        compose.onNodeWithText("השיעורים הזמינים").performClick()
-        compose.onNodeWithTag("tanya_available_lessons").assertExists()
-        val targetIndex = com.example.data.tanya.TanyaAvailableLessons.get(context).cached("teib")
-            .sortedBy { if (it.kind == "audio") 0 else 1 }.indexOfFirst { it.id == "youtube:hHwKffBOVeg" }
-        assertTrue(targetIndex >= 0)
-        compose.onNodeWithTag("tanya_available_lessons").performScrollToIndex(targetIndex)
-        compose.onNodeWithTag("available_youtube:hHwKffBOVeg").performClick()
-        compose.onNodeWithTag("tanya_youtube_player").assertDoesNotExist()
-        compose.onNodeWithText("סגירת רשימת השיעורים").performClick()
-        compose.onNodeWithText("פתיחת נגן הווידאו").assertDoesNotExist()
-        compose.onNodeWithText("פתיחת השיעור באתר המקור").assertExists()
-        compose.onNodeWithText("הצפייה בשיעור נפתחת באתר המקור, מחוץ לאפליקציה.").assertExists()
-        compose.onNodeWithContentDescription("הסתרת השיעור המוקלט").performClick()
-        compose.onNodeWithContentDescription("הצגת השיעור המוקלט").performClick()
-        compose.onNodeWithText("פתיחת השיעור באתר המקור").assertExists()
-        compose.onNodeWithContentDescription("הסתרת השיעור המוקלט").performClick()
-        compose.onNodeWithTag("tanya_audio_controls").assertDoesNotExist()
+        compose.onNodeWithText("הרב נדב כהן").assertExists()
+        compose.onNodeWithText("הרב שניאור אשכנזי").assertExists()
+        compose.onNodeWithText("הרב ברוך וילהלם").assertDoesNotExist()
+        compose.onNodeWithText("הרב מיכאל טייב").assertDoesNotExist()
     }
 }

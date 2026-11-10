@@ -210,19 +210,7 @@ private fun TopHomeBar(
                     )
                 }
 
-                IconButton(
-                    onClick = onOpenAttribution,
-                    modifier = Modifier
-                        .size(40.dp)
-                        .testTag("home_info_button")
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Info,
-                        contentDescription = "אודות",
-                        tint = Color.Black,
-                        modifier = Modifier.size(28.dp)
-                    )
-                }
+
             }
         }
     }

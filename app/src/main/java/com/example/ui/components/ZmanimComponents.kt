@@ -97,7 +97,8 @@ fun ZmanimHeader(preferences: ZmanimPreferences, day: ZmanimDay?, now: Instant,
 @OptIn(ExperimentalMaterial3Api::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 fun ZmanimSheet(date: LocalDate, fullDate: String, preferences: ZmanimPreferences, day: ZmanimDay?,
-    now: Instant, focus: ZmanId?, onOpenSettings: () -> Unit, onDismiss: () -> Unit) {
+    now: Instant, focus: ZmanId?, onOpenSettings: () -> Unit, onDismiss: () -> Unit,
+    playbackBar: @Composable () -> Unit = {}) {
     var expanded by remember { mutableStateOf(focus) }
     val uri = LocalUriHandler.current
     val focusedRequester = remember { BringIntoViewRequester() }
@@ -151,7 +152,6 @@ fun ZmanimSheet(date: LocalDate, fullDate: String, preferences: ZmanimPreference
                                     Text(if(result.id==ZmanId.CANDLES) day?.candleLighting?.explanation.orEmpty() else result.id.explanationFor(preferences.method), fontSize = 13.sp, modifier = Modifier.padding(top = 8.dp))
                                     if (result.rawInstant == null && day != null) Text("אינו ניתן לחישוב במיקום ובתאריך אלה לפי השיטה. לא הופעלה שיטת תחליף.", fontSize = 12.sp)
                                     Text("עיגול לתצוגה: " + when { result.id == ZmanId.NOON -> "לדקה הקרובה, לנקודת אמצע היום"; !result.roundUp -> "כלפי מטה, למועד אחרון"; else -> "כלפי מעלה, בלי להקדים את הזמן" }, fontSize = 11.sp)
-                                    TextButton(onClick = { uri.openUri(preferences.method.source) }) { Text("מקור שיטת החישוב") }
                                 }
                             }
                             HorizontalDivider()
@@ -159,6 +159,7 @@ fun ZmanimSheet(date: LocalDate, fullDate: String, preferences: ZmanimPreference
                         TextButton(onClick = onOpenSettings, modifier = Modifier.fillMaxWidth().testTag("zmanim_customize")) { Text("התאמה אישית") }
                     Spacer(Modifier.height(30.dp))
                 }
+                playbackBar()
             }
         }
     }

@@ -42,7 +42,7 @@ fun TanyaAudioControls(lesson: DailyTanyaLesson, selectedDate: String, player: T
     val accent = Color(0xFFF0A0DD)
     val prefs = remember { context.applicationContext.getSharedPreferences("tanya_audio_preferences", android.content.Context.MODE_PRIVATE) }
     var teacher by remember { mutableStateOf(prefs.getString("teacher", "nadav")
-        ?.takeIf { it in setOf("nadav", "ashkenazi", "wilhelm", "teib") } ?: "nadav") }
+        ?.takeIf { it in setOf("nadav", "ashkenazi") } ?: "nadav") }
     val ashkenazi = remember(context) { AshkenaziTanyaRepository.get(context) }
     val catalog = remember(ashkenazi) { ashkenazi.lessons }
     val repository = remember(context) { TanyaAvailableLessons.get(context) }
@@ -97,7 +97,7 @@ fun TanyaAudioControls(lesson: DailyTanyaLesson, selectedDate: String, player: T
                 .background(ink.copy(alpha = .04f)).border(1.dp, ink.copy(alpha = .15f), RoundedCornerShape(16.dp))
                 .horizontalScroll(rememberScrollState()).padding(4.dp).selectableGroup()
                 .testTag("tanya_teacher_picker")) {
-                listOf("nadav", "ashkenazi", "wilhelm", "teib").forEach { key ->
+                listOf("nadav", "ashkenazi").forEach { key ->
                     val active = teacher == key
                     Box(Modifier.widthIn(min = 124.dp).heightIn(min = 48.dp).clip(RoundedCornerShape(12.dp))
                         .background(if (active) accent else Color.Transparent)

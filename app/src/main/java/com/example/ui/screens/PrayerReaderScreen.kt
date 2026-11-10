@@ -174,22 +174,7 @@ fun PrayerReaderScreen(
                         isReadingAnchor = anchorIndex == index,
                         modifier = Modifier.padding(bottom = 18.dp))
                 }
-                item(key = "attribution") {
-                    var expanded by remember { mutableStateOf(false) }
-                    TextButton(onClick = { expanded = !expanded }) { Text("אודות הנוסח ומקורות") }
-                    if (expanded) {
-                    Text("נוסח האר״י · תורה אור. התמלול טרם הוגה במלואו מול תהלת השם. תוספות עונתיות אינן נבחרות אוטומטית.",
-                        style = MaterialTheme.typography.bodySmall, color = foreground.copy(alpha = .65f))
-                    Text("מקור: תורמי ויקיטקסט העברי · CC BY-SA 4.0. שינויים: חלוקה לפסקאות, נרמול תווים והסרת הוראות והלכות. מזמורי שיר של יום: מאגר התהלים של האפליקציה.",
-                        style = MaterialTheme.typography.bodySmall, color = foreground.copy(alpha = .65f))
-                    TextButton(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(section.source))) }) {
-                        Text("המקור והיסטוריית העריכות")
-                    }
-                    TextButton(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://creativecommons.org/licenses/by-sa/4.0/"))) }) {
-                        Text("רישיון התוכן")
-                    }
-                    }
-                }
+
             }
             Column(Modifier.align(Alignment.TopCenter).onSizeChanged { headerHeight = with(density) { it.height.toDp() } }) {
                 CompactReaderHeader(service.title, currentSection.title, Color(0xFF73D4ED), progress, preferences.readerTheme)

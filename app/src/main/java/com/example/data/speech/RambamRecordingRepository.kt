@@ -30,7 +30,7 @@ class RambamRecordingRepository(context: Context) {
         // Validate the media before exposing Play. A missing recording never becomes system TTS.
         client.newCall(Request.Builder().url(plan.parts.single().audioUrl).head().build()).execute().use {
             check(it.isSuccessful && allowedUrl(it.request.url.toString()) && it.header("Content-Type").orEmpty().startsWith("audio/")) {
-                "ההקלטה אינה זמינה כרגע. אפשר לנסות שוב או לבחור בהקראה של Michael."
+                "ההקלטה אינה זמינה כרגע. אפשר לנסות שוב מאוחר יותר."
             }
         }
         ensureActive()
@@ -65,7 +65,7 @@ class RambamRecordingRepository(context: Context) {
             check(type == if (three) "6" else "7")
             val key = if (three) "data-id" else "data-id-nadav"
             val id = Regex("$key=\"([0-9]+)\"").find(player)?.groupValues?.get(1)
-                ?: error("אין הקלטה זמינה ללימוד הזה. אפשר לבחור בהקראה של Michael.")
+                ?: error("אין הקלטה זמינה ללימוד הזה. נסו שוב מאוחר יותר.")
             val url = if (three) "https://www.chabad.fm/mp3/rambam/shiur$id.mp3" else "https://www.chabad.fm/mp3/rambamRabbiNadav/$id.mp3"
             check(allowedUrl(url))
             val source = if (three) "peretz" else "nadav"

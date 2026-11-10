@@ -196,3 +196,7 @@ fun ZmanimDay.headerTimes(preferences: ZmanimPreferences): List<Pair<ZmanResult,
         times.find { it.id == id }?.let { add(it to if(preferences.method == ZmanimMethod.SINGAVI && id in listOf(ZmanId.SUNRISE, ZmanId.SUNSET)) id.labelFor(preferences.method) else id.shortLabel) }
     }
 }
+
+/** Live study advances at sunset; daily solar times continue to refer to the civil day. */
+fun zmanimDisplayDate(selectedStudyDate: LocalDate, effectiveToday: LocalDate, civilToday: LocalDate): LocalDate =
+    if (selectedStudyDate == effectiveToday) civilToday else selectedStudyDate

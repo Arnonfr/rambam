@@ -1,13 +1,6 @@
 package com.example.ui.screens
 
 import android.content.Intent
-import android.media.MediaPlayer
-import android.media.AudioAttributes
-import android.media.AudioManager
-import android.content.Context
-import android.content.BroadcastReceiver
-import android.content.IntentFilter
-import androidx.core.content.ContextCompat
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
@@ -37,12 +30,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.data.podcasts.*
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.delay
 
 private val PodcastPaper = Color(0xFFFFFCF6)
 private val PodcastInk = Color(0xFF111111)
@@ -72,115 +61,21 @@ fun PodcastPanel(modifier: Modifier = Modifier, onOpenSettings: () -> Unit = {})
         if (runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }.isFailure)
             Toast.makeText(context, "לא נמצאה אפליקציה לפתיחת הקישור", Toast.LENGTH_SHORT).show()
     }
-    val player = remember { MediaPlayer().apply {
-        setAudioAttributes(AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-            .setUsage(AudioAttributes.USAGE_MEDIA).build())
-    } }
-    var active by remember { mutableStateOf<PodcastEpisode?>(null) }
-    var playing by remember { mutableStateOf(false) }
-    var preparing by remember { mutableStateOf(false) }
-    var ready by remember { mutableStateOf(false) }
-    var position by remember { mutableIntStateOf(0) }
-    var duration by remember { mutableIntStateOf(0) }
-    val owner = LocalLifecycleOwner.current
-    val audioManager = remember { context.getSystemService(Context.AUDIO_SERVICE) as AudioManager }
-    val focusListener = remember(player) { AudioManager.OnAudioFocusChangeListener { focus ->
-        if (focus < 0 && ready && playing) { player.pause(); playing = false }
-    } }
-    fun startPlayback() {
-        if (!owner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) return
-        val granted = audioManager.requestAudioFocus(focusListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN)
-        if (granted == AudioManager.AUDIOFOCUS_REQUEST_GRANTED && owner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
-            player.start(); playing = true
-        }
-    }
-    DisposableEffect(player, owner) {
-        player.setOnPreparedListener { ready = true; preparing = false; duration = it.duration; startPlayback() }
-        player.setOnCompletionListener { playing = false; position = duration; audioManager.abandonAudioFocus(focusListener) }
-        player.setOnErrorListener { _, _, _ ->
-            preparing = false; playing = false; ready = false; active = null
-            audioManager.abandonAudioFocus(focusListener)
-            Toast.makeText(context, "ההקלטה לא זמינה כרגע. נסו לפתוח במקור", Toast.LENGTH_LONG).show()
-            true
-        }
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_STOP) {
-                if (ready && playing) player.pause()
-                playing = false
-                audioManager.abandonAudioFocus(focusListener)
-            }
-        }
-        val headphones = object : BroadcastReceiver() {
-            override fun onReceive(context: Context?, intent: Intent?) {
-                if (ready && playing) player.pause()
-                playing = false
-                audioManager.abandonAudioFocus(focusListener)
-            }
-        }
-        ContextCompat.registerReceiver(context, headphones, IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY), ContextCompat.RECEIVER_NOT_EXPORTED)
-        owner.lifecycle.addObserver(observer)
-        onDispose { context.unregisterReceiver(headphones); owner.lifecycle.removeObserver(observer); audioManager.abandonAudioFocus(focusListener); player.release() }
-    }
-    LaunchedEffect(playing) {
-        while (playing) { position = player.currentPosition; delay(500) }
-    }
+    val player: com.example.ui.PlaybackViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    val playback by player.state.collectAsState()
+    val playing = playback.playing
+    val active = episodes.firstOrNull { "podcast:${it.url}" == playback.mediaId }
     fun play(episode: PodcastEpisode) {
         val audio = episode.audio
         if (audio == null) { open(episode.url); return }
-        if (active == episode && ready) {
-            if (playing) { player.pause(); playing = false; audioManager.abandonAudioFocus(focusListener) }
-            else startPlayback()
-            return
-        }
-        runCatching {
-            player.reset(); active = episode; playing = false; preparing = true; ready = false
-            position = 0; duration = 0
-            player.setAudioAttributes(AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-                .setUsage(AudioAttributes.USAGE_MEDIA).build())
-            player.setDataSource(audio); player.prepareAsync()
-        }.onFailure {
-            active = null; preparing = false; ready = false
-            Toast.makeText(context, "לא ניתן להפעיל את ההקלטה", Toast.LENGTH_SHORT).show()
-        }
+        player.playPodcast("podcast:${episode.url}", episode.title, selected?.teacher.orEmpty(), audio)
     }
     Column(modifier.background(PodcastPaper).padding(bottom = 100.dp)) {
         if (selected == null) PodcastLibrary(onOpen = { selectedId = it.id }, modifier = Modifier.weight(1f), onSettings = onOpenSettings)
         else PodcastSeriesDetail(selected, episodes, loading, error, onBack = { selectedId = null },
             onRetry = { refresh++ }, onSource = { open(selected.website) }, onPlay = ::play,
             activeUrl = active?.url, playing = playing, modifier = Modifier.weight(1f))
-        active?.let { episode ->
-            Surface(color = PodcastCyan, shape = RoundedCornerShape(20.dp),
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp).testTag("podcast_player")) {
-                Column(Modifier.padding(horizontal = 14.dp, vertical = 8.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f)) {
-                            Text(episode.title, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                                fontWeight = FontWeight.Bold, color = PodcastInk)
-                            Text(if (preparing) "טוען הקלטה…" else "${audioTime(position)} / ${audioTime(duration)}",
-                                fontSize = 12.sp, color = PodcastInk)
-                        }
-                        IconButton(onClick = { play(episode) }, enabled = ready) {
-                            if (preparing) CircularProgressIndicator(Modifier.size(20.dp), color = PodcastInk)
-                            else Icon(if (playing) Icons.Default.Pause else Icons.Default.PlayArrow,
-                                if (playing) "השהיה" else "הפעלה", tint = PodcastInk)
-                        }
-                        IconButton(onClick = { player.reset(); audioManager.abandonAudioFocus(focusListener); active = null; ready = false; playing = false; preparing = false }) {
-                            Icon(Icons.Default.Close, "סגירת הנגן", tint = PodcastInk)
-                        }
-                    }
-                    if (ready && duration > 0) Slider(value = position.toFloat().coerceIn(0f, duration.toFloat()),
-                        onValueChange = { position = it.toInt(); player.seekTo(position) },
-                        valueRange = 0f..duration.toFloat(), modifier = Modifier.height(24.dp),
-                        colors = SliderDefaults.colors(thumbColor = PodcastInk, activeTrackColor = PodcastInk))
-                }
-            }
-        }
     }
-}
-
-private fun audioTime(milliseconds: Int): String {
-    val seconds = milliseconds.coerceAtLeast(0) / 1000
-    return "%d:%02d".format(seconds / 60, seconds % 60)
 }
 
 @Composable

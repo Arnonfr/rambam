@@ -1013,7 +1013,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
         viewModelScope.launch {
             try { onReady(recordingRepository.resolve(assignment)) }
             catch (e: kotlinx.coroutines.CancellationException) { throw e }
-            catch (e: Exception) { onError(e.message ?: "לא ניתן לטעון את ההקלטה. בדקו חיבור או בחרו Michael.") }
+            catch (e: Exception) { onError(e.message ?: "לא ניתן לטעון את ההקלטה. בדקו את החיבור ונסו שוב.") }
         }
     }
 

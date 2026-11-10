@@ -59,7 +59,7 @@ class DailySpeechControlsTest {
         compose.onNodeWithTag("daily_speech_error").assertIsDisplayed()
         compose.onNodeWithText("הגדרות הקראה בטלפון").assertDoesNotExist()
     }
-    @Test fun `recording source is selectable and never offers fictitious halacha boundaries`() {
+    @Test fun `recording has no voice selector and never offers fictitious halacha boundaries`() {
         var source by mutableStateOf("recording")
         var starts=0
         compose.setContent { DailyRambamTheme(readerTheme="oled") {
@@ -71,12 +71,12 @@ class DailySpeechControlsTest {
                 }
             }
         } }
-        compose.onNodeWithTag("rambam_source_recording").assertIsSelected()
+        compose.onNodeWithTag("rambam_source_recording").assertDoesNotExist()
         compose.onNodeWithTag("daily_speech_next").assertDoesNotExist()
         compose.onNodeWithTag("tanya_audio_timeline").assertIsDisplayed()
         compose.onRoot().captureRoboImage("build/review/rambam-recording-dark-142.png")
-        compose.onNodeWithTag("rambam_source_michael").performClick()
-        assertEquals("michael",source);assertEquals(0,starts)
+        compose.onNodeWithTag("rambam_source_michael").assertDoesNotExist()
+        assertEquals("recording",source);assertEquals(0,starts)
     }
 
 }

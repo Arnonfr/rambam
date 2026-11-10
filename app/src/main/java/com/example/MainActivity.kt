@@ -65,6 +65,8 @@ class MainActivity : ComponentActivity() {
             val feedbackEngagement=remember { com.example.data.reviews.TesterFeedbackEngagement(applicationContext) }
             val reviewCoordinator=remember { com.example.data.reviews.PlayReviewCoordinator(this@MainActivity) }
             var feedbackSession by remember { mutableStateOf(0) }
+            val playbackViewModel: com.example.ui.PlaybackViewModel = viewModel()
+            val playbackState by playbackViewModel.state.collectAsStateWithLifecycle()
             val speechViewModel: com.example.ui.DailySpeechViewModel = viewModel()
             val speechState by speechViewModel.state.collectAsStateWithLifecycle()
             val zmanimViewModel: com.example.ui.ZmanimViewModel = viewModel()
@@ -75,8 +77,17 @@ class MainActivity : ComponentActivity() {
             var showZmanim by rememberSaveable { mutableStateOf(false) }
             var zmanimSettings by rememberSaveable { mutableStateOf(false) }
             var zmanimFocus by remember { mutableStateOf<com.example.domain.zmanim.ZmanId?>(null) }
+            val zmanimDisplayDate by produceState(com.example.domain.zmanim.zmanimDisplayDate(uiState.selectedStudyDate, uiState.effectiveToday,
+                java.time.LocalDate.now(java.time.ZoneId.of(zmanimPreferences.location?.timezoneId ?: java.time.ZoneId.systemDefault().id))), uiState.selectedStudyDate, uiState.effectiveToday,
+                zmanimPreferences.location?.timezoneId) {
+                while(true) {
+                    val zone = java.time.ZoneId.of(zmanimPreferences.location?.timezoneId ?: java.time.ZoneId.systemDefault().id)
+                    value = com.example.domain.zmanim.zmanimDisplayDate(uiState.selectedStudyDate, uiState.effectiveToday, java.time.LocalDate.now(zone))
+                    kotlinx.coroutines.delay(30_000)
+                }
+            }
             val zmanimDay = calculatedZmanimDay?.takeIf {
-                it.date == uiState.selectedStudyDate && it.location == zmanimPreferences.location &&
+                it.date == zmanimDisplayDate && it.location == zmanimPreferences.location &&
                     it.candleLightingMinutesOverride == zmanimPreferences.candleLightingMinutes &&
                     it.holidayInIsraelOverride == zmanimPreferences.holidayInIsrael && it.method == zmanimPreferences.method
             }
@@ -101,7 +112,13 @@ class MainActivity : ComponentActivity() {
                     zmanimViewModel.locate()
                 else locationPermission.launch(arrayOf(android.Manifest.permission.ACCESS_COARSE_LOCATION, android.Manifest.permission.ACCESS_FINE_LOCATION))
             }
-            LaunchedEffect(uiState.selectedStudyDate) { zmanimViewModel.selectDate(uiState.selectedStudyDate) }
+            LaunchedEffect(zmanimDisplayDate) { zmanimViewModel.selectDate(zmanimDisplayDate) }
+            LaunchedEffect(foreground) {
+                while(foreground.isAtLeast(Lifecycle.State.STARTED)) {
+                    zmanimViewModel.refreshIfNeeded()
+                    kotlinx.coroutines.delay(60_000)
+                }
+            }
             LaunchedEffect(zmanimPreferences.enabled, zmanimPreferences.mode) { zmanimViewModel.refreshIfNeeded() }
             val personalViewModel: com.example.ui.PersonalTehillimViewModel = viewModel()
             val personalState by personalViewModel.state.collectAsStateWithLifecycle()
@@ -188,16 +205,20 @@ class MainActivity : ComponentActivity() {
 
             DailyRambamTheme(readerTheme = uiState.preferences.readerTheme) {
                 if (showZmanim) com.example.ui.components.ZmanimSheet(
-                    date = uiState.selectedStudyDate,
-                    fullDate = viewModel.getHebrewDateForDate(uiState.selectedStudyDate),
+                    date = zmanimDisplayDate,
+                    fullDate = viewModel.getHebrewDateForDate(zmanimDisplayDate),
                     preferences = zmanimPreferences, day = zmanimDay, now = zmanimNow,
                     focus = zmanimFocus,
                     onOpenSettings = { showZmanim=false;zmanimSettings=true;viewModel.setShowSettings(true) },
-                    onDismiss = { showZmanim = false; zmanimViewModel.clearMessage() }
+                    onDismiss = { showZmanim = false; zmanimViewModel.clearMessage() },
+                    playbackBar = { com.example.ui.components.GlobalPlaybackBar(playbackState, playbackViewModel::toggle,
+                        { speechViewModel.action(com.example.data.speech.DailySpeechStatus.STOP); playbackViewModel.stop() }) }
                 )
                 Scaffold(
                     containerColor = if (uiState.isLoading && uiState.allSections.isEmpty()) androidx.compose.ui.graphics.Color.White else androidx.compose.material3.MaterialTheme.colorScheme.background,
                     modifier = Modifier.fillMaxSize(),
+                    bottomBar = { com.example.ui.components.GlobalPlaybackBar(playbackState,
+                        playbackViewModel::toggle, { speechViewModel.action(com.example.data.speech.DailySpeechStatus.STOP); playbackViewModel.stop() }) },
                     snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
                 ) { innerPadding ->
                     Box(
@@ -404,8 +425,6 @@ class MainActivity : ComponentActivity() {
                             )
                         } else if (uiState.activeChapter != null) {
                             val audioTrack = uiState.dailyLesson?.track ?: "one"
-                            val sourcePrefs = remember { getSharedPreferences("rambam_audio_source", MODE_PRIVATE) }
-                            var rambamSource by rememberSaveable(audioTrack) { mutableStateOf(sourcePrefs.getString(audioTrack, "recording") ?: "recording") }
                             val selectedAudioState = if (speechState.active && speechState.lessonId?.startsWith("rambam-${uiState.dailyLesson?.studyDate}-$audioTrack-") != true)
                                 com.example.data.speech.DailySpeechState() else speechState
                             ReaderScreen(
@@ -414,14 +433,7 @@ class MainActivity : ComponentActivity() {
                                 audioControls = {
                                     com.example.ui.components.DailySpeechControls(selectedAudioState,
                                         uiState.dailyLesson?.hebrewDate.orEmpty(), uiState.dailyLesson?.track ?: "one",
-                                        onStart={ if(rambamSource=="recording") speechViewModel.prepare(viewModel::prepareRecordedListening)
-                                            else speechViewModel.prepare(viewModel::prepareDailyListening) },
-                                        source=rambamSource, onSourceChange={ selected ->
-                                            if (rambamSource != selected) {
-                                                speechViewModel.action(com.example.data.speech.DailySpeechStatus.STOP)
-                                                rambamSource=selected; sourcePrefs.edit().putString(audioTrack,selected).apply()
-                                            }
-                                        },
+                                        onStart={ speechViewModel.prepare(viewModel::prepareRecordedListening) },
                                         onSeek=speechViewModel::seek,
                                         onAction={ action ->
                                             if(action=="daily_speech.restart") speechState.lessonId?.let { speechViewModel.restart(it) }
@@ -476,8 +488,8 @@ class MainActivity : ComponentActivity() {
                                 zmanimDateContext = zmanimPreferences.takeIf { it.enabled }?.location?.let { location ->
                                     val zone = java.time.ZoneId.of(location.timezoneId)
                                     listOfNotNull(
-                                        "מחר".takeIf { uiState.selectedStudyDate == zmanimNow.atZone(zone).toLocalDate().plusDays(1) },
-                                        (if (location.gps) "UTC${uiState.selectedStudyDate.atTime(12, 0).atZone(zone).offset.id}" else location.name.substringBefore(",")).takeIf { zone != java.time.ZoneId.systemDefault() }
+                                        "זמנים להיום".takeIf { zmanimDisplayDate != uiState.selectedStudyDate },
+                                        (if (location.gps) "UTC${zmanimDisplayDate.atTime(12, 0).atZone(zone).offset.id}" else location.name.substringBefore(",")).takeIf { zone != java.time.ZoneId.systemDefault() }
                                     ).joinToString(" · ").ifBlank { null }
                                 },
                                 personalPsalmCount = personalState.entries.size,

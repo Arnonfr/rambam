@@ -380,17 +380,7 @@ fun SettingsScreen(
                     Text("משוב ב־Google Play",Modifier.weight(1f),fontSize=12.sp)
                     Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight,null,tint=SettingsMuted,modifier=Modifier.size(18.dp))
                 }
-                TextButton(
-                    onClick = onOpenAttribution, modifier = Modifier.fillMaxWidth(),
-                    contentPadding = PaddingValues(vertical = 8.dp),
-                    colors = ButtonDefaults.textButtonColors(contentColor = SettingsInk)
-                ) {
-                    Icon(Icons.Outlined.Info, contentDescription = null, modifier = Modifier.size(17.dp))
-                    Spacer(Modifier.width(9.dp))
-                    Text("אודות, מקורות ורישוי", Modifier.weight(1f), fontSize = 12.sp)
-                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null,
-                        tint = SettingsMuted, modifier = Modifier.size(18.dp))
-                }
+
                 }
             }
         }

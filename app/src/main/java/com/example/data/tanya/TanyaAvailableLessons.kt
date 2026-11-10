@@ -42,7 +42,7 @@ class TanyaAvailableLessons private constructor(context: Context) {
         return (additions + bundled.filter { it.teacher == teacher }).distinctBy { it.id }
     }
     private fun cache(teacher: String): File {
-        require(teacher in setOf("nadav", "wilhelm", "teib"))
+        require(teacher == "nadav")
         return File(app.cacheDir, "tanya_available_$teacher.json")
     }
 
@@ -109,7 +109,7 @@ class TanyaAvailableLessons private constructor(context: Context) {
                 val r = rows.getJSONObject(index)
                 val kind = r.getString("kind")
                 val teacher = r.getString("teacher")
-                require(teacher in setOf("nadav", "wilhelm", "teib"))
+                require(teacher == "nadav")
                 val media = r.getString("media")
                 require(kind == "audio" || (kind == "youtube" && media.matches(Regex("[A-Za-z0-9_-]{11}"))))
                 if (kind == "audio") require(media.toHttpUrlOrNull()?.let { it.isHttps && it.host in

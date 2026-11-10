@@ -23,7 +23,7 @@ import com.example.data.tanya.TanyaPlaybackState
 @Composable
 fun DailySpeechControls(state: DailySpeechState, dateLabel: String, track: String,
     onStart: () -> Unit, onAction: (String) -> Unit, onSeek: (Long) -> Unit = {},
-    source: String = "michael", onSourceChange: ((String) -> Unit)? = null) {
+    source: String = "recording", onSourceChange: ((String) -> Unit)? = null) {
     val dark=MaterialTheme.colorScheme.background.luminance()<.3f
     val paper=if(dark) Color(0xFF1E222A) else Color.White
     val ink=if(dark) Color(0xFFF4F5F5) else Color(0xFF171714)
@@ -36,19 +36,7 @@ fun DailySpeechControls(state: DailySpeechState, dateLabel: String, track: Strin
             Text("האזנה לרמב״ם היומי",fontWeight=FontWeight.Bold)
             Spacer(Modifier.height(10.dp))
             Text(if(state.active) state.chapter else "$dateLabel · ${if(track=="three") "שלושה פרקים ברצף" else "פרק אחד"}",fontSize=13.sp)
-            if (onSourceChange != null) Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-                listOf("recording" to if(track=="three") "ר׳ אליהו פרץ" else "הרב נדב כהן", "michael" to "הקראה · Michael").forEach { (key,label) ->
-                    FilterChip(selected=source==key, onClick={onSourceChange(key)},
-                        modifier=Modifier.weight(1f).testTag("rambam_source_$key"),
-                        label={Text(label,fontSize=12.sp)},
-                        colors=FilterChipDefaults.filterChipColors(labelColor=ink,
-                            selectedContainerColor=accent.copy(alpha=.24f),selectedLabelColor=ink))
-                }
-            }
-            Text(if(state.active) state.voiceStatus else if(source=="recording") "שיעור מוקלט · מקור: חב״ד FM" else state.voiceStatus,
-                fontSize=12.sp,color=ink.copy(alpha=.65f))
-            if(!state.active && source=="michael") Text("הקול יורד פעם אחת (כ־64MB), ולאחר מכן ההקראה ללא אינטרנט.",fontSize=12.sp,color=ink.copy(alpha=.65f))
-            // Exactly the same player as Tanya: no second transport design or system voice settings.
+            Text(if(track=="three") "ר׳ אליהו פרץ" else "הרב נדב כהן", fontSize=12.sp,color=ink.copy(alpha=.65f))
             TanyaPlaybackControls(TanyaPlaybackState(active=state.active,playing=state.playing,
                 loading=state.preparing && !state.paused,position=state.position,duration=state.duration,speed=state.speed,error=state.error),
                 onPlay={if(!state.active) { if(state.preparing) onAction(DailySpeechStatus.STOP) else onStart() } else onAction(DailySpeechStatus.TOGGLE)},
@@ -71,7 +59,6 @@ fun DailySpeechControls(state: DailySpeechState, dateLabel: String, track: Strin
                 }
                 TextButton(onClick={restart=true},modifier=Modifier.testTag("daily_speech_restart")) {Text("מהתחלה",fontSize=12.sp)}
             }
-            if(source=="recording") Text("הקלטה מלאה של השיעור; הדילוג לפי הלכה זמין בהקראת Michael.",fontSize=11.sp,color=ink.copy(alpha=.65f))
             state.error?.let {Text(it,color=MaterialTheme.colorScheme.error,fontSize=13.sp,modifier=Modifier.testTag("daily_speech_error"))}
         }
     }

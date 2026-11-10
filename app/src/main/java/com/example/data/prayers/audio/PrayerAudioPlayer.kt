@@ -150,7 +150,7 @@ class PrayerAudioPlayer(context: Context, private val serviceId: String,
 
     fun close() {
         if (closed) return
-        stop(); closed = true
+        ++request; save(); ticker?.cancel(); closed = true
         controller?.removeListener(listener)
         future?.let { MediaController.releaseFuture(it) }
         future = null; controller = null

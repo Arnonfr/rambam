@@ -14,16 +14,21 @@ import java.time.*
 import java.time.format.DateTimeFormatter
 
 /** Uses the Rabbi's published table, not an approximation presented as his calculations. */
-class SingaviZmanimRepository(context: Context) {
+class SingaviZmanimRepository(context: Context,
+    private val fetch: (String, String?) -> String = ::singaviRequest,
+    private val today: (ZoneId) -> LocalDate = { LocalDate.now(it) }) {
     private val cache = context.getSharedPreferences("singavi_published_v1", Context.MODE_PRIVATE)
+    private val gpsCities = context.getSharedPreferences("singavi_city_matches_v1", Context.MODE_PRIVATE)
     private val cities = JSONArray(context.assets.open("zmanim/singavi-cities.json").bufferedReader().use { it.readText() })
     private fun norm(s: String) = s.replace(Regex("[׳״'\"–־-]"), "").replace(Regex("\\s+"), "").lowercase()
     private fun city(location: ZmanimLocation): JSONObject? {
         val aliases = mapOf("תלאביביפו" to "תלאביב", "ירושליים" to "ירושלים", "צפת" to "צפת")
-        val name = aliases[norm(location.name)] ?: norm(location.name)
-        return (0 until cities.length()).map { cities.getJSONObject(it) }.filter {
-            norm(it.getString("he")) == name || norm(it.getString("en")) == name ||
-                (it.getString("he").contains(',') && norm(it.getString("he").substringAfterLast(',')) == name)
+        val names = listOf(location.name, location.name.substringBefore(",")).map { norm(it) }.map { aliases[it] ?: it }.toSet()
+        val rows = (0 until cities.length()).map { cities.getJSONObject(it) }
+        val exact = rows.filter { norm(it.getString("he")) in names || norm(it.getString("en")) in names }
+        if(exact.isNotEmpty()) return exact.singleOrNull()
+        return rows.filter {
+            it.getString("he").contains(',') && norm(it.getString("he").substringAfterLast(',')) in names
         }.singleOrNull()
     }
     suspend fun day(date: LocalDate, location: ZmanimLocation, minutes: Int?, israel: Boolean?): ZmanimDay = withContext(Dispatchers.IO) {
@@ -31,32 +36,41 @@ class SingaviZmanimRepository(context: Context) {
             ZmanId.entries.filter { it != ZmanId.CANDLES }.map { ZmanResult(it, null) },
             candleLightingMinutesOverride=minutes, holidayInIsraelOverride=israel,
             method=ZmanimMethod.SINGAVI, sourceMessage=message)
-        if(location.gps) return@withContext unavailable("לוח הרב סינגאווי מתפרסם לפי ערים. בחרו עיר קבועה בהעדפות זמני היום.")
-        val city = city(location) ?: return@withContext unavailable("לא נמצא לוח הרב סינגאווי לעיר זו. אפשר לבחור עיר נתמכת בהעדפות או לפתוח את אתר הרב.")
+        val gpsKey = String.format(java.util.Locale.ROOT, "%.4f,%.4f", location.latitude, location.longitude)
+        val matched = if(location.gps) {
+            gpsCities.getString(gpsKey, null) ?: if(date != today(ZoneId.of(location.timezoneId))) null else try {
+                val body = JSONObject().put("lat", location.latitude).put("lon", location.longitude).toString()
+                val matches = JSONObject(fetch("https://zmanei-halacha-backend.onrender.com/api/locate", body)).getJSONArray("matches")
+                if(matches.length() == 1) matches.getJSONObject(0).getString("nameHe").also {
+                    if(gpsCities.all.size > 100) gpsCities.edit().clear().apply()
+                    gpsCities.edit().putString(gpsKey,it).apply()
+                } else null
+            } catch(e: CancellationException) { throw e } catch(_: Exception) { null }
+        } else null
+        val city = if(location.gps) matched?.let { city(location.copy(name=it)) } else city(location)
+        if(city == null) return@withContext unavailable("לא נמצא לוח תואם למיקום הזה. בחרו עיר קבועה מתוך הערים הנתמכות בלוח הרב סינגאווי.")
         val key = "${city.getString("region")}:${city.getString("he")}:$date"
         val stored = cache.getString(key, null)
-        fun parse(raw: String) = SingaviPublishedDay.parse(raw, date, location, minutes, israel, city.getString("he"))
+        fun parse(raw: String): ZmanimDay {
+            val result = SingaviPublishedDay.parse(raw, date, location, minutes, israel, city.getString("he"))
+            return if(location.gps) result.copy(sourceMessage="לוח העיר ${city.getString("he")} · ${result.sourceMessage}") else result
+        }
         if(stored != null && System.currentTimeMillis()-cache.getLong("$key:at",0) < 15*60_000)
             runCatching { parse(stored) }.getOrNull()?.let { return@withContext it }
-        if(date != LocalDate.now(ZoneId.of(location.timezoneId))) {
+        if(date != today(ZoneId.of(location.timezoneId))) {
             return@withContext stored?.let { runCatching { parse(it) }.getOrNull() }
                 ?: unavailable("לוח הרב סינגאווי לתאריך הזה אינו שמור במכשיר. האתר מספק את היום המתפרסם כעת בלבד.")
         }
         try {
             val url = "https://zmanei-halacha-backend.onrender.com/api/zmanim/${city.getString("region")}/${URLEncoder.encode(city.getString("he"),"UTF-8").replace("+", "%20") }"
-            val connection = URL(url).openConnection() as HttpURLConnection
-            connection.connectTimeout=15_000; connection.readTimeout=20_000
-            val raw = try {
-                check(connection.responseCode == 200)
-                connection.inputStream.bufferedReader().use { it.readText().also { text -> check(text.length < 100_000) } }
-            } finally { connection.disconnect() }
+            val raw = fetch(url, null)
             val result = parse(raw)
             if(cache.all.size > 120) cache.edit().clear().apply()
             cache.edit().putString(key,raw).putLong("$key:at",System.currentTimeMillis()).apply()
             result
         } catch(e: CancellationException) { throw e }
         catch(_: Exception) {
-            stored?.let { runCatching { parse(it).copy(sourceMessage="לוח שמור לתאריך ולעיר המוצגים; העדכון מהאתר לא הצליח.") }.getOrNull() }
+            stored?.let { runCatching { parse(it).copy(sourceMessage="${parse(it).sourceMessage} · מוצג לוח שמור; העדכון מהאתר לא הצליח.") }.getOrNull() }
                 ?: unavailable("לוח הרב סינגאווי טרם זמין לתאריך ולעיר האלה, או שאין חיבור. לא הוצגו זמנים משיטה אחרת. נסו לפתוח שוב בהמשך.")
         }
     }
@@ -101,4 +115,20 @@ object SingaviPublishedDay {
         return ZmanimDay(date,location,results,candles,minutes,israel,ZmanimMethod.SINGAVI,
             "לוח הרב סינגאווי · הזריחה והשקיעה המוצגות הן האמיתיות. ציצית ותפילין וסוף תפילה אינם מסופקים בלוח.")
     }
+}
+
+private fun singaviRequest(url: String, body: String?): String {
+    val connection = URL(url).openConnection() as HttpURLConnection
+    connection.connectTimeout = 20_000; connection.readTimeout = 40_000
+    try {
+        if(body != null) {
+            connection.requestMethod = "POST"; connection.doOutput = true
+            connection.setRequestProperty("Content-Type", "application/json")
+            connection.outputStream.use { it.write(body.toByteArray(Charsets.UTF_8)) }
+        }
+        check(connection.responseCode == 200)
+        return connection.inputStream.bufferedReader().use {
+            val text = it.readText(); check(text.length < 100_000); text
+        }
+    } finally { connection.disconnect() }
 }

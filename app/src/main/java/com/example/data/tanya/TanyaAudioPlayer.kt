@@ -45,7 +45,7 @@ class TanyaAudioPlayer(context: Context) {
         if (closed) return
         val c = controller
         if (c == null) { pending = clip; mutable.value = mutable.value.copy(loading = true); return }
-        if (current?.id == clip.id && c.currentMediaItem?.mediaId == clip.id && c.playbackState != Player.STATE_IDLE) {
+        if (c.currentMediaItem?.mediaId == clip.id && c.playbackState != Player.STATE_IDLE) {
             if (c.playbackState == Player.STATE_ENDED) { com.example.data.analytics.AudioAnalytics.get(app).tracker.request(clip.id,"tanya","recording",restart=true); c.seekTo(0); c.play() }
             else if (c.isPlaying || c.playWhenReady) c.pause() else c.play()
         } else {
@@ -59,6 +59,7 @@ class TanyaAudioPlayer(context: Context) {
             c.setPlaybackSpeed(prefs.getFloat("speed", 1f))
             c.prepare(); c.play()
         }
+        current = clip
         update()
     }
     fun seek(position: Long) { controller?.takeIf { owns(it) }?.let { it.seekTo(position.coerceIn(0, it.duration.coerceAtLeast(0))) }; update(); save() }
@@ -75,7 +76,7 @@ class TanyaAudioPlayer(context: Context) {
     }
     fun close() {
         if (closed) return
-        stop(); closed = true
+        pending = null; save(); closed = true
         controller?.removeListener(listener)
         MediaController.releaseFuture(future); controller = null; scope.cancel()
     }

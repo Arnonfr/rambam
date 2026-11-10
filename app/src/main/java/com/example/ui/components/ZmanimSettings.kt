@@ -56,7 +56,7 @@ fun ZmanimSettingsSection(preferences: ZmanimPreferences, locating: Boolean = fa
                     Text(method.label, fontSize=13.sp)
                 }
             }
-            if(preferences.method == ZmanimMethod.SINGAVI) Text("זמני הלוח המקורי מהאתר, לפי עיר קבועה. נדרש אינטרנט לעדכון היומי; אין חישוב למיקום GPS או לתאריך שאינו זמין בלוח. ציצית ותפילין וסוף זמן תפילה אינם מסופקים בלוח.",fontSize=12.sp)
+            if(preferences.method == ZmanimMethod.SINGAVI) Text("זמני הלוח מתעדכנים באינטרנט לפי העיר. במיקום אוטומטי נדרשת התאמה לעיר נתמכת בלוח. זמין היום הנוכחי, ותאריכים שכבר נשמרו במכשיר. ציצית ותפילין וסוף זמן תפילה אינם מסופקים בלוח.",fontSize=12.sp)
 
             Text("מיקום",fontWeight=FontWeight.Medium,modifier=Modifier.padding(top=12.dp))
             Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {

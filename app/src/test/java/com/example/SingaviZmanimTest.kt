@@ -17,6 +17,12 @@ class SingaviZmanimTest {
     private val date=LocalDate.parse("2026-10-23")
     private val location=ZmanimPreferences.defaultLocation
     private val fixture=javaClass.classLoader!!.getResourceAsStream("singavi-telaviv-2026-10-23.json")!!.bufferedReader().use { it.readText() }
+    @org.junit.Before fun clearCaches() {
+        val context=ApplicationProvider.getApplicationContext<android.content.Context>()
+        listOf("singavi_published_v1", "singavi_city_matches_v1").forEach {
+            context.getSharedPreferences(it,0).edit().clear().commit()
+        }
+    }
     private fun parse(raw:String=fixture, day:LocalDate=date, city:String="תל אביב", minutes:Int?=null)=SingaviPublishedDay.parse(raw,day,location,minutes,expectedCity=city)
     @Test fun `published Friday times match official table without changing visible versus true sunset`() {
         val day=parse()
@@ -58,5 +64,44 @@ class SingaviZmanimTest {
             assertEquals(ZmanimMethod.SINGAVI,day.method)
             assertTrue(day.times.all { it.rawInstant==null }); assertNotNull(day.sourceMessage)
         }
+    }
+
+    @Test fun `live solar date stays civil today when study advances after sunset`() {
+        val civil = LocalDate.parse("2026-10-23")
+        assertEquals(civil, zmanimDisplayDate(civil.plusDays(1), civil.plusDays(1), civil))
+        assertEquals(civil, zmanimDisplayDate(civil, civil, civil))
+        assertEquals(civil.minusDays(2), zmanimDisplayDate(civil.minusDays(2), civil.plusDays(1), civil))
+    }
+    @Test fun `GPS uses only a uniquely matched published city and caches its actual date`() = runBlocking {
+        val context=ApplicationProvider.getApplicationContext<android.content.Context>()
+        context.getSharedPreferences("singavi_published_v1",0).edit().clear().commit()
+        val urls=mutableListOf<String>()
+        val repository=SingaviZmanimRepository(context, { url, body ->
+            urls+=url
+            if(body != null) """{"matches":[{"nameHe":"תל אביב"}]}""" else fixture
+        }, { date })
+        val day=repository.day(date,location.copy(gps=true,name="המיקום שלי"),null,null)
+        assertEquals("06:44",day.times.single { it.id==ZmanId.SUNRISE }.display(day.zone))
+        assertTrue(day.sourceMessage!!.contains("תל אביב"))
+        assertTrue(urls.any { it.endsWith("/locate") })
+        assertTrue(urls.any { it.contains("/zmanim/israel/") })
+        val offline=SingaviZmanimRepository(context, { _, _ -> error("offline") }, { date.plusDays(1) })
+        assertEquals(day.times, offline.day(date,location,null,null).times)
+        assertEquals(day.times, offline.day(date,location.copy(gps=true,name="המיקום שלי"),null,null).times)
+    }
+    @Test fun `ambiguous GPS match and wrong server date never show another city's or day's times`() = runBlocking {
+        val context=ApplicationProvider.getApplicationContext<android.content.Context>()
+        context.getSharedPreferences("singavi_published_v1",0).edit().clear().commit()
+        val ambiguous=SingaviZmanimRepository(context, { _, _ -> """{"matches":[{"nameHe":"תל אביב"},{"nameHe":"רמת גן"}]}""" }, { date })
+        assertTrue(ambiguous.day(date,location.copy(gps=true),null,null).times.all { it.rawInstant == null })
+        val stale=SingaviZmanimRepository(context, { _, _ -> fixture }, { date.plusDays(1) })
+        assertTrue(stale.day(date.plusDays(1),location,null,null).times.all { it.rawInstant == null })
+    }
+    @Test fun `geocoder city names with country suffix match the fixed published city`() = runBlocking {
+        val context=ApplicationProvider.getApplicationContext<android.content.Context>()
+        context.getSharedPreferences("singavi_published_v1",0).edit().clear().commit()
+        val repository=SingaviZmanimRepository(context, { _, _ -> fixture }, { date })
+        val day=repository.day(date,location.copy(name="תל אביב–יפו, ישראל"),null,null)
+        assertEquals("18:07",day.times.single { it.id==ZmanId.SUNSET }.display(day.zone))
     }
 }
