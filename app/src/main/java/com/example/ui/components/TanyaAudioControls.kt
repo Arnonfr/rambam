@@ -28,6 +28,7 @@ import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import com.example.data.tanya.TanyaAvailableLesson
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.tanya.*
@@ -87,143 +88,135 @@ fun TanyaAudioControls(lesson: DailyTanyaLesson, selectedDate: String, player: T
         "teib" -> selected?.source ?: "https://www.youtube.com/@YAHADUTTV"
         else -> selected?.source ?: "https://tanyayomi.com/yy/ClientTania/Home"
     }
-    Card(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp).testTag("tanya_audio_controls")
-        .border(1.dp, ink.copy(alpha = .15f), RoundedCornerShape(20.dp)), shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = paper, contentColor = ink)) {
-        Column(Modifier.padding(12.dp)) {
-            Text("האזנה לשיעור תניא", fontWeight = FontWeight.Bold)
-            Spacer(Modifier.height(10.dp))
-            Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp))
-                .background(ink.copy(alpha = .04f)).border(1.dp, ink.copy(alpha = .15f), RoundedCornerShape(16.dp))
-                .horizontalScroll(rememberScrollState()).padding(4.dp).selectableGroup()
-                .testTag("tanya_teacher_picker")) {
-                listOf("nadav", "ashkenazi").forEach { key ->
-                    val active = teacher == key
-                    Box(Modifier.widthIn(min = 124.dp).heightIn(min = 48.dp).clip(RoundedCornerShape(12.dp))
-                        .background(if (active) accent else Color.Transparent)
-                        .selectable(active, role = Role.RadioButton, onClick = {
-                            if (teacher != key) player.stop()
-                            teacher = key; prefs.edit().putString("teacher", key).apply()
-                        }).padding(horizontal = 12.dp), contentAlignment = Alignment.Center) {
-                        Text(TanyaAvailableLessons.teacherName(key), modifier = Modifier.padding(vertical = 6.dp),
-                            fontSize = 12.sp, lineHeight = 16.sp, textAlign = TextAlign.Center,
-                            fontWeight = if (active) FontWeight.Bold else FontWeight.Medium,
-                            color = if (active) Color(0xFF171714) else ink)
-                    }
+    val colors = playerColors(accent, dark)
+    val teacherName = TanyaAvailableLessons.teacherName(teacher)
+    // Choosing from a list plays at once; the clip is resolved first.
+    var playWhenReady by remember { mutableStateOf(false) }
+    LaunchedEffect(clip, playWhenReady) {
+        val ready = clip
+        if (playWhenReady && ready != null) { playWhenReady = false; player.play(ready) }
+    }
+    val browsing = if (teacher == "ashkenazi") browsingAshkenazi else browsingAvailable
+    Column(Modifier.fillMaxWidth().testTag("tanya_audio_controls")) {
+        if (browsing) {
+            PlayerHeader(teacherName, if (teacher == "ashkenazi") "בחירת פרק" else "כל השיעורים", colors,
+                onBack = { if (teacher == "ashkenazi") browsingAshkenazi = false else browsingAvailable = false },
+                backLabel = "חזרה לנגן")
+            if (teacher == "ashkenazi") AshkenaziLessonSelector(catalog, matchingChapter, ashkenaziId, colors,
+                playingId = if (playback.active) ashkenaziId else null, playing = playback.playing) { id ->
+                if (ashkenaziId == id) { if (clip != null) player.play(clip!!) } else {
+                    player.stop(); ashkenaziId = id; playWhenReady = true
+                }
+            } else TanyaAvailableLessonPicker(available, availableId, lesson, colors,
+                playingId = if (playback.active) availableId else null, playing = playback.playing) { record ->
+                if (record.kind == "youtube") source(record.source)
+                else if (availableId == record.id) { if (clip != null) player.play(clip!!) } else {
+                    player.stop(); availableId = record.id; playWhenReady = true
                 }
             }
-            Spacer(Modifier.height(10.dp))
-            if (teacher == "ashkenazi") {
-                AshkenaziLessonSelector(catalog, matchingChapter, ashkenaziId, ink, accent,
-                    browsingAshkenazi, { browsingAshkenazi = it }) { id ->
-                    if (ashkenaziId != id) player.stop()
-                    ashkenaziId = id
-                }
-            } else {
-                if (selected != null || clip != null || browsingAvailable) TextButton(
-                    onClick = { browsingAvailable = !browsingAvailable },
-                    modifier = Modifier.align(Alignment.CenterHorizontally).testTag("tanya_browse_available"),
-                    colors = ButtonDefaults.textButtonColors(contentColor = ink)) {
-                    Text(if (browsingAvailable) "סגירת רשימת השיעורים" else "בחירת שיעור אחר")
-                }
-                if (browsingAvailable) TanyaAvailableLessonPicker(available, availableId, lesson, ink, accent) {
-                    player.stop()
-                    availableId = it.id
-                }
-            }
-            when {
-                selected?.kind == "youtube" && teacher != "ashkenazi" -> {
-                    Text(selected.title, style = MaterialTheme.typography.bodySmall)
-                    Text("הצפייה בשיעור נפתחת באתר המקור, מחוץ לאפליקציה.",
-                        style = MaterialTheme.typography.bodySmall, color = ink.copy(alpha = .75f),
-                        modifier = Modifier.padding(vertical = 8.dp))
+            if (sourceError) Text("אין יישום זמין לפתיחת הקישור.", style = MaterialTheme.typography.bodySmall, color = colors.ink)
+            return@Column
+        }
+        PlayerHeader("האזנה", "תניא · ${tanyaPlace(lesson)}", colors)
+        PlayerSegmented(listOf("nadav", "ashkenazi").map { it to TanyaAvailableLessons.teacherName(it) }, teacher, colors,
+            onSelect = { key ->
+                if (teacher != key) player.stop()
+                teacher = key; prefs.edit().putString("teacher", key).apply()
+            }, modifier = Modifier.padding(bottom = 14.dp).testTag("tanya_teacher_picker"))
+        val current = clip
+        when {
+            selected?.kind == "youtube" && teacher != "ashkenazi" ->
+                PlayerLessonCard(colors, "מהשיעורים הזמינים", selected.title, "הצפייה נפתחת באתר המקור, מחוץ לאפליקציה") {
+                    Spacer(Modifier.height(14.dp))
                     TanyaAudioActions("פתיחת השיעור באתר המקור", { source(selected.source) }, ink, accent)
                 }
-                clip != null -> {
-                    val current = clip!!
-                    Text(when {
-                        selected != null -> "מהשיעורים הזמינים · ${current.title}"
-                        teacher == "ashkenazi" -> current.title
-                        current.chapterLesson -> "שיעור על הפרק · ${current.title}"
-                        else -> "השיעור היומי · ${current.title}"
-                    }, style = MaterialTheme.typography.bodySmall)
-                    TanyaPlaybackControls(playback, onPlay = { player.play(current) }, onSeek = player::seek,
-                        onSpeed = player::speed, ink = ink, paper = paper, accent = accent)
-                    playback.error?.let {
-                        Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-                        TanyaAudioActions("רענון ההקלטה", { player.stop(); clip = null; retry++ }, ink, accent,
-                            "למקור השיעור", { source(sourceUrl) })
-                    }
-                    if (teacher == "ashkenazi") TanyaAudioActions("ניגון השיעור באתר הרב",
-                        { source(sourceUrl) }, ink, accent)
-                }
-                loading -> Text("מאתר הקלטה מתאימה…", style = MaterialTheme.typography.bodySmall)
-                (browsingAvailable && selected == null) || (browsingAshkenazi && ashkenaziId == null && teacher == "ashkenazi") ->
-                    Text("בחרו שיעור מהרשימה להאזנה", style = MaterialTheme.typography.bodySmall)
-                else -> {
-                    val noChapter = teacher == "ashkenazi" && ashkenaziId == null
-                    val failedRecording = selected != null || (teacher == "ashkenazi" && ashkenaziId != null)
-                    TanyaAudioEmptyState(ink, paper, accent,
-                        primaryLabel = if (noChapter) "בחירת פרק אחר" else "השיעורים הזמינים",
-                        onPrimary = { if (teacher == "ashkenazi") browsingAshkenazi = true else browsingAvailable = true },
-                        title = when {
-                            failedRecording -> "ההקלטה אינה זמינה כרגע"
-                            teacher == "nadav" -> "לא נמצאה הקלטה תואמת ליום הזה"
-                            else -> "עדיין אין הקלטה לפרק הזה"
-                        },
-                        detail = when {
-                            noChapter -> "הסדרה של הרב שניאור אשכנזי כוללת ליקוטי אמרים; הלימוד הנוכחי בחלק אחר"
-                            failedRecording -> "אפשר לנסות שוב או לפתוח את השיעור במקור"
-                            else -> "לא נמצאה התאמה אצל ${TanyaAvailableLessons.teacherName(teacher)}; אפשר לבחור רב אחר"
-                        },
-                        onSource = { source(sourceUrl) })
-                    if (failedRecording || teacher == "nadav") TextButton(onClick = { retry++ },
-                        modifier = Modifier.align(Alignment.CenterHorizontally),
-                        colors = ButtonDefaults.textButtonColors(contentColor = ink)) { Text("ניסיון נוסף") }
+            current != null -> PlayerLessonCard(colors,
+                eyebrow = when {
+                    selected != null -> "מהשיעורים הזמינים"
+                    teacher == "ashkenazi" -> matchingChapter?.let { "ליקוטי אמרים · פרק ${com.example.ui.util.HebrewNumberFormatter.toHebrewNumeral(it)}" } ?: "ליקוטי אמרים"
+                    current.chapterLesson -> "שיעור על הפרק"
+                    else -> "השיעור של היום · ${lesson.hebrewDate.substringBeforeLast(' ')}"
+                },
+                // Archive titles carry the day after a dash: "קונטרס אחרון - קטע רביעי יב כסלו".
+                title = splitLessonTitle(current.title).first,
+                subtitle = listOf(splitLessonTitle(current.title).second, teacherName).filter { it.isNotBlank() }.joinToString(" · "),
+                corner = { PlayerSpeedChip(playback.speed, player::speed, colors, Modifier.testTag("tanya_audio_speed")) }) {
+                TanyaPlaybackControls(playback, onPlay = { player.play(current) }, onSeek = player::seek,
+                    ink = colors.onLesson, paper = Color.White, accent = colors.lesson)
+                playback.error?.let {
+                    Text(it, color = colors.onLesson, fontSize = 13.sp, modifier = Modifier.padding(top = 10.dp))
+                    Spacer(Modifier.height(10.dp))
+                    TanyaAudioActions("רענון ההקלטה", { player.stop(); clip = null; retry++ }, ink, accent,
+                        "למקור השיעור", { source(sourceUrl) })
                 }
             }
-            if (sourceError) Text("אין יישום זמין לפתיחת הקישור.", style = MaterialTheme.typography.bodySmall)
+            loading -> PlayerLessonCard(colors, "", "מאתר הקלטה מתאימה…")
+            else -> {
+                val noChapter = teacher == "ashkenazi" && ashkenaziId == null
+                val failedRecording = selected != null || (teacher == "ashkenazi" && ashkenaziId != null)
+                TanyaAudioEmptyState(ink, paper, accent,
+                    primaryLabel = if (noChapter) "בחירת פרק אחר" else if (failedRecording || teacher == "nadav") "ניסיון נוסף" else "השיעורים הזמינים",
+                    onPrimary = {
+                        if (failedRecording || (teacher == "nadav" && !noChapter)) retry++
+                        else if (teacher == "ashkenazi") browsingAshkenazi = true else browsingAvailable = true
+                    },
+                    title = when {
+                        failedRecording -> "ההקלטה אינה זמינה כרגע"
+                        teacher == "nadav" -> "לא נמצאה הקלטה ליום הזה"
+                        else -> "אין הקלטה לפרק הזה"
+                    },
+                    detail = when {
+                        noChapter -> "הסדרה של הרב שניאור אשכנזי היא על ליקוטי אמרים. אפשר לשמוע פרק אחר."
+                        failedRecording -> "אפשר לנסות שוב או לפתוח את השיעור במקור."
+                        else -> "אפשר לנסות שוב, או לבחור מהשיעורים הזמינים למטה."
+                    },
+                    onSource = { source(sourceUrl) })
+            }
         }
+        if (teacher == "ashkenazi" && current != null) {
+            Spacer(Modifier.height(8.dp))
+            PlayerSecondaryButton("ניגון השיעור באתר הרב", { source(sourceUrl) }, colors, Modifier.fillMaxWidth(),
+                icon = Icons.Default.OpenInNew, container = colors.raised, content = colors.ink)
+        }
+        // The list continues below the card; the whole list is one step away, not a nested scroll.
+        // Without a recording the card above already offers the chapter choice.
+        if (teacher == "ashkenazi") {
+            if (current != null) PlayerSectionHeader("ליקוטי אמרים · פרקים", colors, "בחירת פרק", { browsingAshkenazi = true }, "ashkenazi_browse")
+        } else if (available.isNotEmpty()) {
+            PlayerSectionHeader("שיעורים אחרים", colors, "כל ${available.size} השיעורים", { browsingAvailable = true },
+                "tanya_browse_available")
+            sortedLessons(available, lesson).filter { it.id != availableId }.take(2).forEach { record ->
+                AvailableLessonRow(record, lesson, colors, playing = false, current = false) {
+                    if (record.kind == "youtube") source(record.source) else {
+                        player.stop(); availableId = record.id; playWhenReady = true
+                    }
+                }
+            }
+        }
+        if (sourceError) Text("אין יישום זמין לפתיחת הקישור.", style = MaterialTheme.typography.bodySmall, color = colors.ink)
     }
 }
 
 @Composable
 private fun AshkenaziLessonSelector(catalog: List<AshkenaziTanyaLesson>, matchingChapter: Int?, selectedId: String?,
-    ink: Color, accent: Color, browsing: Boolean, onBrowsing: (Boolean) -> Unit, onSelect: (String) -> Unit) {
+    colors: PlayerColors, playingId: String?, playing: Boolean, onSelect: (String) -> Unit) {
     var chapter by rememberSaveable(matchingChapter) { mutableIntStateOf(matchingChapter ?: 1) }
     val chapters = remember(catalog) { listOf(0) + catalog.flatMap { it.chapters }.distinct().sorted() }
-    if (matchingChapter != null) Text("ליקוטי אמרים · פרק ${com.example.ui.util.HebrewNumberFormatter.toHebrewNumeral(matchingChapter)}",
-        style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
-    if (matchingChapter != null || browsing) TextButton(onClick = { onBrowsing(!browsing) }, modifier = Modifier.testTag("ashkenazi_browse")) {
-        Text(if (browsing) "סגירת בחירת הפרק" else "בחירת פרק אחר", color = ink)
+    PlayerChips(chapters.map { it to if (it == 0) "מבוא" else com.example.ui.util.HebrewNumberFormatter.toHebrewNumeral(it) },
+        chapter, colors, { chapter = it }, "ashkenazi_chapter_")
+    catalog.filter { if (chapter == 0) it.chapters.isEmpty() else chapter in it.chapters }.forEach { record ->
+        val active = record.id == playingId
+        PlayerLessonRow(record.title.substringAfter(": ", record.title), record.subtitle, colors,
+            if (active && playing) LessonRowAction.PAUSE else LessonRowAction.PLAY, { onSelect(record.id) },
+            Modifier.testTag("ashkenazi_lesson_${record.order}"), highlighted = active, selected = record.id == selectedId)
     }
-    if (browsing) {
-        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(bottom = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            chapters.forEach { number ->
-                Box(Modifier.clip(RoundedCornerShape(12.dp))
-                    .background(if (chapter == number) accent else ink.copy(alpha = .05f))
-                    .selectable(chapter == number, role = Role.RadioButton, onClick = { chapter = number })
-                    .padding(horizontal = 14.dp, vertical = 10.dp).testTag("ashkenazi_chapter_$number")) {
-                    Text(if (number == 0) "מבוא" else com.example.ui.util.HebrewNumberFormatter.toHebrewNumeral(number), color = ink)
-                }
-            }
-        }
-    }
-    if (matchingChapter != null || browsing) {
-        catalog.filter { if (chapter == 0) it.chapters.isEmpty() else chapter in it.chapters }.forEach { record ->
-            val selected = record.id == selectedId
-            Row(Modifier.fillMaxWidth().padding(vertical = 3.dp).clip(RoundedCornerShape(12.dp))
-                .background(if (selected) accent.copy(alpha = .25f) else ink.copy(alpha = .035f))
-                .selectable(selected, role = Role.RadioButton, onClick = { onSelect(record.id) })
-                .padding(10.dp).testTag("ashkenazi_lesson_${record.order}"), verticalAlignment = Alignment.CenterVertically) {
-                Icon(if (selected) Icons.Default.RadioButtonChecked else Icons.Default.RadioButtonUnchecked,
-                    contentDescription = null, tint = ink, modifier = Modifier.size(18.dp))
-                Column(Modifier.weight(1f).padding(start = 8.dp)) {
-                    Text(record.title, fontSize = 13.sp, fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal, color = ink)
-                    Text(record.subtitle, fontSize = 11.sp, color = ink.copy(alpha = .7f))
-                }
-            }
-        }
+}
+
+/** "תניא, קונטרס אחרון 4" → "קונטרס אחרון ד׳": no repeated book name, Hebrew numerals. */
+internal fun tanyaPlace(lesson: DailyTanyaLesson): String {
+    val place = lesson.heRef.ifBlank { lesson.chapterTitle }.removePrefix("תניא, ").removePrefix("תניא ")
+    // Only a plain trailing chapter number; "12:3" style references stay as they are.
+    return place.replace(Regex(" (\\d+)$")) {
+        " " + com.example.ui.util.HebrewNumberFormatter.toHebrewNumeral(it.groupValues[1].toInt(), withGershayim = true)
     }
 }

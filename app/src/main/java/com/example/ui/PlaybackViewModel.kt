@@ -14,7 +14,9 @@ import kotlinx.coroutines.flow.*
 
 data class PlaybackBarState(val visible: Boolean = false, val title: String = "", val subtitle: String = "",
     val playing: Boolean = false, val loading: Boolean = false, val mediaId: String? = null,
-    val position: Long = 0, val duration: Long = 0)
+    val position: Long = 0, val duration: Long = 0,
+    /** "rambam…", "tanya", "prayer" or "podcast": picks the lesson colour in the mini player. */
+    val usageType: String? = null)
 
 class PlaybackViewModel(app: Application): AndroidViewModel(app) {
     private val mutable = MutableStateFlow(PlaybackBarState())
@@ -45,7 +47,8 @@ class PlaybackViewModel(app: Application): AndroidViewModel(app) {
             subtitle = if (speechOwned) speech.voiceStatus else item?.mediaMetadata?.artist?.toString().orEmpty(),
             playing = c.playWhenReady && c.playbackState != Player.STATE_ENDED, loading = c.playbackState == Player.STATE_BUFFERING || speech.preparing,
             mediaId = item?.mediaId, position = c.currentPosition.coerceAtLeast(0),
-            duration = c.duration.takeIf { it > 0 } ?: 0)
+            duration = c.duration.takeIf { it > 0 } ?: 0,
+            usageType = if (speechOwned) "rambam" else item?.mediaMetadata?.extras?.getString("usage_type"))
     }
     fun toggle() {
         val c = controller ?: return

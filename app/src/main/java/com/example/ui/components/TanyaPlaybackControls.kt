@@ -26,11 +26,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.tanya.TanyaPlaybackState
 
-/** Media transport keeps the universal direction even in Hebrew: back 10s on the left, ▶ pointing right, time runs left to right. */
+/**
+ * Timeline and transport, drawn on the lesson card: [ink] is the card's text colour, [accent] the card itself.
+ * Media transport keeps the universal direction even in Hebrew: back 10s on the left, ▶ pointing right,
+ * time runs left to right.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun TanyaPlaybackControls(
-    playback: TanyaPlaybackState, onPlay: () -> Unit, onSeek: (Long) -> Unit, onSpeed: () -> Unit,
+    playback: TanyaPlaybackState, onPlay: () -> Unit, onSeek: (Long) -> Unit,
     ink: Color, paper: Color, accent: Color
 ) {
     var scrubPosition by remember { mutableStateOf<Float?>(null) }
@@ -39,47 +43,20 @@ internal fun TanyaPlaybackControls(
     val canSeek = playback.active && duration > 0
     val fraction = if (duration > 0) (position.toFloat() / duration).coerceIn(0f, 1f) else 0f
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-        Column(Modifier.fillMaxWidth().padding(top = 10.dp).testTag("tanya_playback")) {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Spacer(Modifier.weight(1f))
-                IconButton(onClick = { onSeek((playback.position - 10_000).coerceAtLeast(0)) }, enabled = canSeek,
-                    modifier = Modifier.size(48.dp), colors = IconButtonDefaults.iconButtonColors(
-                        contentColor = ink, disabledContentColor = ink.copy(alpha = .3f))) {
-                    Icon(Icons.Default.Replay10, "אחורה 10 שניות", Modifier.size(26.dp))
-                }
-                IconButton(onClick = onPlay, modifier = Modifier.size(56.dp).clip(CircleShape)
-                    .background(accent).testTag("play_tanya_audio")) {
-                    if (playback.loading) CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 2.dp, color = Color(0xFF171714))
-                    else Icon(if (playback.playing) Icons.Default.Pause else Icons.Default.PlayArrow,
-                        if (playback.playing) "השהיה" else "ניגון שיעור", Modifier.size(30.dp), tint = Color(0xFF171714))
-                }
-                IconButton(onClick = { onSeek((playback.position + 10_000).coerceAtMost(duration)) }, enabled = canSeek,
-                    modifier = Modifier.size(48.dp), colors = IconButtonDefaults.iconButtonColors(
-                        contentColor = ink, disabledContentColor = ink.copy(alpha = .3f))) {
-                    Icon(Icons.Default.Forward10, "קדימה 10 שניות", Modifier.size(26.dp))
-                }
-                Box(Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
-                    TextButton(onClick = onSpeed, modifier = Modifier.height(36.dp)
-                        .border(1.dp, ink.copy(alpha = .18f), RoundedCornerShape(12.dp)).testTag("tanya_audio_speed"),
-                        contentPadding = PaddingValues(horizontal = 8.dp), colors = ButtonDefaults.textButtonColors(contentColor = ink)) {
-                        Text("${playback.speed.toString().removeSuffix(".0")}×", fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                    }
-                }
-            }
+        Column(Modifier.fillMaxWidth().padding(top = 8.dp).testTag("tanya_playback")) {
             Slider(value = if (duration > 0) position.toFloat().coerceIn(0f, duration.toFloat()) else 0f, enabled = canSeek,
                 onValueChange = { scrubPosition = it }, onValueChangeFinished = {
                     scrubPosition?.let { onSeek(it.toLong()) }; scrubPosition = null
                 }, valueRange = 0f..duration.coerceAtLeast(1).toFloat(),
-                modifier = Modifier.fillMaxWidth().height(40.dp).testTag("tanya_audio_timeline")
+                modifier = Modifier.fillMaxWidth().height(32.dp).testTag("tanya_audio_timeline")
                     .semantics { contentDescription = "מיקום בהקלטה" },
                 thumb = { Box(Modifier.size(14.dp).clip(CircleShape)
-                    .background(if (canSeek) ink else ink.copy(alpha = .3f)).border(2.dp, paper, CircleShape)) },
+                    .background(if (canSeek) ink else ink.copy(alpha = .3f)).border(3.dp, accent, CircleShape)) },
                 track = {
                     Canvas(Modifier.fillMaxWidth().height(4.dp)) {
-                        drawLine(ink.copy(alpha = .12f), Offset(0f, size.height / 2), Offset(size.width, size.height / 2),
+                        drawLine(ink.copy(alpha = .18f), Offset(0f, size.height / 2), Offset(size.width, size.height / 2),
                             strokeWidth = size.height, cap = StrokeCap.Round)
-                        if (fraction > 0f) drawLine(accent, Offset(0f, size.height / 2), Offset(size.width * fraction, size.height / 2),
+                        if (fraction > 0f) drawLine(ink, Offset(0f, size.height / 2), Offset(size.width * fraction, size.height / 2),
                             strokeWidth = size.height, cap = StrokeCap.Round)
                     }
                 })
@@ -87,10 +64,39 @@ internal fun TanyaPlaybackControls(
                 Text(audioTime(position), fontSize = 11.sp, fontWeight = FontWeight.Medium, color = ink,
                     modifier = Modifier.testTag("tanya_audio_elapsed"))
                 Text(if (duration > 0) audioTime(duration) else "--:--", fontSize = 11.sp,
-                    color = ink.copy(alpha = .65f), modifier = Modifier.testTag("tanya_audio_duration"))
+                    color = ink.copy(alpha = .66f), modifier = Modifier.testTag("tanya_audio_duration"))
+            }
+            // The white pill with the black play button, as in the reference's "Start ▶".
+            Row(Modifier.fillMaxWidth().padding(top = 10.dp).height(64.dp).clip(RoundedCornerShape(50)).background(paper)
+                .padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween) {
+                SkipButton(Icons.Default.Replay10, "אחורה 10 שניות", "אחורה", canSeek, ink) {
+                    onSeek((playback.position - 10_000).coerceAtLeast(0))
+                }
+                IconButton(onClick = onPlay, modifier = Modifier.size(52.dp).clip(CircleShape)
+                    .background(Color(0xFF111111)).testTag("play_tanya_audio")) {
+                    if (playback.loading) CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.dp, color = Color.White)
+                    else Icon(if (playback.playing) Icons.Default.Pause else Icons.Default.PlayArrow,
+                        if (playback.playing) "השהיה" else "ניגון שיעור", Modifier.size(28.dp), tint = Color.White)
+                }
+                SkipButton(Icons.Default.Forward10, "קדימה 10 שניות", "קדימה", canSeek, ink) {
+                    onSeek((playback.position + 10_000).coerceAtMost(duration))
+                }
             }
         }
     }
 }
 
-private fun audioTime(ms: Long) = "${ms / 60000}:${(ms / 1000 % 60).toString().padStart(2, '0')}"
+@Composable
+private fun SkipButton(icon: androidx.compose.ui.graphics.vector.ImageVector, description: String, label: String,
+    enabled: Boolean, ink: Color, onClick: () -> Unit) {
+    val tint = if (enabled) ink else ink.copy(alpha = .3f)
+    IconButton(onClick = onClick, enabled = enabled, modifier = Modifier.size(width = 64.dp, height = 56.dp)) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(icon, description, Modifier.size(24.dp), tint = tint)
+            Text(label, fontSize = 9.sp, color = tint.copy(alpha = if (enabled) .66f else .3f))
+        }
+    }
+}
+
+internal fun audioTime(ms: Long) = "${ms / 60000}:${(ms / 1000 % 60).toString().padStart(2, '0')}"

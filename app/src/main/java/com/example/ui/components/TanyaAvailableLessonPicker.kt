@@ -1,46 +1,42 @@
 package com.example.ui.components
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.data.tanya.TanyaAvailableLesson
 import com.example.domain.tanya.DailyTanyaLesson
 
+/** Lessons for the current chapter first, then audio, then video (which opens outside the app). */
+internal fun sortedLessons(records: List<TanyaAvailableLesson>, lesson: DailyTanyaLesson) =
+    records.sortedWith(compareBy({ !it.matches(lesson) }, { it.kind != "audio" }))
+
+/** Every row plays on tap; the playing row takes the lesson colour. No nested scroll: the sheet scrolls. */
 @Composable
 internal fun TanyaAvailableLessonPicker(
     records: List<TanyaAvailableLesson>, selectedId: String?, lesson: DailyTanyaLesson,
-    ink: Color, accent: Color, onSelect: (TanyaAvailableLesson) -> Unit
+    colors: PlayerColors, playingId: String?, playing: Boolean, onSelect: (TanyaAvailableLesson) -> Unit
 ) {
-    Text("השיעורים הזמינים · ${records.size}", color = ink, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-    Spacer(Modifier.height(6.dp))
-    LazyColumn(Modifier.fillMaxWidth().heightIn(max = 224.dp).testTag("tanya_available_lessons"),
-        verticalArrangement = Arrangement.spacedBy(5.dp), contentPadding = PaddingValues(bottom = 8.dp)) {
-        items(records.sortedBy { if (it.kind == "audio") 0 else 1 }, key = { it.id }) { record ->
-            val selected = record.id == selectedId
-            Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
-                .background(if (selected) accent.copy(alpha = .3f) else ink.copy(alpha = .04f))
-                .selectable(selected, role = Role.RadioButton, onClick = { onSelect(record) })
-                .padding(horizontal = 12.dp, vertical = 10.dp).testTag("available_${record.id}")) {
-                Text(record.title, color = ink, fontSize = 13.sp, lineHeight = 18.sp,
-                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal)
-                Text(if (record.matches(lesson)) "לפרק הנוכחי · ${if (record.kind == "youtube") "וידאו" else "שמע"}"
-                    else if (record.kind == "audio") record.subtitle + " · האזנה ברקע"
-                    else "וידאו באתר המקור · נפתח מחוץ לאפליקציה",
-                    color = ink.copy(alpha = .7f), fontSize = 11.sp, lineHeight = 16.sp)
-            }
+    androidx.compose.foundation.layout.Column(Modifier.testTag("tanya_available_lessons")) {
+        sortedLessons(records, lesson).forEach { record ->
+            AvailableLessonRow(record, lesson, colors, playing = playing && record.id == playingId,
+                current = record.id == playingId || record.id == selectedId) { onSelect(record) }
         }
     }
+}
+
+@Composable
+internal fun AvailableLessonRow(record: TanyaAvailableLesson, lesson: DailyTanyaLesson, colors: PlayerColors,
+    playing: Boolean, current: Boolean, onClick: () -> Unit) {
+    val (name, date) = splitLessonTitle(record.title)
+    val video = record.kind == "youtube"
+    PlayerLessonRow(
+        title = if (video) "שיעור וידאו · $name" else name,
+        meta = if (video) "נפתח באתר המקור" else date,
+        colors = colors,
+        action = when { video -> LessonRowAction.EXTERNAL; playing -> LessonRowAction.PAUSE; else -> LessonRowAction.PLAY },
+        onClick = onClick,
+        modifier = Modifier.testTag("available_${record.id}"),
+        highlighted = current && !video,
+        badge = if (record.matches(lesson)) "לפרק הזה" else null
+    )
 }

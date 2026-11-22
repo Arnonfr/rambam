@@ -32,7 +32,7 @@ class TanyaPlaybackControlsTest {
         val seeks = mutableListOf<Long>()
         compose.setContent { DailyRambamTheme {
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
-                TanyaPlaybackControls(state.value, { played++ }, { seeks += it }, {}, Color.Black, Color.White, Color(0xFFF0A0DD))
+                TanyaPlaybackControls(state.value, { played++ }, { seeks += it }, Color.Black, Color.White, Color(0xFFF0A0DD))
             }
         } }
         compose.onNodeWithText("המשך הקריאה זמין בזמן ההאזנה").assertDoesNotExist()

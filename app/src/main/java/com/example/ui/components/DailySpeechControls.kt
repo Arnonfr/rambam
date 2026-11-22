@@ -1,8 +1,6 @@
 package com.example.ui.components
 
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -10,10 +8,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -24,46 +20,62 @@ import com.example.data.tanya.TanyaPlaybackState
 fun DailySpeechControls(state: DailySpeechState, dateLabel: String, track: String,
     onStart: () -> Unit, onAction: (String) -> Unit, onSeek: (Long) -> Unit = {},
     source: String = "recording", onSourceChange: ((String) -> Unit)? = null) {
-    val dark=MaterialTheme.colorScheme.background.luminance()<.3f
-    val paper=if(dark) Color(0xFF1E222A) else Color.White
-    val ink=if(dark) Color(0xFFF4F5F5) else Color(0xFF171714)
-    val accent=Color(0xFFFFB38C)
-    var restart by remember {mutableStateOf(false)}
-    Card(modifier=Modifier.fillMaxWidth().padding(vertical=12.dp).testTag("daily_speech_controls")
-        .border(1.dp,ink.copy(alpha=.15f),RoundedCornerShape(20.dp)),shape=RoundedCornerShape(20.dp),
-        colors=CardDefaults.cardColors(containerColor=paper,contentColor=ink)) {
-        Column(Modifier.padding(12.dp)) {
-            Text("האזנה לרמב״ם היומי",fontWeight=FontWeight.Bold)
-            Spacer(Modifier.height(10.dp))
-            Text(if(state.active) state.chapter else "$dateLabel · ${if(track=="three") "שלושה פרקים ברצף" else "פרק אחד"}",fontSize=13.sp)
-            Text(if(track=="three") "ר׳ אליהו פרץ" else "הרב נדב כהן", fontSize=12.sp,color=ink.copy(alpha=.65f))
-            TanyaPlaybackControls(TanyaPlaybackState(active=state.active,playing=state.playing,
-                loading=state.preparing && !state.paused,position=state.position,duration=state.duration,speed=state.speed,error=state.error),
-                onPlay={if(!state.active) { if(state.preparing) onAction(DailySpeechStatus.STOP) else onStart() } else onAction(DailySpeechStatus.TOGGLE)},
-                onSeek=onSeek,onSpeed={onAction(DailySpeechStatus.SPEED)},ink=ink,paper=paper,accent=accent)
-            if(state.active) {
-                if (!state.recorded) {
-                // Same direction as the transport above: previous on the left, next on the right.
-                CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-                    Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically) {
-                        TextButton(onClick={onAction(DailySpeechStatus.PREVIOUS)},enabled=state.canPrevious,
-                            modifier=Modifier.testTag("daily_speech_previous")) {
-                            Icon(Icons.Default.SkipPrevious,null,Modifier.size(18.dp));Text("הלכה קודמת",fontSize=12.sp)
-                        }
-                        TextButton(onClick={onAction(DailySpeechStatus.NEXT)},enabled=state.canNext,
-                            modifier=Modifier.testTag("daily_speech_next")) {
-                            Text("הלכה הבאה",fontSize=12.sp);Icon(Icons.Default.SkipNext,null,Modifier.size(18.dp))
-                        }
-                    }
-                }
-                }
-                TextButton(onClick={restart=true},modifier=Modifier.testTag("daily_speech_restart")) {Text("מהתחלה",fontSize=12.sp)}
+    val colors = playerColors(LessonColors.Rambam)
+    var restart by remember { mutableStateOf(false) }
+    val scope = if (track == "three") "שלושה פרקים ברצף" else "פרק אחד"
+    Column(Modifier.fillMaxWidth().testTag("daily_speech_controls")) {
+        PlayerHeader("האזנה", "רמב״ם היומי", colors)
+        PlayerLessonCard(colors,
+            eyebrow = "$dateLabel · $scope",
+            title = if (state.active) state.chapter else if (track == "three") "שלושת הפרקים של היום" else "הפרק של היום",
+            subtitle = if (track == "three") "ר׳ אליהו פרץ" else "הרב נדב כהן",
+            corner = { PlayerSpeedChip(state.speed, { onAction(DailySpeechStatus.SPEED) }, colors, Modifier.testTag("tanya_audio_speed")) }) {
+            TanyaPlaybackControls(TanyaPlaybackState(active = state.active, playing = state.playing,
+                loading = state.preparing && !state.paused, position = state.position, duration = state.duration,
+                speed = state.speed, error = state.error),
+                onPlay = { if (!state.active) { if (state.preparing) onAction(DailySpeechStatus.STOP) else onStart() } else onAction(DailySpeechStatus.TOGGLE) },
+                onSeek = onSeek, ink = colors.onLesson, paper = Color.White, accent = colors.lesson)
+            state.error?.let {
+                Text(it, color = colors.onLesson, fontSize = 13.sp, modifier = Modifier.padding(top = 10.dp).testTag("daily_speech_error"))
             }
-            state.error?.let {Text(it,color=MaterialTheme.colorScheme.error,fontSize=13.sp,modifier=Modifier.testTag("daily_speech_error"))}
+        }
+        if (state.active) {
+            // Same direction as the transport: previous on the left, next on the right; "from the start" between them.
+            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+                Row(Modifier.fillMaxWidth().padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically) {
+                    if (!state.recorded) HalachaButton("הלכה קודמת", Icons.Default.SkipPrevious, state.canPrevious, colors,
+                        Modifier.weight(1f).testTag("daily_speech_previous"), iconFirst = true) { onAction(DailySpeechStatus.PREVIOUS) }
+                    if (state.recorded) HalachaButton("מהתחלה", Icons.Default.Replay, true, colors,
+                        Modifier.fillMaxWidth().testTag("daily_speech_restart"), iconFirst = true) { restart = true }
+                    else PlayerCircleButton(Icons.Default.Replay, "מהתחלה", colors.raised, colors.ink, { restart = true },
+                        Modifier.testTag("daily_speech_restart"))
+                    if (!state.recorded) HalachaButton("הלכה הבאה", Icons.Default.SkipNext, state.canNext, colors,
+                        Modifier.weight(1f).testTag("daily_speech_next"), iconFirst = false) { onAction(DailySpeechStatus.NEXT) }
+                }
+            }
         }
     }
-    if(restart) AlertDialog(onDismissRequest={restart=false},title={Text("להתחיל את השיעור מחדש?")},
-        text={Text("ההקראה תחזור לתחילת הרמב״ם היומי.")},
-        confirmButton={TextButton(onClick={restart=false;onAction("daily_speech.restart")}){Text("מהתחלה")}},
-        dismissButton={TextButton(onClick={restart=false}){Text("ביטול")}})
+    if (restart) AlertDialog(onDismissRequest = { restart = false }, title = { Text("להתחיל את השיעור מחדש?") },
+        text = { Text("ההקראה תחזור לתחילת הרמב״ם היומי.") },
+        confirmButton = { TextButton(onClick = { restart = false; onAction("daily_speech.restart") }) { Text("מהתחלה") } },
+        dismissButton = { TextButton(onClick = { restart = false }) { Text("ביטול") } })
+}
+
+@Composable
+private fun HalachaButton(label: String, icon: androidx.compose.ui.graphics.vector.ImageVector, enabled: Boolean,
+    colors: PlayerColors, modifier: Modifier, iconFirst: Boolean, onClick: () -> Unit) {
+    val tint = if (enabled) colors.ink else colors.ink.copy(alpha = .35f)
+    Surface(onClick = onClick, enabled = enabled, shape = androidx.compose.foundation.shape.RoundedCornerShape(50),
+        color = colors.raised, modifier = modifier.heightIn(min = 44.dp)) {
+        // Hebrew labels inside an LTR row: keep each label right-to-left.
+        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+            Row(Modifier.padding(horizontal = 10.dp), verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center) {
+                if (iconFirst) Icon(icon, null, Modifier.size(18.dp), tint = tint)
+                Text(label, fontSize = 12.sp, color = tint, modifier = Modifier.padding(horizontal = 4.dp), maxLines = 1)
+                if (!iconFirst) Icon(icon, null, Modifier.size(18.dp), tint = tint)
+            }
+        }
+    }
 }
