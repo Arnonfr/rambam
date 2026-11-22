@@ -1,5 +1,9 @@
 package com.example.ui.components
 
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.ui.semantics.Role
+import com.example.ui.util.TorahTextMode
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
@@ -222,7 +226,7 @@ fun CompactReaderHeader(
                 ) {
                     StudyLineIcon(when {
                         title.contains("רמב") -> "one"
-                        title.contains("חומש") -> "chumash"
+                        title.contains("חומש") || title.contains("מקרא") -> "chumash"
                         title.contains("תהילים") -> "tehillim"
                         title.contains("היום") -> "hayom_yom"
                         title.contains("מצוות") -> "mitzvot"
@@ -357,7 +361,9 @@ fun ReaderTypographySheet(
     onThemeChange: (String) -> Unit,
     onKeepScreenOnChange: (Boolean) -> Unit,
     extraControls: @Composable () -> Unit = {},
-    fixedPrintLayout: Boolean = false
+    fixedPrintLayout: Boolean = false,
+    // The Chumash readers replace the global switch with TorahTextModeSelector.
+    showNikudSwitch: Boolean = true
 ) {
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -655,7 +661,7 @@ fun ReaderTypographySheet(
                         HorizontalDivider(color = Color(0xFFF5E8D7))
 
                         // Nikud Switch Row
-                        if (!fixedPrintLayout) {
+                        if (!fixedPrintLayout && showNikudSwitch) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -676,6 +682,119 @@ fun ReaderTypographySheet(
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+/** Three-way choice for the Torah text; the same word in each mode previews the choice. */
+@Composable
+fun TorahTextModeSelector(selected: TorahTextMode, fontFamily: FontFamily, onSelect: (TorahTextMode) -> Unit) {
+    ReaderChoiceChips("ניקוד וטעמי המקרא", TorahTextMode.entries, selected, "torah_text_mode_", { it.id },
+        { it.verse("בְּרֵאשִׁ֖ית") }, { it.label }, fontFamily, onSelect)
+}
+
+/** שניים מקרא: today's aliya or the whole parasha (scope ids "day" / "week"). */
+@Composable
+fun ShnayimMikraScopeSelector(selected: String, todayAliyaName: String, fontFamily: FontFamily, onSelect: (String) -> Unit) {
+    ReaderChoiceChips("היקף הלימוד", listOf("day", "week"), selected, "shnayim_mikra_scope_", { it },
+        { if (it == "day") todayAliyaName else "ראשון–שביעי" },
+        { if (it == "day") "עליית היום" else "כל הפרשה" }, fontFamily, onSelect)
+}
+
+/** A row of choice cards, styled like the font choice in [ReaderTypographySheet]. */
+@Composable
+private fun <T> ReaderChoiceChips(
+    title: String,
+    options: List<T>,
+    selected: T,
+    tagPrefix: String,
+    id: (T) -> String,
+    preview: (T) -> String,
+    label: (T) -> String,
+    fontFamily: FontFamily,
+    onSelect: (T) -> Unit
+) {
+    Text(
+        text = title,
+        fontSize = 13.sp,
+        fontWeight = FontWeight.Bold,
+        color = Color(0xFF806B58),
+        modifier = Modifier.padding(bottom = 8.dp)
+    )
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(bottom = 18.dp).selectableGroup(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        options.forEach { option ->
+            val isSelected = option == selected
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = if (isSelected) Color(0xFFF5E8D7) else Color.White,
+                shadowElevation = if (isSelected) 1.dp else 0.dp,
+                border = BorderStroke(
+                    width = if (isSelected) 2.dp else 1.dp,
+                    color = if (isSelected) Color(0xFF3F2D20) else Color(0xFFE6D8C7)
+                ),
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(16.dp))
+                    .selectable(isSelected, role = Role.RadioButton) { onSelect(option) }
+                    .testTag(tagPrefix + id(option))
+            ) {
+                Column(
+                    modifier = Modifier.padding(vertical = 12.dp, horizontal = 4.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = preview(option),
+                        fontFamily = fontFamily,
+                        fontSize = 18.sp,
+                        maxLines = 1,
+                        color = Color(0xFF3F2D20)
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = label(option),
+                        fontSize = 11.sp,
+                        textAlign = TextAlign.Center,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                        color = if (isSelected) Color(0xFF3F2D20) else Color(0xFF806B58)
+                    )
+                }
+            }
+        }
+    }
+}
+
+/** Compact two-way switch for the reader header: "היום" / "כל הפרשה". */
+@Composable
+fun ShnayimMikraScopeToggle(scope: String, accentColor: Color, readerTheme: String, onSelect: (String) -> Unit) {
+    val foreground = if (readerTheme in setOf("dark", "oled")) Color.White else Color.Black
+    Row(
+        modifier = Modifier
+            .height(30.dp)
+            .clip(RoundedCornerShape(15.dp))
+            .border(1.dp, foreground.copy(alpha = .13f), RoundedCornerShape(15.dp))
+            .padding(2.dp)
+            .selectableGroup(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        listOf("day" to "היום", "week" to "כל הפרשה").forEach { (id, label) ->
+            val isSelected = scope == id
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .clip(RoundedCornerShape(13.dp))
+                    .background(if (isSelected) accentColor else Color.Transparent)
+                    .selectable(isSelected, role = Role.RadioButton) { onSelect(id) }
+                    .padding(horizontal = 10.dp)
+                    .testTag("shnayim_mikra_toggle_$id"),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(label, fontSize = 11.sp, maxLines = 1,
+                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                    color = if (isSelected) Color.Black else foreground.copy(alpha = .68f))
             }
         }
     }

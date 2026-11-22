@@ -132,6 +132,9 @@ fun AttributionDialog(
                         android.net.Uri.parse("https://creativecommons.org/licenses/by-nc-sa/4.0/"))
                         .also { context.startActivity(it) } }) { Text("רישיון הניקוד") }
 
+                    Text("שניים מקרא ואחד תרגום — תרגום אונקלוס", fontWeight = FontWeight.Bold)
+                    Text("התרגום המנוקד מתוך חומש שפתי חכמים, הוצאת מצודה, 2009, דרך ספריא — ברישיון CC BY-NC (ייחוס, שימוש לא מסחרי).", fontSize = 12.sp)
+
                     Text("היום יום", fontWeight = FontWeight.Bold)
                     Text("מלקט: רבי מנחם מענדל שניאורסון. הטקסט מתוך חב״דטקסט, מאת תורמי האתר, ברישיון GFDL 1.3 או מאוחר יותר. הוסרו ניווט ועיצוב; פירושי מונחים מוצגים בסוגריים. המקור השקוף ומספרי הגרסאות מצורפים לאפליקציה. תיקוני העתקה מתועדים הושוו למהדורת קה״ת ולספר הסרוק.", fontSize = 12.sp)
                     TextButton(onClick = { android.content.Intent(android.content.Intent.ACTION_VIEW,

@@ -80,6 +80,7 @@ fun HomeScreen(
     onOpenSettings: () -> Unit,
     onOpenAttribution: () -> Unit,
     onOpenChumash: () -> Unit = {},
+    onOpenShnayimMikra: () -> Unit = {},
     onOpenTehillim: () -> Unit = {},
     onOpenTanya: () -> Unit = {},
     onOpenHayomYom: () -> Unit = {},
@@ -126,6 +127,7 @@ fun HomeScreen(
                     onResumeReading = onResumeReading,
                     onResumeStudy = onResumeStudy,
                     onOpenChumash = onOpenChumash,
+                    onOpenShnayimMikra = onOpenShnayimMikra,
                     onOpenTehillim = onOpenTehillim,
                     onOpenTanya = onOpenTanya,
                     onOpenHayomYom = onOpenHayomYom,
@@ -1308,6 +1310,7 @@ private fun EditDailyStudySheet(
                     "rambam_three" to "רמב״ם — שלושה פרקים ביום",
                     "mitzvot" to "רמב״ם – ספר המצוות",
                     "chumash" to "חומש",
+                    "shnayim_mikra" to "שניים מקרא ואחד תרגום",
                     "tehillim" to "תהילים",
                     "tanya" to "תניא"
                 )

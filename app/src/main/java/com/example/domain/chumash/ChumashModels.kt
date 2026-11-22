@@ -7,7 +7,8 @@ data class ChumashVerse(
     val textPlainNikud: String,
     val rashi: List<String> = emptyList(),
     val chapterNumber: Int = 0,
-    val bookName: String = ""
+    val bookName: String = "",
+    val targum: String = ""
 ) {
     val positionId: String get() = "verse_${bookName}_${chapterNumber}_${verseNumber}"
 }

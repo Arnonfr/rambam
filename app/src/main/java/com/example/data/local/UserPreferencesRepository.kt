@@ -27,7 +27,8 @@ data class UserPreferences(
     val lastOpenedChapterId: String? = null,
     val keepScreenOn: Boolean = true,
     val visibleStudies: Set<String> = setOf("rambam_one", "mitzvot", "chumash", "tehillim", "tanya"),
-    val chumashShowTeamim: Boolean = false,
+    val torahTextMode: String = "nikud", // "teamim", "nikud", "plain" (Chumash and שניים מקרא)
+    val shnayimMikraScope: String = "day", // "day": today's aliya, "week": the whole parasha
     val completedAliyot: Set<String> = emptySet(),
     val tanyaBookView: Boolean = false,
     val tanyaBookShowNikud: Boolean = false
@@ -51,6 +52,8 @@ class UserPreferencesRepository(private val context: Context) {
         val VISIBLE_STUDIES_V2_MIGRATED = booleanPreferencesKey("visible_studies_v2_migrated")
         val CHUMASH_FONT_SIZE = floatPreferencesKey("chumash_font_size")
         val CHUMASH_SHOW_TEAMIM = booleanPreferencesKey("chumash_show_teamim")
+        val TORAH_TEXT_MODE = stringPreferencesKey("torah_text_mode")
+        val SHNAYIM_MIKRA_SCOPE = stringPreferencesKey("shnayim_mikra_scope")
         val COMPLETED_ALIYOT = stringSetPreferencesKey("completed_aliyot")
         val TANYA_BOOK_VIEW = booleanPreferencesKey("tanya_book_view")
         val TANYA_BOOK_NIKUD = booleanPreferencesKey("tanya_book_nikud")
@@ -75,7 +78,10 @@ class UserPreferencesRepository(private val context: Context) {
                     if ("rambam" in studies) studies - "rambam" +
                         "rambam_${preferences[PreferencesKeys.SELECTED_TRACK] ?: "one"}" else studies
                 },
-                chumashShowTeamim = preferences[PreferencesKeys.CHUMASH_SHOW_TEAMIM] ?: false,
+                // Before the three-way choice, the Chumash had only a cantillation switch.
+                torahTextMode = preferences[PreferencesKeys.TORAH_TEXT_MODE]
+                    ?: if (preferences[PreferencesKeys.CHUMASH_SHOW_TEAMIM] == true) "teamim" else "nikud",
+                shnayimMikraScope = preferences[PreferencesKeys.SHNAYIM_MIKRA_SCOPE] ?: "day",
                 completedAliyot = preferences[PreferencesKeys.COMPLETED_ALIYOT] ?: emptySet(),
                 tanyaBookView = preferences[PreferencesKeys.TANYA_BOOK_VIEW] ?: false,
                 tanyaBookShowNikud = preferences[PreferencesKeys.TANYA_BOOK_NIKUD] ?: false
@@ -150,8 +156,12 @@ class UserPreferencesRepository(private val context: Context) {
     }
 
 
-    suspend fun updateChumashShowTeamim(show: Boolean) {
-        context.dataStore.edit { it[PreferencesKeys.CHUMASH_SHOW_TEAMIM] = show }
+    suspend fun updateShnayimMikraScope(scope: String) {
+        context.dataStore.edit { it[PreferencesKeys.SHNAYIM_MIKRA_SCOPE] = scope }
+    }
+
+    suspend fun updateTorahTextMode(mode: String) {
+        context.dataStore.edit { it[PreferencesKeys.TORAH_TEXT_MODE] = mode }
     }
 
     suspend fun toggleAliyaCompletion(parasha: String, aliyaIndex: Int) {

@@ -29,7 +29,7 @@ class ChumashReaderLayoutTest {
         compose.setContent { DailyRambamTheme {
             ChumashReaderScreen(chumashLesson = lesson, selectedAliyaIndex = 5,
                 preferences = UserPreferences(), isLoading = false, onSelectAliya = {},
-                onToggleShowTeamim = {}, onChangeFontSize = {}, onToggleAliyaCompletion = { _, _ -> }, onBack = {})
+                onChangeFontSize = {}, onToggleAliyaCompletion = { _, _ -> }, onBack = {})
         } }
         compose.onNodeWithText("בראשית · פרק ד").assertIsDisplayed()
         compose.onNodeWithTag("verse_item_4_19").assertIsDisplayed()

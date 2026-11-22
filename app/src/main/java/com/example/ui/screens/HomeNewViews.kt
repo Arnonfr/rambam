@@ -78,6 +78,7 @@ fun MainContentList(
     onOpenDailyLesson: () -> Unit,
     onResumeReading: () -> Unit,
     onOpenChumash: () -> Unit,
+    onOpenShnayimMikra: () -> Unit = {},
     onOpenTehillim: () -> Unit,
     onOpenTanya: () -> Unit,
     onOpenMitzvah: () -> Unit,
@@ -276,6 +277,27 @@ fun MainContentList(
                             )
                         )
                     }
+                    if (visibleStudies.contains("shnayim_mikra")) {
+                        val lesson = uiState.dailyShnayimMikra
+                        val wholeWeek = uiState.preferences.shnayimMikraScope == "week"
+                        val aliyot = lesson?.allAliyot?.size?.coerceAtLeast(1) ?: 7
+                        add(
+                            StudyDashboardCard(
+                                track = "shnayim_mikra",
+                                eyebrow = "פרשת השבוע",
+                                title = "שניים מקרא",
+                                subtitle = lesson?.let { "ואחד תרגום · פרשת ${it.parashaName} · " +
+                                    if (wholeWeek) "כל הפרשה" else it.todayAliya?.aliyaName.orEmpty() } ?: "טוען...",
+                                // The whole parasha counts marked aliyot; a day shows where the week stands.
+                                metric = if (wholeWeek) "${lesson?.completedCount ?: 0}/$aliyot" else "${lesson?.currentAliyaIndex ?: 1}/$aliyot",
+                                progress = if (wholeWeek) (lesson?.completedCount ?: 0).toFloat() / aliyot
+                                    else if (lesson?.todayAliya?.isCompleted == true) 1f else 0f,
+                                color = ShnayimMikraColor,
+                                icon = Icons.Outlined.ReceiptLong,
+                                onClick = onOpenShnayimMikra
+                            )
+                        )
+                    }
                     if (visibleStudies.contains("tanya")) {
                         val completed = uiState.dailyTanya?.isCompleted == true
                         val tanyaChapter = uiState.dailyTanya?.heRef
@@ -359,6 +381,7 @@ internal fun homeStudyBackground(visibleStudies: Set<String>): Color = when {
     "tehillim" in visibleStudies -> Color(0xFF9FDEEF)
     "hayom_yom" in visibleStudies -> Color(0xFFC5B8F5)
     "tanya" in visibleStudies -> Color(0xFFF0A0DD)
+    "shnayim_mikra" in visibleStudies -> ShnayimMikraColor
     "chumash" in visibleStudies -> Color(0xFFF4F66A)
     "mitzvot" in visibleStudies -> Color(0xFF72D7E8)
     visibleStudies.any { it == "rambam_one" || it == "rambam_three" } -> Color(0xFFFF873F)
@@ -511,3 +534,5 @@ fun FloatingDarkNavBar(
         }
     }
 }
+
+internal val ShnayimMikraColor = Color(0xFFA9E89F)

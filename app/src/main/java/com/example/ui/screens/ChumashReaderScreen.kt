@@ -49,6 +49,10 @@ import com.example.ui.components.CompactReaderHeader
 import com.example.ui.components.EndOfLessonPullIndicator
 import com.example.ui.components.ReaderTypographySheet
 import com.example.ui.components.StudyTextBlock
+import com.example.ui.components.TorahTextModeSelector
+import com.example.ui.components.ShnayimMikraScopeSelector
+import com.example.ui.components.ShnayimMikraScopeToggle
+import com.example.ui.util.TorahTextMode
 import com.example.ui.components.endOfLessonPull
 import com.example.ui.components.rememberReaderViewportState
 import com.example.ui.components.rememberEndOfLessonPullState
@@ -101,7 +105,8 @@ fun ChumashReaderScreen(
     preferences: UserPreferences,
     isLoading: Boolean,
     onSelectAliya: (Int) -> Unit,
-    onToggleShowTeamim: () -> Unit,
+    onTorahTextModeChange: (String) -> Unit = {},
+    onShnayimMikraScopeChange: (String) -> Unit = {},
     onNikudToggle: (Boolean) -> Unit = {},
     onChangeFontSize: (Float) -> Unit,
     onToggleAliyaCompletion: (String, Int) -> Unit,
@@ -115,9 +120,15 @@ fun ChumashReaderScreen(
     savedPosition: com.example.data.local.ReadingPositionEntity? = null,
     hebrewDateText: String = "",
     onNextDay: (() -> Unit)? = null,
-    onPrevDay: (() -> Unit)? = null
+    onPrevDay: (() -> Unit)? = null,
+    // שניים מקרא ואחד תרגום: each verse twice and Onkelos, instead of the verse and Rashi.
+    shnayimMikra: Boolean = false
 ) {
     BackHandler(onBack = onBack)
+    val track = if (shnayimMikra) "shnayim_mikra" else "chumash"
+    val readerTitle = if (shnayimMikra) "שניים מקרא" else "חומש"
+    val accentColor = if (shnayimMikra) ShnayimMikraAccent else Color(0xFFEDFF24)
+    val textMode = TorahTextMode.fromId(preferences.torahTextMode)
 
     var showTypographySheet by remember { mutableStateOf(false) }
     val resumePosition = remember(chumashLesson?.parashaName, selectedAliyaIndex) { savedPosition }
@@ -189,14 +200,19 @@ fun ChumashReaderScreen(
         rows
     }
 
-    val fallbackIndex = flatRows.indexOfFirst { row ->
+    val resumeIndex = flatRows.indexOfFirst { row ->
             row is ChumashUiRow.VerseRow && resumePosition != null &&
                 row.aliya.aliyaIndex == resumePosition.chapterNumber &&
                 (row.verse.positionId == resumePosition.halachaId ||
                     (resumePosition.halachaId.matches(Regex("verse_\\d+")) &&
                         row.indexInAliya == resumePosition.halachaIndex))
             }
-    val listState = rememberReaderViewportState("chumash_$selectedAliyaIndex", chumashLesson?.date.toString(),
+    // The whole parasha opens at the first aliya not yet marked, not at ראשון.
+    val fallbackIndex = if (resumeIndex >= 0 || selectedAliyaIndex != 0 || chumashLesson == null) resumeIndex else {
+        val target = chumashLesson.allAliyot.firstOrNull { !it.isCompleted }?.aliyaIndex ?: chumashLesson.currentAliyaIndex
+        flatRows.indexOfFirst { it is ChumashUiRow.AliyaHeader && it.aliya.aliyaIndex == target }
+    }
+    val listState = rememberReaderViewportState("${track}_$selectedAliyaIndex", chumashLesson?.date.toString(),
         flatRows.map { it.key }, fallbackIndex.coerceAtLeast(0))
     val completionPullState = rememberEndOfLessonPullState(
         key = chumashLesson?.date?.toString() to selectedAliyaIndex,
@@ -215,7 +231,8 @@ fun ChumashReaderScreen(
     val completionRows = remember(flatRows) { flatRows.mapIndexedNotNull { index, row ->
         (row as? ChumashUiRow.VerseRow)?.let { CompletionReaderRow(index, CompletionText(
             it.key, "${it.verse.bookName} ${it.verse.chapterNumber}:${it.verse.verseNumber}",
-            it.verse.textWithTeamim, it.verse.textPlainNikud, it.verse.rashi)) }
+            it.verse.textWithTeamim, it.verse.textPlainNikud,
+            if (shnayimMikra) listOfNotNull(it.verse.targum.takeIf(String::isNotBlank)) else it.verse.rashi)) }
     } }
 
     val hasScrolledToSavedPosition = flatRows.isNotEmpty()
@@ -356,7 +373,7 @@ fun ChumashReaderScreen(
                                 if (row.totalAliyotInSelection > 1) {
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Text(
-                                        text = "עליה ${row.aliyaIndexInSelection} מתוך ${row.totalAliyotInSelection} בשיעור היומי",
+                                        text = "עליה ${row.aliyaIndexInSelection} מתוך ${row.totalAliyotInSelection} ${if (shnayimMikra) "בפרשה" else "בשיעור היומי"}",
                                         fontSize = 12.sp,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         fontWeight = FontWeight.Medium
@@ -384,24 +401,33 @@ fun ChumashReaderScreen(
                                     color = MaterialTheme.colorScheme.primary
                                 )
                             }
-                            val cleanTextWithNikud = if (preferences.chumashShowTeamim) {
-                                row.verse.textWithTeamim
+                            // The text mode decides the marks here, not the global nikud switch.
+                            val verseText = remember(row.verse, textMode) { textMode.verse(row.verse.textWithTeamim) }
+                            if (shnayimMikra) {
+                                ShnayimMikraVerse(
+                                    verse = row.verse,
+                                    verseText = verseText,
+                                    targumText = remember(row.verse, textMode) { textMode.commentary(row.verse.targum) },
+                                    repeatAsParashaEnd = row.aliya.aliyaIndex == 7 && row.indexInAliya == row.totalInAliya - 1,
+                                    preferences = preferences,
+                                    fontFamily = activeFontFamily,
+                                    modifier = Modifier.padding(bottom = 28.dp)
+                                )
                             } else {
-                                com.example.ui.util.HebrewTextNormalizer.withoutBiblicalAnnotations(row.verse.textWithTeamim)
+                                StudyTextBlock(
+                                    indexLetter = row.verse.verseHebrew,
+                                    textWithNikud = verseText,
+                                    textPlain = verseText,
+                                    preferences = preferences,
+                                    rashi = remember(row.verse, textMode) { row.verse.rashi.map(textMode::commentary) },
+                                    fontFamily = activeFontFamily,
+                                    textColor = MaterialTheme.colorScheme.onBackground,
+                                    fontSizeSp = preferences.fontSizeSp,
+                                    isReadingAnchor = false,
+                                    modifier = Modifier.padding(bottom = 20.dp),
+                                    testTag = "verse_item_${row.verse.chapterNumber}_${row.verse.verseNumber}"
+                                )
                             }
-                            StudyTextBlock(
-                                indexLetter = row.verse.verseHebrew,
-                                textWithNikud = cleanTextWithNikud,
-                                textPlain = row.verse.textPlainNikud,
-                                preferences = preferences,
-                                rashi = row.verse.rashi,
-                                fontFamily = activeFontFamily,
-                                textColor = MaterialTheme.colorScheme.onBackground,
-                                fontSizeSp = preferences.fontSizeSp,
-                                isReadingAnchor = false,
-                                modifier = Modifier.padding(bottom = 20.dp),
-                                testTag = "verse_item_${row.verse.chapterNumber}_${row.verse.verseNumber}"
-                            )
                         }
 
                         is ChumashUiRow.AliyaTransition -> {
@@ -477,21 +503,25 @@ fun ChumashReaderScreen(
             }
 
             CompactReaderHeader(
-                title = "חומש",
+                title = readerTitle,
                 location = "פרשת ${chumashLesson?.parashaName.orEmpty()} • ${currentVerseText.value}",
-                accentColor = Color(0xFFEDFF24),
+                accentColor = accentColor,
                 scrollProgress = scrollProgress,
                 readerTheme = preferences.readerTheme,
-                modifier = Modifier.align(Alignment.TopCenter)
+                modifier = Modifier.align(Alignment.TopCenter),
+                trailingAction = if (!shnayimMikra) null else ({
+                    ShnayimMikraScopeToggle(preferences.shnayimMikraScope, accentColor, preferences.readerTheme,
+                        onShnayimMikraScopeChange)
+                })
             )
 
             ManualStudyCompletionControls(manualCompletion, listState, completionRows,
-                track = "chumash", studyDate = chumashLesson?.date.orEmpty(), dateLabel = hebrewDateText,
-                title = "חומש · ${chumashLesson?.parashaName.orEmpty()}", onSave = onSaveCompletion)
+                track = track, studyDate = chumashLesson?.date.orEmpty(), dateLabel = hebrewDateText,
+                title = "$readerTitle · ${chumashLesson?.parashaName.orEmpty()}", onSave = onSaveCompletion)
 
             EndOfLessonPullIndicator(
                 state = completionPullState,
-                accentColor = Color(0xFFEDFF24),
+                accentColor = accentColor,
                 modifier = Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(bottom = 92.dp)
             )
 
@@ -503,7 +533,7 @@ fun ChumashReaderScreen(
                 val displayDate = if (hebrewDateText.isNotBlank()) {
                     hebrewDateText
                 } else {
-                    chumashLesson?.parashaName ?: "חומש"
+                    chumashLesson?.parashaName ?: readerTitle
                 }
                 FloatingReaderBar(
                     currentHalachaText = "",
@@ -530,14 +560,69 @@ fun ChumashReaderScreen(
                     onNikudToggle = onNikudToggle,
                     onThemeChange = onThemeChange,
                     onKeepScreenOnChange = onKeepScreenOnChange,
+                    showNikudSwitch = false,
                     extraControls = {
-                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                            Text("טעמים בחומש", modifier = Modifier.weight(1f))
-                            Switch(checked = preferences.chumashShowTeamim, onCheckedChange = { onToggleShowTeamim() })
+                        if (shnayimMikra) {
+                            ShnayimMikraScopeSelector(preferences.shnayimMikraScope,
+                                chumashLesson?.todayAliya?.aliyaName.orEmpty(), activeFontFamily, onShnayimMikraScopeChange)
                         }
+                        TorahTextModeSelector(textMode, activeFontFamily) { onTorahTextModeChange(it.id) }
                     }
                 )
             }
+        }
+    }
+}
+
+private val ShnayimMikraAccent = Color(0xFF8CF27A)
+private val TargumInk = Color(0xFF3E7A35)
+
+/**
+ * One verse of שניים מקרא ואחד תרגום: the verse twice, then Onkelos. After the
+ * parasha's last verse the custom is to read that verse once more.
+ */
+@Composable
+private fun ShnayimMikraVerse(
+    verse: ChumashVerse,
+    verseText: String,
+    targumText: String,
+    repeatAsParashaEnd: Boolean,
+    preferences: UserPreferences,
+    fontFamily: FontFamily,
+    modifier: Modifier = Modifier
+) {
+    val textColor = MaterialTheme.colorScheme.onBackground
+    val darkReader = preferences.readerTheme == "dark" || preferences.readerTheme == "oled"
+    val targumColor = if (darkReader) ShnayimMikraAccent else TargumInk
+    Column(modifier.fillMaxWidth().testTag("verse_item_${verse.chapterNumber}_${verse.verseNumber}")) {
+        StudyTextBlock(indexLetter = verse.verseHebrew, textWithNikud = verseText, textPlain = verseText,
+            preferences = preferences, fontFamily = fontFamily, textColor = textColor)
+        Spacer(Modifier.height(10.dp))
+        StudyTextBlock(indexLetter = "", textWithNikud = verseText, textPlain = verseText,
+            preferences = preferences, fontFamily = fontFamily, textColor = textColor,
+            testTag = "shnayim_mikra_second_${verse.chapterNumber}_${verse.verseNumber}")
+        if (targumText.isNotBlank()) {
+            Spacer(Modifier.height(10.dp))
+            Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+                Box(Modifier.width(3.dp).fillMaxHeight().clip(RoundedCornerShape(2.dp))
+                    .background(targumColor.copy(alpha = 0.55f)))
+                Spacer(Modifier.width(12.dp))
+                Column(Modifier.weight(1f)) {
+                    Text("תרגום", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = targumColor)
+                    StudyTextBlock(indexLetter = "", textWithNikud = targumText, textPlain = targumText,
+                        preferences = preferences, fontFamily = fontFamily,
+                        textColor = textColor.copy(alpha = 0.82f), fontSizeSp = preferences.fontSizeSp * 0.9f,
+                        testTag = "targum_${verse.chapterNumber}_${verse.verseNumber}")
+                }
+            }
+        }
+        if (repeatAsParashaEnd) {
+            Spacer(Modifier.height(16.dp))
+            Text("בסיום הפרשה חוזרים על הפסוק האחרון", fontSize = 12.sp,
+                fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(Modifier.height(6.dp))
+            StudyTextBlock(indexLetter = "", textWithNikud = verseText, textPlain = verseText,
+                preferences = preferences, fontFamily = fontFamily, textColor = textColor)
         }
     }
 }

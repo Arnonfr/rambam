@@ -107,6 +107,11 @@ data class DailyRambamUiState(
     val selectedChumashAliyaIndex: Int = 1,
     val isChumashLoading: Boolean = false,
     val latestChumashPosition: ReadingPositionEntity? = null,
+    // שניים מקרא ואחד תרגום follows the Chumash daily aliya, with its own bookmark and completion.
+    val dailyShnayimMikra: DailyChumashLesson? = null,
+    val isShnayimMikraReaderOpen: Boolean = false,
+    val selectedShnayimMikraAliyaIndex: Int = 1,
+    val latestShnayimMikraPosition: ReadingPositionEntity? = null,
     val dailyTehillim: DailyTehillimLesson? = null,
     val isTehillimReaderOpen: Boolean = false,
     val isTehillimLoading: Boolean = false,
@@ -252,12 +257,12 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
 
     private fun updateBookmarks() {
         updateStudyProgress()
-        val dates = listOf("one", "three", "chumash", "tehillim", "tanya", "hayom_yom")
+        val dates = listOf("one", "three", "chumash", "shnayim_mikra", "tehillim", "tanya", "hayom_yom")
             .mapNotNull { track -> readingStateManager.getSavedAnchor(track)?.let { track to it.studyDate } }
             .toMap().toMutableMap()
         contentReadingAnchorManager.getLatest("sefer_hamitzvot")?.let { dates["mitzvot"] = it.assignmentDate }
         _uiState.update { it.copy(bookmarkDates = dates,
-            completedStudyDates = listOf("one", "three", "chumash", "tehillim", "tanya", "mitzvot", "hayom_yom")
+            completedStudyDates = listOf("one", "three", "chumash", "shnayim_mikra", "tehillim", "tanya", "mitzvot", "hayom_yom")
                 .mapNotNull { track -> readingStateManager.completedDate(track)?.let { track to it } }.toMap(),
             completedBookmarks = dates.filter { (track, date) -> readingStateManager.isCompleted(track, date) }.keys) }
     }
@@ -281,11 +286,13 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
                     chapters.indices.filter { "${chapters[it].sectionId}_${chapters[it].chapterNumber}" in done }.toSet(),
                     index, if (anchor != null) anchor.halachaIndex + anchor.scrollOffsetFraction.coerceIn(0f, .99f) else 0f)
             }
-            for (track in listOf("chumash", "tehillim", "tanya", "hayom_yom")) {
+            for (track in listOf("chumash", "shnayim_mikra", "tehillim", "tanya", "hayom_yom")) {
                 val anchor = readingStateManager.getSavedAnchor(track)?.takeIf { it.studyDate == date }
                 val fraction = if (anchor == null) 0f else when (track) {
-                    "chumash" -> {
-                        val verses = state.dailyChumash?.todayAliya?.verses.orEmpty()
+                    "chumash", "shnayim_mikra" -> {
+                        val lesson = if (track == "chumash") state.dailyChumash else state.dailyShnayimMikra
+                        val verses = if (track == "shnayim_mikra" && state.preferences.shnayimMikraScope == "week")
+                            lesson?.allAliyot.orEmpty().flatMap { it.verses } else lesson?.todayAliya?.verses.orEmpty()
                         val index = verses.indexOfFirst { it.positionId == anchor.halachaId }
                             .takeIf { it >= 0 } ?: anchor.halachaIndex
                         index.coerceAtLeast(0).toFloat() / verses.size.coerceAtLeast(1)
@@ -337,6 +344,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
                     openChapter(anchor.chapterId, anchor.halachaIndex)
                 }
                 "chumash" -> { refreshDailyChumash(date).join(); openChumashReader() }
+                "shnayim_mikra" -> { refreshDailyChumash(date).join(); openShnayimMikraReader() }
                 "tanya" -> { refreshDailyTanya(date).join(); openTanyaReader() }
                 "tehillim" -> { refreshDailyTehillim(date).join(); openTehillimReader(true) }
                 "mitzvot" -> { refreshDailyMitzvah(date); openMitzvahReader(true) }
@@ -418,7 +426,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
                 
                 val position = validPosition
                 when (position.track) {
-                    "chumash" -> {
+                    "chumash", "shnayim_mikra" -> {
                         val aliyaNum = position.chapterNumber
                         val aliyaName = when (aliyaNum) {
                             1 -> "ראשון"
@@ -430,7 +438,7 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
                             7 -> "שביעי"
                             else -> "עליה $aliyaNum"
                         }
-                        val title = "חומש · פרשת ${position.chapterId} · $aliyaName · פסוק ${HebrewNumberFormatter.toHebrewNumeral(position.halachaIndex + 1)}׳"
+                        val title = "${if (position.track == "chumash") "חומש" else "שניים מקרא"} · פרשת ${position.chapterId} · $aliyaName · פסוק ${HebrewNumberFormatter.toHebrewNumeral(position.halachaIndex + 1)}׳"
                         _uiState.update {
                             it.copy(
                                 latestPosition = position,
@@ -823,17 +831,21 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
             _uiState.update { it.copy(isChumashLoading = true) }
             val completed = _uiState.value.preferences.completedAliyot
             val lesson = chumashRepository.getDailyChumashLesson(date, completed)
-            val pos = onlyForSelectedStudyDay(repository.getLatestReadingPosition("chumash").firstOrNull(), "chumash")
-                ?: savedAnchorPosition("chumash")
+            val smLesson = chumashRepository.getDailyChumashLesson(date, shnayimMikraCompletedKeys(completed))
+            val pos = latestTorahPosition("chumash")
+            val smPos = latestTorahPosition("shnayim_mikra")
             val activeParasha = lesson?.parashaName ?: ""
             val isSameParasha = pos != null && pos.chapterId == activeParasha
             val targetAliya = lesson?.currentAliyaIndex ?: 1
             _uiState.update {
                 it.copy(
                     dailyChumash = lesson,
+                    dailyShnayimMikra = smLesson,
                     isChumashLoading = false,
                     selectedChumashAliyaIndex = targetAliya,
-                    latestChumashPosition = if (isSameParasha) pos else null
+                    selectedShnayimMikraAliyaIndex = if (it.preferences.shnayimMikraScope == "week") 0 else targetAliya,
+                    latestChumashPosition = if (isSameParasha) pos else null,
+                    latestShnayimMikraPosition = smPos?.takeIf { p -> p.chapterId == activeParasha }
                 )
             }
         }
@@ -861,9 +873,81 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
+    private suspend fun latestTorahPosition(track: String) =
+        onlyForSelectedStudyDay(repository.getLatestReadingPosition(track).firstOrNull(), track)
+            ?: savedAnchorPosition(track)
+
+    private fun shnayimMikraCompletedKeys(all: Set<String>) =
+        all.filter { it.startsWith(SHNAYIM_MIKRA_KEY_PREFIX) }.map { it.removePrefix(SHNAYIM_MIKRA_KEY_PREFIX) }.toSet()
+
+    fun openShnayimMikraReader(aliyaIndex: Int? = null) {
+        if (_uiState.value.dailyShnayimMikra == null || _uiState.value.isChumashLoading) return
+        viewModelScope.launch {
+            prepareLessonEntry("shnayim_mikra")
+            val lesson = _uiState.value.dailyShnayimMikra
+            val pos = latestTorahPosition("shnayim_mikra")?.takeIf { it.chapterId == lesson?.parashaName }
+            _uiState.update {
+                it.copy(
+                    isShnayimMikraReaderOpen = true,
+                    // 0 shows all seven aliyot.
+                    selectedShnayimMikraAliyaIndex = if (it.preferences.shnayimMikraScope == "week") 0
+                        else aliyaIndex ?: pos?.chapterNumber ?: lesson?.currentAliyaIndex ?: 1,
+                    latestShnayimMikraPosition = pos
+                )
+            }
+        }
+    }
+
+    fun closeShnayimMikraReader() {
+        _uiState.update { it.copy(isShnayimMikraReaderOpen = false) }
+    }
+
+    fun selectShnayimMikraAliya(index: Int) {
+        _uiState.update { it.copy(selectedShnayimMikraAliyaIndex = index) }
+    }
+
+    fun saveShnayimMikraPosition(verse: ChumashVerse, aliya: ChumashAliya) {
+        saveTorahPosition("shnayim_mikra", _uiState.value.dailyShnayimMikra ?: return, verse, aliya)
+    }
+
+    fun toggleShnayimMikraAliyaCompleted(parashaName: String, aliyaIndex: Int) {
+        viewModelScope.launch {
+            val key = "$SHNAYIM_MIKRA_KEY_PREFIX$parashaName-$aliyaIndex"
+            val updatedKeys = _uiState.value.preferences.completedAliyot.toMutableSet()
+            val wasCompleted = !updatedKeys.add(key)
+            if (wasCompleted) updatedKeys.remove(key)
+            readingStateManager.setCompleted("shnayim_mikra", selectedStudyDateKey(), !wasCompleted)
+            updateBookmarks()
+            prefsRepository.toggleAliyaCompletion("$SHNAYIM_MIKRA_KEY_PREFIX$parashaName", aliyaIndex)
+            val lesson = chumashRepository.getDailyChumashLesson(_uiState.value.selectedStudyDate,
+                shnayimMikraCompletedKeys(updatedKeys))
+            _uiState.update { it.copy(dailyShnayimMikra = lesson) }
+        }
+    }
+
+    /** Switches between today's aliya and the whole parasha, keeping the reader at its current verse. */
+    fun setShnayimMikraScope(scope: String) {
+        val lesson = _uiState.value.dailyShnayimMikra
+        _uiState.update {
+            it.copy(
+                preferences = it.preferences.copy(shnayimMikraScope = scope),
+                selectedShnayimMikraAliyaIndex = if (scope == "week") 0 else lesson?.currentAliyaIndex ?: 1,
+                latestShnayimMikraPosition = savedAnchorPosition("shnayim_mikra")
+                    ?.takeIf { p -> p.chapterId == lesson?.parashaName } ?: it.latestShnayimMikraPosition
+            )
+        }
+        viewModelScope.launch { prefsRepository.updateShnayimMikraScope(scope) }
+    }
+
+    fun setTorahTextMode(mode: String) {
+        viewModelScope.launch { prefsRepository.updateTorahTextMode(mode) }
+    }
+
     fun saveChumashPosition(verse: ChumashVerse, aliya: ChumashAliya) {
-        val lesson = _uiState.value.dailyChumash ?: return
-        val track = "chumash"
+        saveTorahPosition("chumash", _uiState.value.dailyChumash ?: return, verse, aliya)
+    }
+
+    private fun saveTorahPosition(track: String, lesson: DailyChumashLesson, verse: ChumashVerse, aliya: ChumashAliya) {
         val verseIndex = aliya.verses.indexOfFirst { it.positionId == verse.positionId }
         if (verseIndex < 0) return
         
@@ -919,12 +1003,6 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
         _uiState.update { it.copy(selectedChumashAliyaIndex = index) }
     }
 
-    fun toggleChumashShowTeamim() {
-        viewModelScope.launch {
-            val current = _uiState.value.preferences.chumashShowTeamim
-            prefsRepository.updateChumashShowTeamim(!current)
-        }
-    }
 
 
     fun toggleChumashAliyaCompleted(parashaName: String, aliyaIndex: Int) {
@@ -1078,6 +1156,9 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
             when (pos.track) {
                 "chumash" -> {
                     openChumashReader(pos.chapterNumber)
+                }
+                "shnayim_mikra" -> {
+                    openShnayimMikraReader(pos.chapterNumber)
                 }
                 "tehillim" -> {
                     openTehillimReader(true)
@@ -1534,3 +1615,6 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
         _uiState.update { it.copy(noticeMessage = null) }
     }
 }
+
+// Shares UserPreferences.completedAliyot with the Chumash, which stores "<parasha>-<aliya>".
+private const val SHNAYIM_MIKRA_KEY_PREFIX = "sm:"

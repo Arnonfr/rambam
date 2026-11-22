@@ -49,6 +49,9 @@ class ChumashRepository(private val context: Context) {
         }
     }
 
+    // Onkelos for שניים מקרא, keyed like the cache's verseKeys ("Genesis:1:1").
+    private val onkelos by lazy { readAsset("onkelos.json").getJSONObject("verses") }
+
     private fun readAsset(name: String): JSONObject = context.assets.open(name)
         .bufferedReader().use { JSONObject(it.readText()) }
 
@@ -62,6 +65,7 @@ class ChumashRepository(private val context: Context) {
         val aliyot = (0 until aliyotArray.length()).map { i ->
             val aObj = aliyotArray.getJSONObject(i)
             val versesArray = aObj.getJSONArray("verses")
+            val verseKeys = aObj.getJSONArray("verseKeys")
             val verses = (0 until versesArray.length()).map { j ->
                 val vObj = versesArray.getJSONObject(j)
                 val number = vObj.getInt("verseNumber")
@@ -70,7 +74,8 @@ class ChumashRepository(private val context: Context) {
                     cleanHtml(vObj.getString("textWithTeamim")),
                     cleanHtml(vObj.getString("textPlainNikud")),
                     (0 until rashi.length()).map { cleanRashiHtml(rashi.getString(it)) },
-                    chapterNumber = vObj.getInt("chapterNumber"), bookName = bookName)
+                    chapterNumber = vObj.getInt("chapterNumber"), bookName = bookName,
+                    targum = onkelos.optString(verseKeys.getString(j)))
             }
             require(verses.isNotEmpty() && verses.map { it.positionId }.distinct().size == verses.size)
             ChumashAliya(aObj.getInt("aliyaIndex"), aObj.getString("aliyaName"),

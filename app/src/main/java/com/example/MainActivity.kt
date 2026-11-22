@@ -153,7 +153,7 @@ class MainActivity : ComponentActivity() {
             val prayerServices = prayers?.let { com.example.data.prayers.PrayerServices.group(it.sections) }.orEmpty()
             val prayer = prayerServices.firstOrNull { it.id == prayerId }
             val reviewHome=!uiState.isLoading && uiState.activeChapter==null && uiState.activeCompletion==null &&
-                !uiState.isChumashReaderOpen && !uiState.isTehillimReaderOpen && !uiState.isTanyaReaderOpen &&
+                !uiState.isChumashReaderOpen && !uiState.isShnayimMikraReaderOpen && !uiState.isTehillimReaderOpen && !uiState.isTanyaReaderOpen &&
                 !uiState.isHayomYomReaderOpen && !uiState.isMitzvahReaderOpen && !uiState.showSettingsDialog &&
                 !uiState.showAttributionDialog && !uiState.showDatePickerDialog && !uiState.showEditStudySheet && uiState.noticeMessage==null &&
                 uiState.dateDrawerState==com.example.ui.DateDrawerState.COLLAPSED &&
@@ -186,7 +186,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            LaunchedEffect(uiState.selectedStudyDate, uiState.dailyLesson, uiState.dailyChumash,
+            LaunchedEffect(uiState.selectedStudyDate, uiState.dailyLesson, uiState.dailyChumash, uiState.dailyShnayimMikra,
                 uiState.dailyTehillim, uiState.dailyTanya, uiState.dailyHayomYom,
                 uiState.sectionChapters, uiState.completedChapterIds) { viewModel.refreshStudyProgress() }
 
@@ -305,7 +305,7 @@ class MainActivity : ComponentActivity() {
                                 preferences = uiState.preferences,
                                 isLoading = uiState.isChumashLoading,
                                 onSelectAliya = { viewModel.selectChumashAliya(it) },
-                                onToggleShowTeamim = { viewModel.toggleChumashShowTeamim() },
+                                onTorahTextModeChange = { viewModel.setTorahTextMode(it) },
                                 onNikudToggle = { viewModel.toggleShowNikud(it) },
                                 onChangeFontSize = { viewModel.setFontSize(it) },
                                 onToggleAliyaCompletion = { parasha, aliyaIdx ->
@@ -324,6 +324,38 @@ class MainActivity : ComponentActivity() {
                                 onFontFamilyChange = { viewModel.setFontFamily(it) },
                                 onThemeChange = { viewModel.setReaderTheme(it) },
                                 onKeepScreenOnChange = { viewModel.setKeepScreenOn(it) }
+                            )
+                        } else if (uiState.isShnayimMikraReaderOpen) {
+                            BackHandler(enabled = true) {
+                                viewModel.closeShnayimMikraReader()
+                            }
+                            ChumashReaderScreen(
+                                onSaveCompletion = { viewModel.saveStudyCompletion(it) },
+                                chumashLesson = uiState.dailyShnayimMikra,
+                                selectedAliyaIndex = uiState.selectedShnayimMikraAliyaIndex,
+                                preferences = uiState.preferences,
+                                isLoading = uiState.isChumashLoading,
+                                onSelectAliya = { viewModel.selectShnayimMikraAliya(it) },
+                                onTorahTextModeChange = { viewModel.setTorahTextMode(it) },
+                                onChangeFontSize = { viewModel.setFontSize(it) },
+                                onToggleAliyaCompletion = { parasha, aliyaIdx ->
+                                    viewModel.toggleShnayimMikraAliyaCompleted(parasha, aliyaIdx)
+                                },
+                                onBack = { viewModel.closeShnayimMikraReader() },
+                                onSavePosition = { verse, aliya ->
+                                    viewModel.saveShnayimMikraPosition(verse, aliya)
+                                },
+                                savedPosition = uiState.latestShnayimMikraPosition,
+                                hebrewDateText = uiState.dailyLesson?.hebrewDate ?: "",
+                                onNextDay = { viewModel.stepSelectedDate(1) },
+                                onPrevDay = { viewModel.stepSelectedDate(-1) },
+                                onOpenDatePicker = { viewModel.setShowDatePicker(true) },
+                                onLineSpacingChange = { viewModel.setLineSpacing(it) },
+                                onFontFamilyChange = { viewModel.setFontFamily(it) },
+                                onThemeChange = { viewModel.setReaderTheme(it) },
+                                onKeepScreenOnChange = { viewModel.setKeepScreenOn(it) },
+                                onShnayimMikraScopeChange = { viewModel.setShnayimMikraScope(it) },
+                                shnayimMikra = true
                             )
                         } else if (uiState.isTehillimReaderOpen) {
                             BackHandler(enabled = true) {
@@ -549,6 +581,9 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onOpenChumash = {
                                     viewModel.openChumashReader()
+                                },
+                                onOpenShnayimMikra = {
+                                    viewModel.openShnayimMikraReader()
                                 },
                                 onOpenTehillim = {
                                     viewModel.openTehillimReader(true)

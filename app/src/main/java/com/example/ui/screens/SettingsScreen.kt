@@ -101,6 +101,7 @@ fun SettingsScreen(
     }
     val studies = listOf(
         Triple("chumash", "חומש", Color(0xFFF4F66A)),
+        Triple("shnayim_mikra", "שניים מקרא ואחד תרגום", ShnayimMikraColor),
         Triple("tehillim", "תהילים", Color(0xFF9FDEEF)),
         Triple("tanya", "תניא", Color(0xFFF0A0DD)),
         Triple("rambam_one", "רמב״ם — פרק אחד", Color(0xFFFFB27C)),

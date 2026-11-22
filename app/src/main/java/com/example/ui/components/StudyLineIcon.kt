@@ -32,7 +32,7 @@ fun StudyLineIcon(kind: String, modifier: Modifier = Modifier) {
                         line { moveTo(18f,y); cubicTo(15f,y+2f,15f,y+5f,18f,y+8f) }
                     }
                 }
-                "chumash" -> {
+                "chumash", "shnayim_mikra" -> {
                     line { moveTo(11f,12f); lineTo(37f,12f); lineTo(37f,36f); lineTo(11f,36f); close()
                         moveTo(8f,9f); lineTo(13f,9f); lineTo(13f,39f); lineTo(8f,39f); close()
                         moveTo(35f,9f); lineTo(40f,9f); lineTo(40f,39f); lineTo(35f,39f); close()

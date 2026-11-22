@@ -399,7 +399,7 @@ fun TehillimReaderScreen(
                         }
 
                         is TehillimUiRow.VerseRow -> {
-                            val cleanText = if (preferences.chumashShowTeamim) {
+                            val cleanText = if (preferences.torahTextMode == "teamim") {
                                 row.verse.textWithTeamim
                             } else {
                                 row.verse.textPlainNikud
