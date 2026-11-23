@@ -217,7 +217,13 @@ class MainActivity : ComponentActivity() {
                                 onFontSizeChange = viewModel::setFontSize, onLineSpacingChange = viewModel::setLineSpacing,
                                 onFontFamilyChange = viewModel::setFontFamily, onNikudToggle = viewModel::toggleShowNikud,
                                 onThemeChange = viewModel::setReaderTheme, onKeepScreenOnChange = viewModel::setKeepScreenOn,
-                                error = personalError, startWithManagement = personalManagement
+                                error = personalError, startWithManagement = personalManagement,
+                                onOpenDailyPsalms = if (personalManagement) null else {
+                                    {
+                                        personalOpen = false
+                                        if (!uiState.isTehillimReaderOpen) viewModel.openTehillimReader(true)
+                                    }
+                                }
                             )
                         } else if (uiState.showSettingsDialog) {
                             SettingsScreen(

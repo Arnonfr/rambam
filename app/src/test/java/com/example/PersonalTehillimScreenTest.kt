@@ -26,10 +26,15 @@ class PersonalTehillimScreenTest {
     @get:Rule val hostAndCompose = withComposeHost(compose)
     private val date = LocalDate.of(2026, 10, 15)
     private var back = false
-    private fun show(state: MutableState<PersonalTehillimState>, manage: Boolean = false) {
+    private fun show(
+        state: MutableState<PersonalTehillimState>,
+        manage: Boolean = false,
+        onOpenDaily: (() -> Unit)? = null
+    ) {
         compose.setContent { DailyRambamTheme {
             PersonalTehillimScreen(state.value, date, UserPreferences(keepScreenOn = false), onBack = { back = true },
                 startWithManagement = manage,
+                onOpenDailyPsalms = onOpenDaily,
                 onSave = { entry -> state.value = state.value.copy(entries = state.value.entries.filterNot { it.id == entry.id } + entry) },
                 onDelete = {}, onMove = { _, _ -> }, onComplete = { entry, checked ->
                     val key = PersonalTehillimStore.completionKey(entry.id, date.toString(), entry.chapter(date)!!)
@@ -37,6 +42,22 @@ class PersonalTehillimScreenTest {
                 }, onFontSizeChange = {}, onLineSpacingChange = {}, onFontFamilyChange = {},
                 onNikudToggle = {}, onThemeChange = {}, onKeepScreenOnChange = {})
         } }
+    }
+
+    @Test fun dailyTabWorksWithEmptyAndPopulatedPersonalChapters() {
+        val state = mutableStateOf(PersonalTehillimState())
+        var switches = 0
+        show(state, onOpenDaily = { switches++ })
+        compose.onNodeWithTag("tehillim_personal_psalms").assertIsSelected().assertIsDisplayed()
+        compose.onNodeWithTag("tehillim_daily").assertIsNotSelected().performClick()
+        compose.runOnIdle {
+            assertEquals(1, switches)
+            state.value = PersonalTehillimState(listOf(PersonalTehillimEntry(fixedChapter = 1)))
+        }
+        compose.onNodeWithTag("personal_psalm_reader").assertExists()
+        compose.onNodeWithTag("tehillim_personal_psalms").assertIsSelected().assertIsDisplayed()
+        compose.onNodeWithTag("tehillim_daily").performClick()
+        compose.runOnIdle { assertEquals(2, switches) }
     }
 
     @Test fun homeOpensReadingDirectlyWithEditAndPullToComplete() {

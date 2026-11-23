@@ -28,6 +28,7 @@ import com.example.data.local.UserPreferences
 import com.example.data.tehillim.PersonalTehillimState
 import com.example.data.tehillim.PersonalTehillimStore
 import com.example.domain.tehillim.*
+import com.example.ui.components.TehillimScopeToggle
 import com.example.ui.util.HebrewNumberFormatter
 import java.time.LocalDate
 
@@ -52,7 +53,8 @@ fun PersonalTehillimScreen(
     onThemeChange: (String) -> Unit,
     onKeepScreenOnChange: (Boolean) -> Unit,
     error: String? = null,
-    startWithManagement: Boolean = false
+    startWithManagement: Boolean = false,
+    onOpenDailyPsalms: (() -> Unit)? = null
 ) {
     var managing by rememberSaveable { mutableStateOf(startWithManagement) }
     var editingId by rememberSaveable { mutableStateOf<String?>(null) }
@@ -89,12 +91,17 @@ fun PersonalTehillimScreen(
                 onBack = onBack, onManage = { managing = true }, onComplete = { onComplete(it, true) },
                 onFontSizeChange = onFontSizeChange, onLineSpacingChange = onLineSpacingChange,
                 onFontFamilyChange = onFontFamilyChange, onNikudToggle = onNikudToggle,
-                onThemeChange = onThemeChange, onKeepScreenOnChange = onKeepScreenOnChange)
+                onThemeChange = onThemeChange, onKeepScreenOnChange = onKeepScreenOnChange,
+                onOpenDailyPsalms = onOpenDailyPsalms)
             }
         } else {
             Column(Modifier.fillMaxSize().background(Color.White).testTag("personal_tehillim_screen")) {
-                TopAppBar(title = { Text(if (state.entries.isEmpty()) "הפרקים שלי" else "ניהול הפרקים") }, navigationIcon = {
+                TopAppBar(title = {
+                    Text(if (state.entries.isNotEmpty()) "ניהול הפרקים" else if (onOpenDailyPsalms != null) "תהילים" else "הפרקים שלי")
+                }, navigationIcon = {
                     IconButton(onClick = ::backFromManagement) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "חזרה") }
+                }, actions = {
+                    onOpenDailyPsalms?.let { TehillimScopeToggle(personal = true, "light", it) }
                 }, colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White, titleContentColor = Color.Black, navigationIconContentColor = Color.Black))
                 LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     item {

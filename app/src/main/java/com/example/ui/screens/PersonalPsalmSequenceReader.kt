@@ -33,6 +33,7 @@ import com.example.domain.tehillim.TehillimChapter
 import com.example.ui.components.EndOfLessonPullIndicator
 import com.example.ui.components.ReaderTypographySheet
 import com.example.ui.components.StudyTextBlock
+import com.example.ui.components.TehillimScopeToggle
 import com.example.ui.components.endOfLessonPull
 import com.example.ui.components.rememberEndOfLessonPullState
 import com.example.ui.util.HebrewTextNormalizer
@@ -50,7 +51,8 @@ internal fun PersonalPsalmSequenceReader(
     background: Color, foreground: Color, onBack: () -> Unit, onManage: () -> Unit,
     onComplete: (PersonalTehillimEntry) -> Unit,
     onFontSizeChange: (Float) -> Unit, onLineSpacingChange: (Float) -> Unit, onFontFamilyChange: (String) -> Unit,
-    onNikudToggle: (Boolean) -> Unit, onThemeChange: (String) -> Unit, onKeepScreenOnChange: (Boolean) -> Unit
+    onNikudToggle: (Boolean) -> Unit, onThemeChange: (String) -> Unit, onKeepScreenOnChange: (Boolean) -> Unit,
+    onOpenDailyPsalms: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
     val repository = remember(context) { TehillimRepository(context.applicationContext) }
@@ -130,11 +132,14 @@ internal fun PersonalPsalmSequenceReader(
 
     Column(Modifier.fillMaxSize().background(background).testTag("personal_psalm_reader")) {
         TopAppBar(title = { Column {
-            Text(activeReading?.entry?.label?.ifBlank { "הפרקים שלי" } ?: "הפרקים שלי", color = foreground)
+            val fallbackTitle = if (onOpenDailyPsalms != null) "תהילים" else "הפרקים שלי"
+            Text(activeReading?.entry?.label?.ifBlank { fallbackTitle } ?: fallbackTitle,
+                color = foreground, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
             activeReading?.let { Text(psalmName(it.chapter.chapterNumber), style = MaterialTheme.typography.labelMedium, color = foreground) }
         } }, navigationIcon = {
             IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "חזרה לפרקים שלי", tint = foreground) }
         }, actions = {
+            onOpenDailyPsalms?.let { TehillimScopeToggle(personal = true, preferences.readerTheme, it) }
             IconButton(onClick = { typography = true }) { Icon(Icons.Default.TextFields, "העדפות קריאה", tint = foreground) }
             TextButton(onClick = onManage, modifier = Modifier.testTag("personal_reader_edit")) { Text("עריכה", color = foreground) }
         }, colors = TopAppBarDefaults.topAppBarColors(containerColor = background))

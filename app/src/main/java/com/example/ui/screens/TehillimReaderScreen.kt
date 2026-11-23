@@ -32,7 +32,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
@@ -48,6 +47,7 @@ import com.example.ui.components.CompactReaderHeader
 import com.example.ui.components.EndOfLessonPullIndicator
 import com.example.ui.components.ReaderTypographySheet
 import com.example.ui.components.StudyTextBlock
+import com.example.ui.components.TehillimScopeToggle
 import com.example.ui.components.endOfLessonPull
 import com.example.ui.components.rememberReaderViewportState
 import com.example.ui.components.rememberEndOfLessonPullState
@@ -428,7 +428,10 @@ fun TehillimReaderScreen(
                 accentColor = Color(0xFF9FDEEF),
                 scrollProgress = scrollProgress,
                 readerTheme = preferences.readerTheme,
-                modifier = Modifier.align(Alignment.TopCenter)
+                modifier = Modifier.align(Alignment.TopCenter),
+                trailingAction = {
+                    onOpenPersonalPsalms?.let { TehillimScopeToggle(personal = false, preferences.readerTheme, it) }
+                }
             )
 
             ManualStudyCompletionControls(manualCompletion, listState, completionRows,
@@ -450,22 +453,6 @@ fun TehillimReaderScreen(
                     .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                onOpenPersonalPsalms?.let { open ->
-                    OutlinedButton(onClick = open,
-                        modifier = Modifier.padding(bottom = 4.dp).heightIn(min = 40.dp).testTag("tehillim_personal_psalms"),
-                        shape = RoundedCornerShape(20.dp), border = BorderStroke(1.dp, textColor.copy(alpha = .2f)),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            containerColor = when (preferences.readerTheme) {
-                                "dark", "oled" -> Color(0xFF1E222A)
-                                "sepia" -> backgroundColor
-                                else -> Color.White
-                            }, contentColor = textColor),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)) {
-                        Icon(Icons.Default.MenuBook, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text("הפרקים שלי", fontSize = 13.sp, fontWeight = FontWeight.Medium)
-                    }
-                }
                 // Compact Segment Switcher for "יומי" / "ג״פ אלול"
                 if (lesson.elulChapters.isNotEmpty()) {
                     Surface(

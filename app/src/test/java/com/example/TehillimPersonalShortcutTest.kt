@@ -41,7 +41,8 @@ class TehillimPersonalShortcutTest {
         listOf("light", "dark", "sepia").forEach { selected ->
             compose.runOnIdle { theme = selected }
             val button = compose.onNodeWithTag("tehillim_personal_psalms")
-            button.assertIsDisplayed()
+            compose.onNodeWithTag("tehillim_daily").assertIsSelected().assertIsDisplayed()
+            button.assertIsNotSelected().assertIsDisplayed()
             val text = mutableListOf<TextLayoutResult>()
             compose.onNodeWithText("הפרקים שלי").performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(text) }
             val foreground = text.single().layoutInput.style.color.luminance()

@@ -314,7 +314,14 @@ fun ChumashReaderScreen(
         }
     }
 
-    val activeFontFamily = FontStyleOption.fromId(preferences.fontFamily).fontFamily
+    val font = FontStyleOption.fromId(preferences.fontFamily)
+    // Android can fall back for an isolated mark, but cannot anchor it to a letter in another font.
+    val activeFontFamily = if (textMode == TorahTextMode.TEAMIM &&
+        (font == FontStyleOption.BONA_NOVA || font == FontStyleOption.LIBERTINUS)) {
+        FontStyleOption.SERIF.fontFamily
+    } else {
+        font.fontFamily
+    }
     val backgroundColor = when (preferences.readerTheme) {
         "dark", "oled" -> Color(0xFF121214)
         "sepia" -> Color(0xFFF5EEDA)

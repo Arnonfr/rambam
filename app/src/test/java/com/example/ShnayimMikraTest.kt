@@ -16,6 +16,10 @@ import com.example.ui.theme.FrankRuhlFontFamily
 import com.example.ui.util.HebrewTextNormalizer
 import com.example.ui.util.TorahTextMode
 import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.text.TextLayoutResult
+import com.example.ui.theme.BonaNovaFontFamily
+import com.example.ui.theme.TanyaPrintFontFamily
 import com.github.takahirom.roborazzi.captureRoboImage
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -99,11 +103,22 @@ class ShnayimMikraTest {
         } }
         val text = verseText("verse_item_4_19")
         assertFalse(text.any { it in '֑'..'ׇ' && it != '־' && it != '׃' })
+        val verse = compose.onAllNodes(
+            hasAnyAncestor(hasTestTag("verse_item_4_19")) and
+                SemanticsMatcher.keyIsDefined(SemanticsActions.GetTextLayoutResult),
+            useUnmergedTree = true
+        ).onFirst()
+        val layouts = mutableListOf<TextLayoutResult>()
+        verse.performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
+        assertEquals(BonaNovaFontFamily, layouts.single().layoutInput.style.fontFamily)
         compose.onRoot().captureRoboImage(filePath = "build/review/chumash-plain.png")
         preferences = UserPreferences(torahTextMode = "teamim")
         compose.waitForIdle()
         val withTeamim = verseText("verse_item_4_19")
         assertTrue(withTeamim.any { it in '֑'..'֯' })
+        layouts.clear()
+        verse.performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
+        assertEquals(TanyaPrintFontFamily, layouts.single().layoutInput.style.fontFamily)
     }
 
     @Test fun typographySheetOffersTheThreeModes() {

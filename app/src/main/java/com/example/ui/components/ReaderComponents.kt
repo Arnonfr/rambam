@@ -770,6 +770,28 @@ private fun <T> ReaderChoiceChips(
 /** Compact two-way switch for the reader header: "היום" / "כל הפרשה". */
 @Composable
 fun ShnayimMikraScopeToggle(scope: String, accentColor: Color, readerTheme: String, onSelect: (String) -> Unit) {
+    ReaderScopeToggle(scope, accentColor, readerTheme, "shnayim_mikra_toggle_",
+        listOf("day" to "היום", "week" to "כל הפרשה"), onSelect)
+}
+
+@Composable
+fun TehillimScopeToggle(personal: Boolean, readerTheme: String, onSwitch: () -> Unit) {
+    val selected = if (personal) "personal_psalms" else "daily"
+    ReaderScopeToggle(selected, Color(0xFF9FDEEF), readerTheme, "tehillim_",
+        listOf("daily" to "יומי", "personal_psalms" to "הפרקים שלי")) {
+        if (it != selected) onSwitch()
+    }
+}
+
+@Composable
+private fun ReaderScopeToggle(
+    selected: String,
+    accentColor: Color,
+    readerTheme: String,
+    tagPrefix: String,
+    options: List<Pair<String, String>>,
+    onSelect: (String) -> Unit
+) {
     val foreground = if (readerTheme in setOf("dark", "oled")) Color.White else Color.Black
     Row(
         modifier = Modifier
@@ -780,8 +802,8 @@ fun ShnayimMikraScopeToggle(scope: String, accentColor: Color, readerTheme: Stri
             .selectableGroup(),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        listOf("day" to "היום", "week" to "כל הפרשה").forEach { (id, label) ->
-            val isSelected = scope == id
+        options.forEach { (id, label) ->
+            val isSelected = selected == id
             Box(
                 modifier = Modifier
                     .fillMaxHeight()
@@ -789,7 +811,7 @@ fun ShnayimMikraScopeToggle(scope: String, accentColor: Color, readerTheme: Stri
                     .background(if (isSelected) accentColor else Color.Transparent)
                     .selectable(isSelected, role = Role.RadioButton) { onSelect(id) }
                     .padding(horizontal = 10.dp)
-                    .testTag("shnayim_mikra_toggle_$id"),
+                    .testTag(tagPrefix + id),
                 contentAlignment = Alignment.Center
             ) {
                 Text(label, fontSize = 11.sp, maxLines = 1,
