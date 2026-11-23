@@ -215,7 +215,7 @@ class MainActivity : ComponentActivity() {
                                 onMove = personalViewModel::move,
                                 onComplete = { entry, done -> personalViewModel.complete(entry, personalDate, done) },
                                 onFontSizeChange = viewModel::setFontSize, onLineSpacingChange = viewModel::setLineSpacing,
-                                onFontFamilyChange = viewModel::setFontFamily, onNikudToggle = viewModel::toggleShowNikud,
+                                onFontFamilyChange = viewModel::setFontFamily, onNikudToggle = viewModel::setTehillimShowNikud,
                                 onThemeChange = viewModel::setReaderTheme, onKeepScreenOnChange = viewModel::setKeepScreenOn,
                                 error = personalError, startWithManagement = personalManagement,
                                 onOpenDailyPsalms = if (personalManagement) null else {
@@ -358,7 +358,7 @@ class MainActivity : ComponentActivity() {
                                 onFontSizeChange = { viewModel.setFontSize(it) },
                                 onLineSpacingChange = { viewModel.setLineSpacing(it) },
                                 onFontFamilyChange = { viewModel.setFontFamily(it) },
-                                onNikudToggle = { viewModel.toggleShowNikud(it) },
+                                onNikudToggle = viewModel::setTehillimShowNikud,
                                 onThemeChange = { viewModel.setReaderTheme(it) },
                                 onKeepScreenOnChange = { viewModel.setKeepScreenOn(it) },
                                 hebrewDateText = uiState.dailyLesson?.hebrewDate ?: "",

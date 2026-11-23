@@ -52,6 +52,7 @@ import com.example.ui.components.endOfLessonPull
 import com.example.ui.components.rememberReaderViewportState
 import com.example.ui.components.rememberEndOfLessonPullState
 import com.example.ui.theme.*
+import com.example.ui.util.HebrewTextNormalizer
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 
@@ -104,6 +105,7 @@ fun TehillimReaderScreen(
 ) {
     BackHandler(onBack = onBack)
 
+    val readerPreferences = preferences.copy(showNikud = preferences.tehillimShowNikud)
     var activeTab by remember { mutableStateOf(TehillimTab.DAILY) }
     var showTypographySheet by remember { mutableStateOf(false) }
     val resumePosition = remember(lesson?.dayOfMonth) { savedPosition }
@@ -399,17 +401,11 @@ fun TehillimReaderScreen(
                         }
 
                         is TehillimUiRow.VerseRow -> {
-                            val cleanText = if (preferences.torahTextMode == "teamim") {
-                                row.verse.textWithTeamim
-                            } else {
-                                row.verse.textPlainNikud
-                            }
-
                             StudyTextBlock(
                                 indexLetter = row.verse.verseHebrew,
-                                textWithNikud = cleanText,
-                                textPlain = row.verse.textPlainNikud,
-                                preferences = preferences,
+                                textWithNikud = row.verse.textPlainNikud,
+                                textPlain = HebrewTextNormalizer.stripMarks(row.verse.textPlainNikud),
+                                preferences = readerPreferences,
                                 fontFamily = activeFontFamily,
                                 textColor = textColor,
                                 fontSizeSp = preferences.fontSizeSp,
@@ -526,7 +522,7 @@ fun TehillimReaderScreen(
 
         if (showTypographySheet) {
             ReaderTypographySheet(
-                preferences = preferences,
+                preferences = readerPreferences,
                 fontSizeSp = preferences.fontSizeSp,
                 onDismiss = { showTypographySheet = false },
                 onFontSizeChange = onFontSizeChange,
@@ -534,7 +530,8 @@ fun TehillimReaderScreen(
                 onFontFamilyChange = onFontFamilyChange,
                 onNikudToggle = onNikudToggle,
                 onThemeChange = onThemeChange,
-                onKeepScreenOnChange = onKeepScreenOnChange
+                onKeepScreenOnChange = onKeepScreenOnChange,
+                nikudOnly = true
             )
         }
     }

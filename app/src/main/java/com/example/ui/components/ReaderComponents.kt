@@ -363,7 +363,8 @@ fun ReaderTypographySheet(
     extraControls: @Composable () -> Unit = {},
     fixedPrintLayout: Boolean = false,
     // The Chumash readers replace the global switch with TorahTextModeSelector.
-    showNikudSwitch: Boolean = true
+    showNikudSwitch: Boolean = true,
+    nikudOnly: Boolean = false
 ) {
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -662,6 +663,7 @@ fun ReaderTypographySheet(
 
                         // Nikud Switch Row
                         if (!fixedPrintLayout && showNikudSwitch) {
+                        val nikudLabel = if (nikudOnly) "הצג ניקוד" else "הצג ניקוד וטעמים"
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -670,12 +672,15 @@ fun ReaderTypographySheet(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
-                                Text("הצג ניקוד וטעמים", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color(0xFF3F2D20))
-                                Text("הצגת סימני הניקוד וטעמי המקרא בטקסט", fontSize = 11.sp, color = Color(0xFF806B58))
+                                Text(nikudLabel, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color(0xFF3F2D20))
+                                if (!nikudOnly) {
+                                    Text("הצגת סימני הניקוד וטעמי המקרא בטקסט", fontSize = 11.sp, color = Color(0xFF806B58))
+                                }
                             }
                             Switch(
                                 checked = preferences.showNikud,
                                 onCheckedChange = onNikudToggle,
+                                modifier = Modifier.semantics { contentDescription = nikudLabel },
                                 colors = readerSwitchColors()
                             )
                         }

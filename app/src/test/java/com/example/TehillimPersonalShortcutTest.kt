@@ -28,7 +28,24 @@ class TehillimPersonalShortcutTest {
     val compose = createComposeRule()
     @get:Rule val hostAndCompose = withComposeHost(compose)
     private val lesson = DailyTehillimLesson("2026-10-16", 5, "ה׳",
-        listOf(TehillimChapter(29, "פרק כט", listOf(TehillimVerse(1, "א׳", "מזמור לדוד", "מזמור לדוד")))))
+        listOf(TehillimChapter(29, "פרק כט", listOf(TehillimVerse(1, "א׳", "מִזְמ֥וֹר לְדָוִד", "מִזְמוֹר לְדָוִד")))))
+
+    @Test fun dailyPsalmsToggleNikudIndependentlyFromTorahTextMode() {
+        var preferences by mutableStateOf(UserPreferences(torahTextMode = "teamim", keepScreenOn = false))
+        compose.setContent { DailyRambamTheme {
+            TehillimReaderScreen(lesson = lesson, isLoading = false, onBack = {},
+                preferences = preferences, onNikudToggle = { preferences = preferences.copy(tehillimShowNikud = it) })
+        } }
+        compose.onNodeWithText("א׳. מזמור לדוד").assertIsDisplayed()
+        compose.onNodeWithContentDescription("התאמת טקסט").performClick()
+        val switch = compose.onNodeWithContentDescription("הצג ניקוד")
+        switch.assertIsOff().performClick()
+        switch.assertIsOn()
+        compose.onNodeWithText("א׳. מִזְמוֹר לְדָוִד").assertExists()
+        switch.performClick()
+        switch.assertIsOff()
+        compose.onNodeWithText("א׳. מזמור לדוד").assertExists()
+    }
 
     @Test fun personalEntryIsReadableAndOpensEvenBeforeAddingChaptersInThisApp() {
         var theme by mutableStateOf("light")

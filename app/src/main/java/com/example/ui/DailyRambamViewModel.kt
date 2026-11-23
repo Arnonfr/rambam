@@ -381,10 +381,16 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
 
     private fun observePreferences() {
         viewModelScope.launch {
+            var previous: UserPreferences? = null
             prefsRepository.userPreferencesFlow.collectLatest { prefs ->
+                val reloadLessons = previous?.copy(tehillimShowNikud = prefs.tehillimShowNikud) != prefs
+                previous = prefs
                 _uiState.update { it.copy(preferences = prefs) }
-                refreshDailyLesson()
-                observeLatestPosition()
+                // Displaying vowels changes the current text in place and keeps the reader open.
+                if (reloadLessons) {
+                    refreshDailyLesson()
+                    observeLatestPosition()
+                }
             }
         }
     }
@@ -1584,6 +1590,12 @@ class DailyRambamViewModel(application: Application) : AndroidViewModel(applicat
     fun toggleShowNikud(show: Boolean) {
         viewModelScope.launch {
             prefsRepository.updateShowNikud(show)
+        }
+    }
+
+    fun setTehillimShowNikud(show: Boolean) {
+        viewModelScope.launch {
+            prefsRepository.updateTehillimShowNikud(show)
         }
     }
 

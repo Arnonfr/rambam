@@ -23,6 +23,7 @@ data class UserPreferences(
     val letterSpacingEm: Float = 0f,
     val fontFamily: String = "bonanova", // "bonanova", "sans", "serif", "libertinus"
     val showNikud: Boolean = true,
+    val tehillimShowNikud: Boolean = false,
     val readerTheme: String = "light", // "light", "sepia", "dark"
     val lastOpenedChapterId: String? = null,
     val keepScreenOn: Boolean = true,
@@ -45,6 +46,7 @@ class UserPreferencesRepository(private val context: Context) {
         val LINE_SPACING = floatPreferencesKey("line_spacing_multiplier")
         val FONT_FAMILY = stringPreferencesKey("font_family")
         val SHOW_NIKUD = booleanPreferencesKey("show_nikud")
+        val TEHILLIM_SHOW_NIKUD = booleanPreferencesKey("tehillim_show_nikud")
         val READER_THEME = stringPreferencesKey("reader_theme")
         val LAST_OPENED_CHAPTER_ID = stringPreferencesKey("last_opened_chapter_id")
         val KEEP_SCREEN_ON = booleanPreferencesKey("keep_screen_on")
@@ -70,6 +72,7 @@ class UserPreferencesRepository(private val context: Context) {
                 lineSpacingMultiplier = preferences[PreferencesKeys.LINE_SPACING] ?: 1.65f,
                 fontFamily = preferences[PreferencesKeys.FONT_FAMILY] ?: "bonanova",
                 showNikud = preferences[PreferencesKeys.SHOW_NIKUD] ?: true,
+                tehillimShowNikud = preferences[PreferencesKeys.TEHILLIM_SHOW_NIKUD] ?: false,
                 readerTheme = preferences[PreferencesKeys.READER_THEME] ?: "light",
                 lastOpenedChapterId = preferences[PreferencesKeys.LAST_OPENED_CHAPTER_ID],
                 keepScreenOn = preferences[PreferencesKeys.KEEP_SCREEN_ON] ?: true,
@@ -126,6 +129,10 @@ class UserPreferencesRepository(private val context: Context) {
 
     suspend fun updateShowNikud(show: Boolean) {
         context.dataStore.edit { it[PreferencesKeys.SHOW_NIKUD] = show }
+    }
+
+    suspend fun updateTehillimShowNikud(show: Boolean) {
+        context.dataStore.edit { it[PreferencesKeys.TEHILLIM_SHOW_NIKUD] = show }
     }
 
     suspend fun updateReaderTheme(theme: String) {

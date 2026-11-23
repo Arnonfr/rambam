@@ -14,6 +14,24 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35])
 class GlobalReaderPreferencesTest {
+    @Test fun tehillimNikudDefaultsOffAndPersistsSeparately() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val repository = UserPreferencesRepository(context)
+        val initial = repository.userPreferencesFlow.first()
+        assertFalse(initial.tehillimShowNikud)
+        try {
+            repository.updateTehillimShowNikud(true)
+            val updated = UserPreferencesRepository(context).userPreferencesFlow.first()
+            assertTrue(updated.tehillimShowNikud)
+            assertEquals(initial.showNikud, updated.showNikud)
+            assertEquals(initial.torahTextMode, updated.torahTextMode)
+            repository.updateTehillimShowNikud(false)
+            assertFalse(repository.userPreferencesFlow.first().tehillimShowNikud)
+        } finally {
+            repository.updateTehillimShowNikud(initial.tehillimShowNikud)
+        }
+    }
+
     @Test fun readerChangesPersistGloballyAsAbsoluteValuesWithoutChangingTanyaPrintMode() = runBlocking {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val repository = UserPreferencesRepository(context)

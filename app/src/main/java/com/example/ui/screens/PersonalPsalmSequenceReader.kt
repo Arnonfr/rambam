@@ -54,6 +54,7 @@ internal fun PersonalPsalmSequenceReader(
     onNikudToggle: (Boolean) -> Unit, onThemeChange: (String) -> Unit, onKeepScreenOnChange: (Boolean) -> Unit,
     onOpenDailyPsalms: (() -> Unit)? = null
 ) {
+    val readerPreferences = preferences.copy(showNikud = preferences.tehillimShowNikud)
     val context = LocalContext.current
     val repository = remember(context) { TehillimRepository(context.applicationContext) }
     val selection = entries.mapNotNull { entry -> entry.chapter(date)?.let { entry to it } }
@@ -167,7 +168,7 @@ internal fun PersonalPsalmSequenceReader(
                         }
                         itemsIndexed(chapter.verses, key = { _, verse -> "${entry.id}:${verse.verseNumber}" }) { _, verse ->
                             StudyTextBlock(verse.verseHebrew, verse.textPlainNikud, HebrewTextNormalizer.stripMarks(verse.textPlainNikud),
-                                preferences, textColor = foreground, modifier = Modifier.padding(bottom = 20.dp),
+                                readerPreferences, textColor = foreground, modifier = Modifier.padding(bottom = 20.dp),
                                 testTag = "personal_verse_${entry.id}_${verse.verseNumber}")
                         }
                     }
@@ -177,7 +178,8 @@ internal fun PersonalPsalmSequenceReader(
                 Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(bottom = 24.dp))
         }
     }
-    if (typography) ReaderTypographySheet(preferences, onDismiss = { typography = false },
+    if (typography) ReaderTypographySheet(readerPreferences, onDismiss = { typography = false },
         onFontSizeChange = onFontSizeChange, onLineSpacingChange = onLineSpacingChange, onFontFamilyChange = onFontFamilyChange,
-        onNikudToggle = onNikudToggle, onThemeChange = onThemeChange, onKeepScreenOnChange = onKeepScreenOnChange)
+        onNikudToggle = onNikudToggle, onThemeChange = onThemeChange, onKeepScreenOnChange = onKeepScreenOnChange,
+        nikudOnly = true)
 }
