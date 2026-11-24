@@ -19,9 +19,24 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.PlaybackBarState
+
+@Composable
+internal fun BoxScope.FloatingPlaybackOverlay(
+    state: PlaybackBarState,
+    onToggle: () -> Unit,
+    onStop: () -> Unit,
+    extraBottomClearance: Dp = 0.dp
+) {
+    if (!state.visible) return
+    // The navigation stays in the screen's layout. Leave room above its floating bar.
+    Box(Modifier.align(Alignment.BottomCenter).padding(bottom = 72.dp + extraBottomClearance)) {
+        GlobalPlaybackBar(state, onToggle, onStop)
+    }
+}
 
 /** The mini player: a floating pill, as the reference's bottom bar, with the lesson colour on the play button. */
 @Composable

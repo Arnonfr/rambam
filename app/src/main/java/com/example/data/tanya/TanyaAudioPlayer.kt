@@ -7,6 +7,7 @@ import androidx.media3.common.*
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.example.data.prayers.audio.PrayerPlaybackService
+import com.example.data.prayers.audio.mediaItem
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -53,8 +54,7 @@ class TanyaAudioPlayer(context: Context) {
             mutable.value = TanyaPlaybackState(active = true, loading = true, speed = prefs.getFloat("speed", 1f))
             c.pause()
             com.example.data.analytics.AudioAnalytics.get(app).tracker.request(clip.id, "tanya", "recording")
-            c.setMediaItem(MediaItem.Builder().setMediaId(clip.id).setUri(clip.url)
-                .setMediaMetadata(MediaMetadata.Builder().setTitle(clip.title).setArtist("תניא · ${clip.teacher}").setExtras(android.os.Bundle().apply { putString("usage_key", clip.id); putString("usage_type", "tanya") }).build()).build(),
+            c.setMediaItem(clip.mediaItem(app),
                 prefs.getLong(clip.id, 0).coerceAtLeast(0))
             c.setPlaybackSpeed(prefs.getFloat("speed", 1f))
             c.prepare(); c.play()

@@ -29,6 +29,7 @@ import com.example.data.prayers.PrayerRepository
 import com.example.ui.screens.PrayerReaderScreen
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -37,6 +38,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ui.DailyRambamViewModel
 import com.example.ui.components.AttributionDialog
 import com.example.ui.components.CalendarDatePickerDialog
+import com.example.ui.components.FloatingPlaybackOverlay
 import com.example.ui.screens.SettingsScreen
 import com.example.ui.screens.ChumashReaderScreen
 import com.example.ui.screens.TehillimReaderScreen
@@ -197,8 +199,6 @@ class MainActivity : ComponentActivity() {
                 Scaffold(
                     containerColor = if (uiState.isLoading && uiState.allSections.isEmpty()) androidx.compose.ui.graphics.Color.White else androidx.compose.material3.MaterialTheme.colorScheme.background,
                     modifier = Modifier.fillMaxSize(),
-                    bottomBar = { com.example.ui.components.GlobalPlaybackBar(playbackState,
-                        playbackViewModel::toggle, { speechViewModel.action(com.example.data.speech.DailySpeechStatus.STOP); playbackViewModel.stop() }) },
                     snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
                 ) { innerPadding ->
                     Box(
@@ -585,6 +585,16 @@ class MainActivity : ComponentActivity() {
                                 onOpenPrayer = { prayerId = it }
                             )
                         }
+
+                        FloatingPlaybackOverlay(
+                            state = playbackState,
+                            onToggle = playbackViewModel::toggle,
+                            onStop = {
+                                speechViewModel.action(com.example.data.speech.DailySpeechStatus.STOP)
+                                playbackViewModel.stop()
+                            },
+                            extraBottomClearance = if (uiState.activeCompletion != null) 48.dp else 0.dp
+                        )
 
                         // Calendar Date Picker Dialog
                         if (uiState.showDatePickerDialog) {

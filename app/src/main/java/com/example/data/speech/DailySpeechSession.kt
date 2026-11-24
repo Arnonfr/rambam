@@ -2,6 +2,8 @@ package com.example.data.speech
 
 import android.net.Uri
 import androidx.media3.common.*
+import com.example.data.prayers.audio.StudyMedia
+import com.example.data.prayers.audio.recordingItem
 import com.example.domain.speech.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -54,6 +56,10 @@ class DailySpeechSession(private val player: Player, private val store: SpeechLe
         }
         override fun onEvents(player: Player, events: Player.Events) {
             if (changing) return
+            val carPlan = player.currentMediaItem?.localConfiguration?.tag as? DailySpeechLesson
+            if (carPlan != null && carPlan.id != lesson?.id) {
+                adoptCarRecording(carPlan)
+            }
             if (lesson != null && (playbackStarted || player.currentMediaItem != null) && !owns()) {
                 save(); cancelGeneration(); lesson = null; playbackStarted = false; status.value = DailySpeechState(); return
             }
@@ -66,6 +72,20 @@ class DailySpeechSession(private val player: Player, private val store: SpeechLe
     init {
         player.addListener(listener)
         scope.launch { while (isActive) { refresh(); save(); delay(500) } }
+    }
+    private fun adoptCarRecording(plan: DailySpeechLesson) {
+        cancelGeneration()
+        lesson = plan
+        playbackStarted = true
+        generatedAll = true
+        wantPlay = player.playWhenReady
+        requestedPart = 0
+        firstPart = 0
+        files.clear()
+        durations.clear()
+        status.value = DailySpeechState(lessonId = plan.id, title = plan.title, recorded = true,
+            voiceStatus = if (plan.source == "peretz") "ר׳ אליהו פרץ · חב״ד FM" else "הרב נדב כהן · חב״ד FM")
+        usage?.request(plan.id, com.example.data.analytics.AudioAnalytics.rambamType(plan.id), "recording")
     }
     fun start(id: String, restart: Boolean = false, partOverride: Int? = null, autoPlay: Boolean = true) {
         val plan = runCatching { store.load(id) }.getOrElse { status.value = status.value.copy(error="לא ניתן לטעון את השיעור להאזנה."); return }
@@ -86,9 +106,8 @@ class DailySpeechSession(private val player: Player, private val store: SpeechLe
         if (plan.recorded) {
             generatedAll = true
             changing = true
-            plan.parts.drop(start).forEachIndexed { offset, part ->
-                player.addMediaItem(MediaItem.Builder().setMediaId(id(start + offset)).setUri(part.audioUrl)
-                    .setMediaMetadata(MediaMetadata.Builder().setTitle(plan.title).setArtist(status.value.voiceStatus).build()).build())
+            for (index in start..plan.parts.lastIndex) {
+                player.addMediaItem(plan.recordingItem(store.context, index))
             }
             player.seekTo(0, saved.second.coerceAtLeast(0)); player.setPlaybackSpeed(store.speed()); player.prepare()
             playbackStarted = true; player.playWhenReady = wantPlay
@@ -121,7 +140,8 @@ class DailySpeechSession(private val player: Player, private val store: SpeechLe
                     val ended = player.playbackState == Player.STATE_ENDED
                     changing = true
                     val item = MediaItem.Builder().setMediaId(id(index)).setUri(Uri.fromFile(file))
-                        .setMediaMetadata(MediaMetadata.Builder().setTitle(plan.title).setArtist(part.chapterTitle).build()).build()
+                        .setMediaMetadata(StudyMedia.RAMBAM.metadata(store.context, plan.title, part.chapterTitle)
+                            .setSubtitle(PiperVoiceFiles.VOICE).build()).build()
                     player.addMediaItem(item)
                     if (!playbackStarted) {
                         player.seekTo(0, saved.second.coerceAtLeast(0)); player.setPlaybackSpeed(store.speed()); player.prepare()

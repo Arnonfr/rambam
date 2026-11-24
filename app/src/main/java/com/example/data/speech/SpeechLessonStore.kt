@@ -6,7 +6,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 
-class SpeechLessonStore(private val context: Context) {
+class SpeechLessonStore(internal val context: Context) {
     val voiceCached: Boolean get() = com.example.data.speech.PiperVoiceFiles.assets.all {
         val file = File(context.noBackupFilesDir,"piper-michael-v1/${it.name}")
         file.isFile && file.length() == it.bytes
@@ -21,8 +21,13 @@ class SpeechLessonStore(private val context: Context) {
                 .put("chapterId", it.chapterId).put("chapterTitle", it.chapterTitle).put("text", it.text)
                 .put("unit", it.unit).put("unitLabel", it.unitLabel).put("audioUrl", it.audioUrl)) } })
         val file = planFile(lesson.id)
-        val temp = File(root, "${file.name}.tmp")
-        temp.writeText(json.toString()); check(temp.renameTo(file))
+        val temp = File.createTempFile(file.name, ".tmp", root)
+        try {
+            temp.writeText(json.toString())
+            check(temp.renameTo(file))
+        } finally {
+            temp.delete()
+        }
         // Plans are small, but do not retain an unlimited history of lesson text.
         root.listFiles()?.filter { it.extension == "json" && it != file }?.sortedByDescending { it.lastModified() }
             ?.drop(6)?.forEach { it.delete() }

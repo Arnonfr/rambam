@@ -17,7 +17,7 @@ android {
     applicationId = "com.aistudio.dailyrambam.kzjvw"
     minSdk = 24
     targetSdk = 36
-    versionCode = 152
+    versionCode = 153
     versionName = "2.0"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
