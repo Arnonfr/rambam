@@ -75,6 +75,7 @@ jobs:
           --tests com.example.ReaderCorrectionsTest
           --tests com.example.ReaderFontSelectionTest
           --tests com.example.ReaderFeedbackTest
+          --tests com.example.RambamRecordingTest
           --tests com.example.RambamAudioVisibilityTest
           --tests com.example.TanyaAudioVisibilityTest
           --tests com.example.HebrewTextNormalizerTest

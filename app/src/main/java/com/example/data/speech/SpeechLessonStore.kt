@@ -42,7 +42,7 @@ class SpeechLessonStore(internal val context: Context) {
         }, json.optString("source", "michael")).also {
             require(it.parts.isNotEmpty())
             require(it.source in setOf("michael", "nadav", "peretz"))
-            if (it.recorded) require(it.parts.all { part -> RambamRecordingRepository.allowedUrl(part.audioUrl) })
+            if (it.recorded) require(it.parts.all { part -> RambamRecordingRepository.allowedUrl(part.audioUrl, it.source) })
         }
     }
     private fun planFile(id: String): File { require(id.matches(Regex("[a-zA-Z0-9_-]{1,160}"))); return File(root, "$id.json") }

@@ -132,8 +132,8 @@ class DailySpeechTest {
     }
     @Test fun `publisher recording uses shared playback and resumes without initializing a voice`() = runTest {
         val store=SpeechLessonStore(ApplicationProvider.getApplicationContext())
-        val plan=DailySpeechLesson("rambam-2026-10-23-one-nadav-0264", "רמב״ם · י״ב חשוון",
-            listOf(SpeechPart("issurei-biah_4", "איסורי ביאה ד", "", audioUrl="https://www.chabad.fm/mp3/rambamRabbiNadav/0264.mp3")), "nadav")
+        val plan=DailySpeechLesson("rambam-2026-10-23-one-nadav-archive-4801", "רמב״ם · י״ב חשוון",
+            listOf(SpeechPart("issurei-biah_4", "איסורי ביאה ד", "", audioUrl="https://tanyayomi.com/%D7%A8%D7%9E%D7%91%D7%9D-05-01-04-%D7%93.m4a")), "nadav")
         store.save(plan);store.savePosition(plan.id,0,3450)
         val p=QueuePlayer();p.duration=120000
         val session=DailySpeechSession(p.player,store,{error("Recording must never initialize TTS")},backgroundScope)

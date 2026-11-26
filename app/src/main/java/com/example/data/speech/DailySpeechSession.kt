@@ -84,7 +84,7 @@ class DailySpeechSession(private val player: Player, private val store: SpeechLe
         files.clear()
         durations.clear()
         status.value = DailySpeechState(lessonId = plan.id, title = plan.title, recorded = true,
-            voiceStatus = if (plan.source == "peretz") "ר׳ אליהו פרץ · חב״ד FM" else "הרב נדב כהן · חב״ד FM")
+            voiceStatus = if (plan.source == "peretz") "ר׳ אליהו פרץ · חב״ד FM" else "הרב נדב כהן · תניא יומי")
         usage?.request(plan.id, com.example.data.analytics.AudioAnalytics.rambamType(plan.id), "recording")
     }
     fun start(id: String, restart: Boolean = false, partOverride: Int? = null, autoPlay: Boolean = true) {
@@ -102,7 +102,7 @@ class DailySpeechSession(private val player: Player, private val store: SpeechLe
         firstPart = start
         status.value = DailySpeechState(id, plan.title, plan.parts[start].chapterTitle, preparing=true, active=true, speed=store.speed(),paused=!autoPlay,
             canPrevious=plan.previousUnitStart(start)!=null,canNext=plan.nextUnitStart(start)!=null,
-            recorded=plan.recorded, voiceStatus=when(plan.source) { "nadav" -> "הרב נדב כהן · חב״ד FM"; "peretz" -> "ר׳ אליהו פרץ · חב״ד FM"; else -> PiperVoiceFiles.VOICE })
+            recorded=plan.recorded, voiceStatus=when(plan.source) { "nadav" -> "הרב נדב כהן · תניא יומי"; "peretz" -> "ר׳ אליהו פרץ · חב״ד FM"; else -> PiperVoiceFiles.VOICE })
         if (plan.recorded) {
             generatedAll = true
             changing = true
