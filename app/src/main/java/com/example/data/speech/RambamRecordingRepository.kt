@@ -85,6 +85,18 @@ class RambamRecordingRepository internal constructor(context: Context, private v
         private val chapterSuffix = Regex("""\s+פרק\s+([א-ת'׳"״0-9]+)\s*$""")
         private val archiveHosts = setOf("tanyayomi.com", "www.tanyayomi.com")
 
+        private data class ArchiveSection(val book: String, val number: String, val label: String)
+
+        // Verified against the publisher's actual resolved filenames. Do not guess the
+        // numbering or short labels of unaudited sections from their daily order.
+        private val verifiedNadavSections = mapOf(
+            "issurei_biah" to ArchiveSection("05", "01", "ביאות"),
+            "maachalot_assurot" to ArchiveSection("05", "02", "מאכלות"),
+            "shechitah" to ArchiveSection("05", "03", "שחיטה"),
+            "shevuot" to ArchiveSection("06", "01", "שבועות")
+        )
+        private val nadavSectionPattern = Regex("""^רמבם-(\d{2})(?:-[א-ת]+)?-(\d{2})(?:-([א-ת]+))?$""")
+
         internal data class NadavCandidate(val id: String, val sourceUrl: String)
 
         private fun isCleanHttps(url: HttpUrl) =
@@ -144,6 +156,18 @@ class RambamRecordingRepository internal constructor(context: Context, private v
             val fields = name.split('-')
             check(fields.size >= 3 && fields[fields.lastIndex - 1].toIntOrNull() == chapter.chapterNumber &&
                 hebrewNumber(fields.last()) == chapter.chapterNumber) { noNadavMatch }
+            val section = nadavSectionPattern.matchEntire(fields.dropLast(2).joinToString("-"))
+            val expected = verifiedNadavSections[chapter.sectionId]
+            if (expected != null) {
+                check(section != null && section.groupValues[1] == expected.book &&
+                    section.groupValues[2] == expected.number &&
+                    section.groupValues[3].let { it.isEmpty() || it == expected.label }) { noNadavMatch }
+            } else if (section != null) {
+                // Never allow a known different section to impersonate an unaudited one.
+                check(verifiedNadavSections.values.none {
+                    it.book == section.groupValues[1] && it.number == section.groupValues[2]
+                }) { noNadavMatch }
+            }
             val title = "${chapter.sectionNameHebrew} · ${chapter.chapterHebrew}"
             return DailySpeechLesson("rambam-${day.studyDate}-one-nadav-archive-${candidate.id}", "רמב״ם · ${day.hebrewDate}",
                 listOf(SpeechPart("${chapter.sectionId}_${chapter.chapterNumber}", title, "", unitLabel = "הקלטה", audioUrl = url)), "nadav")

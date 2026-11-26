@@ -25,7 +25,7 @@ class RambamRecordingTest {
     private fun html(track: String) = javaClass.classLoader!!.getResourceAsStream("chabad_rambam_${track}_oct23.html")!!.bufferedReader().use { it.readText() }
     private fun day(track: String, date: String = "2026-10-23") = DailyScheduleEngine(ApplicationProvider.getApplicationContext())
         .getDailyLesson(Instant.parse("${date}T12:00:00Z"), ZoneId.of("UTC"),track)
-    private fun archive() = javaClass.classLoader!!.getResourceAsStream("nadav_rambam_nov25_27.json")!!.bufferedReader().use { it.readText() }
+    private fun archive() = javaClass.classLoader!!.getResourceAsStream("nadav_rambam_archive.json")!!.bufferedReader().use { it.readText() }
     private fun media(chapter: Int, hebrew: String) = "https://tanyayomi.com/רמבם-05-קדושה-02-מאכלות-$chapter-$hebrew.m4a"
 
     @Test fun nadavRecordingMatchesDisplayedChapterOnThreeConsecutiveDays() {
@@ -70,7 +70,7 @@ class RambamRecordingTest {
 
     @Test fun nadavRejectsWrongDayChapterBookOrMislabeledFile() {
         val today = day("one", "2026-11-26")
-        assertThrows(IllegalStateException::class.java) { RambamRecordingRepository.parseNadav(archive(), day("one","2026-11-28")) }
+        assertThrows(IllegalStateException::class.java) { RambamRecordingRepository.parseNadav(archive(), day("one","2026-11-29")) }
         assertThrows(IllegalStateException::class.java) { RambamRecordingRepository.parseNadav(archive().replace("הלכות מאכלות אסורות","הלכות שחיטה"), today) }
         assertThrows(IllegalStateException::class.java) { RambamRecordingRepository.parseNadav(archive().replace("פרק טז","פרק טו"), today) }
         assertThrows(IllegalStateException::class.java) { RambamRecordingRepository.parseNadav(archive().replace("https://bit.ly/3vAJYQe","https://example.com/wrong.m4a"), today) }
@@ -78,6 +78,25 @@ class RambamRecordingTest {
         assertThrows(IllegalStateException::class.java) { RambamRecordingRepository.nadavPlan(today, candidate, media(15, "טו")) }
         assertThrows(IllegalStateException::class.java) { RambamRecordingRepository.nadavPlan(today, candidate, media(16, "טו")) }
         assertThrows(IllegalStateException::class.java) { RambamRecordingRepository.nadavPlan(today, candidate, "https://www.chabad.fm/mp3/rambamRabbiNadav/0298.mp3") }
+    }
+
+    @Test fun rejectsChapterOneFromAnotherSectionAtARealSectionBoundary() {
+        val slaughter = day("one", "2026-11-28")
+        val oaths = day("one", "2026-12-12")
+        val slaughterUrl = "https://tanyayomi.com/רמבם-05-קדושה-03-שחיטה-01-א.m4a"
+        val oathsUrl = "https://tanyayomi.com/רמבם-06-הפלאה-01-שבועות-01-א.m4a"
+        val slaughterCandidate = RambamRecordingRepository.parseNadav(archive(), slaughter)
+        val oathsCandidate = RambamRecordingRepository.parseNadav(archive(), oaths)
+        assertEquals("shechitah_1", RambamRecordingRepository.nadavPlan(slaughter, slaughterCandidate, slaughterUrl).parts.single().chapterId)
+        assertEquals("shevuot_1", RambamRecordingRepository.nadavPlan(oaths, oathsCandidate, oathsUrl).parts.single().chapterId)
+        assertEquals("shechitah_1", RambamRecordingRepository.nadavPlan(slaughter, slaughterCandidate,
+            "https://tanyayomi.com/רמבם-05-03-01-א.m4a").parts.single().chapterId)
+        assertThrows(IllegalStateException::class.java) { RambamRecordingRepository.nadavPlan(slaughter, slaughterCandidate, oathsUrl) }
+        assertThrows(IllegalStateException::class.java) { RambamRecordingRepository.nadavPlan(oaths, oathsCandidate, slaughterUrl) }
+        assertThrows(IllegalStateException::class.java) { RambamRecordingRepository.nadavPlan(slaughter, slaughterCandidate,
+            "https://tanyayomi.com/רמבם-05-02-01-א.m4a") }
+        assertThrows(IllegalStateException::class.java) { RambamRecordingRepository.nadavPlan(slaughter, slaughterCandidate,
+            slaughterUrl.replace("שחיטה", "שבועות")) }
     }
 
     @Test fun peretzPublisherPageStillMatchesTheThreeChapterAssignment() {
